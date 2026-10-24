@@ -74,6 +74,8 @@ body{overscroll-behavior:none}
 .t-top{display:flex;justify-content:space-between;align-items:center;padding:4px 8px 2px;font-size:12px;font-weight:700;color:var(--t-sub);text-transform:uppercase;letter-spacing:.2px}
 .t-top .rt{display:flex;gap:8px;align-items:center;white-space:nowrap}
 .t-top .tv{color:#fff}
+.t-top .ser{text-transform:none;color:#fff}
+.t-ps{padding:4px 8px 3px;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--amber);background:rgba(0,0,0,.22);border-bottom:1px solid rgba(0,0,0,.3);text-shadow:0 -1px 0 rgba(0,0,0,.6)}
 .t-top .lg{color:var(--amber)}
 .t-top.live{color:#fff}
 .t-top.live .st::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--live);margin-right:5px;vertical-align:1px;box-shadow:0 0 6px var(--live);animation:pulse 1.4s infinite}
@@ -240,9 +242,9 @@ body{overscroll-behavior:none}
 const SPORTS = [
   { key:'cfb', theme:'red', name:'College Football', tag:'NCAAF', mark:'NCAAF', path:'football/college-football',          params:'groups=80&limit=300', college:true,  page:'ncaafb-scoreboard.html' },
   { key:'nfl', theme:'nfl', name:'NFL',              tag:'NFL',   mark:'NFL',   path:'football/nfl',                       params:'',                    college:false, page:'nfl-scoreboard.html' },
-  { key:'mlb', theme:'mlb', name:'MLB',              tag:'MLB',   mark:'MLB',   path:'baseball/mlb',                       params:'',                    college:false, page:'mlb-scoreboard.html' },
-  { key:'ncb', theme:'red', name:'College Hoops',    tag:'NCAAB', mark:'NCAAB', path:'basketball/mens-college-basketball', params:'groups=50&limit=300', college:true,  page:'ncaabb-scoreboard.html' },
-  { key:'nba', theme:'nba', name:'NBA',              tag:'NBA',   mark:'NBA',   path:'basketball/nba',                     params:'',                    college:false, page:'nba-scoreboard.html' },
+  { key:'mlb', daily:true, theme:'mlb', name:'MLB',              tag:'MLB',   mark:'MLB',   path:'baseball/mlb',                       params:'',                    college:false, page:'mlb-scoreboard.html' },
+  { key:'ncb', daily:true, theme:'red', name:'College Hoops',    tag:'NCAAB', mark:'NCAAB', path:'basketball/mens-college-basketball', params:'groups=50&limit=300', college:true,  page:'ncaabb-scoreboard.html' },
+  { key:'nba', daily:true, theme:'nba', name:'NBA',              tag:'NBA',   mark:'NBA',   path:'basketball/nba',                     params:'',                    college:false, page:'nba-scoreboard.html' },
 ];
 // Where tapping a game goes. Default: the game's own page from the feed.
 const gameLink = (sport, ev) => (ev.links && ev.links[0] && ev.links[0].href) || '#';
@@ -268,7 +270,8 @@ function mk(id, st, detail, hrs, away, home, extra = {}){
       situation: extra.play ? { lastPlay: { text: extra.play } } : null,
       broadcasts: extra.tv ? [{ names: [extra.tv] }] : [], venue: extra.venue ? { fullName: extra.venue[0], address: { city: extra.venue[1], state: extra.venue[2] } } : null,
       notes: extra.note ? [{ headline: extra.note }] : [],
-      odds: extra.odds ? [{ details: extra.odds[0], overUnder: extra.odds[1] }] : [] }] };
+      odds: extra.odds ? [{ details: extra.odds[0], overUnder: extra.odds[1] }] : [],
+      series: extra.series ? { type: 'playoff', title: 'World Series', competitors: [{ id: away[1], wins: extra.series[0] }, { id: home[1], wins: extra.series[1] }] } : undefined }] };
 }
 const SAMPLE = {
   cfb: [
@@ -281,8 +284,8 @@ const SAMPLE = {
     mk('n2','pre','',36,['Buffalo','BUF','00338d',null,null,'5-2'],['Kansas City','KC','e31837',null,null,'6-1'],{odds:['KC -2.5',47.5],tv:'Sample TV',venue:['Arrowhead Stadium','Kansas City','MO'],lead:[[['passingYards','PASS','J. Allen','1,904 YDS, 14 TD, 3 INT'],['rushingYards','RUSH','T. Cook','512'],['receivingYards','REC','K. Shakir','447']],[['passingYards','PASS','P. Mason','1,766'],['rushingYards','RUSH','I. Pace','389'],['receivingYards','REC','T. Kirk','502']]]}),
   ],
   mlb: [
-    mk('m1','post','Final',-26,['Los Angeles','LAD','005a9c',5],['New York','NYY','132448',3],{win:'away',ls:[[0,2,0,0,1,0,2,0,0],[1,0,0,0,0,2,0,0,0]],rhe:[[9,0],[6,1]],lead:[[['hits','BA','F. Ruiz','3-4, HR, 2 RBI'],['homeRuns','HR','S. Ohta','1-4, HR, R'],['RBIs','RBI','M. Betts','2-4, 2 RBI']],[['hits','BA','A. Judd','2-4, 2B, 2 RBI'],['homeRuns','HR','G. Stanton','1-3, HR, BB'],['RBIs','RBI','J. Soto','1-4, 2 RBI']]],post:true,head:'Sample recap: Los Angeles takes the series opener on the road.'}),
-    mk('m2','pre','',18,['Los Angeles','LAD','005a9c'],['New York','NYY','132448'],{post:true,note:'Sample: Game 2',venue:['Yankee Stadium','Bronx','NY'],lead:[[['avg','AVG','F. Ruiz','.312'],['homeRuns','HR','S. Ohta','44'],['RBIs','RBI','F. Ruiz','109']],[['avg','AVG','A. Judd','.301'],['homeRuns','HR','A. Judd','49'],['RBIs','RBI','J. Soto','112']]]}),
+    mk('m1','post','Final',-26,['Los Angeles','LAD','005a9c',5],['New York','NYY','132448',3],{win:'away',note:'World Series - Game 1',ls:[[0,2,0,0,1,0,2,0,0],[1,0,0,0,0,2,0,0,0]],rhe:[[9,0],[6,1]],lead:[[['hits','BA','F. Ruiz','3-4, HR, 2 RBI'],['homeRuns','HR','S. Ohta','1-4, HR, R'],['RBIs','RBI','M. Betts','2-4, 2 RBI']],[['hits','BA','A. Judd','2-4, 2B, 2 RBI'],['homeRuns','HR','G. Stanton','1-3, HR, BB'],['RBIs','RBI','J. Soto','1-4, 2 RBI']]],post:true,head:'Sample recap: Los Angeles takes the series opener on the road.'}),
+    mk('m2','pre','',18,['Los Angeles','LAD','005a9c'],['New York','NYY','132448'],{post:true,note:'World Series - Game 2',series:[1,0],venue:['Yankee Stadium','Bronx','NY'],lead:[[['avg','AVG','F. Ruiz','.312'],['homeRuns','HR','S. Ohta','44'],['RBIs','RBI','F. Ruiz','109']],[['avg','AVG','A. Judd','.301'],['homeRuns','HR','A. Judd','49'],['RBIs','RBI','J. Soto','112']]]}),
   ],
   ncb: [
     mk('b1','pre','',300,['Kansas','KU','0051ba',null,7],['Duke','DUKE','003087',null,3],{note:'Sample: season opener',venue:['State Farm Arena','Atlanta','GA'],lead:[[['pointsPerGame','PTS','H. Dickson','18.4'],['assistsPerGame','AST','D. Harris','6.3'],['reboundsPerGame','REB','H. Dickson','10.2']],[['pointsPerGame','PTS','C. Flagg','19.7'],['assistsPerGame','AST','T. Proctor','5.4'],['reboundsPerGame','REB','K. Malik','8.1']]]}),
@@ -374,6 +377,19 @@ function normalize(sport, ev){
     };
   });
   let label, blurb = '';
+  const postseason = ev.season && ev.season.type === 3;
+  const note = c.notes && c.notes[0] && c.notes[0].headline;
+  const psLabel = postseason ? (note || (c.series && c.series.title) || 'Postseason').replace(/\s+-\s+/g, ' · ') : '';
+  // Series status before a playoff game: "(MIL leads 1-0)" or "(Series tied 0-0)"
+  let seriesTxt = '';
+  if (postseason && c.series && c.series.type !== 'season' && st.state === 'pre') {
+    const comp = c.series.competitors || [];
+    const wins = teams.map(t => { const x = comp.find(y => String(y.id) === String(t.id)); return x ? +x.wins || 0 : null; });
+    if (wins.every(w => w != null)) {
+      const [w0, w1] = wins;
+      seriesTxt = w0 === w1 ? `Series tied ${w0}-${w1}` : `${teams[w0 > w1 ? 0 : 1].abbr} leads ${Math.max(w0, w1)}-${Math.min(w0, w1)}`;
+    } else if (c.series.summary) seriesTxt = c.series.summary.replace(/\s+series\s+/i, ' ');
+  }
   if (st.state === 'post') {
     label = `${md(date)}: ${st.shortDetail.replace(/^Final/i,'FINAL')}`;
     blurb = (c.headlines && c.headlines[0] && (c.headlines[0].shortLinkText || c.headlines[0].description)) || '';
@@ -385,14 +401,14 @@ function normalize(sport, ev){
     const tv = c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names.join('/');
     const venue = c.venue && c.venue.fullName;
     blurb = venue || '';
-    if (c.notes && c.notes[0] && c.notes[0].headline) blurb = c.notes[0].headline + (blurb ? ' · ' + blurb : '');
+    if (!postseason && c.notes && c.notes[0] && c.notes[0].headline) blurb = c.notes[0].headline + (blurb ? ' · ' + blurb : '');
   }
-  if (!blurb && c.notes && c.notes[0]) blurb = c.notes[0].headline;
+  if (!blurb && !postseason && c.notes && c.notes[0]) blurb = c.notes[0].headline;
   const scores = teams.map(t => +t.score || 0);
   const bc = c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names.join('/');
   const tv = st.state === 'post' ? '' : (bc || (c.geoBroadcasts && c.geoBroadcasts[0] && c.geoBroadcasts[0].media && c.geoBroadcasts[0].media.shortName) || '');
   const odds = c.odds && c.odds[0];
-  return { id: ev.id, sport, state: st.state, date, label, blurb, tv, teams, link: gameLink(sport, ev),
+  return { id: ev.id, sport, state: st.state, date, label, blurb, tv, teams, link: gameLink(sport, ev), psLabel, seriesTxt,
     detail: st.shortDetail || '', venue: c.venue && c.venue.fullName, venueAddr: c.venue && c.venue.address ? [c.venue.address.city, c.venue.address.state].filter(Boolean).join(', ') : '', odds: odds ? [odds.details, odds.overUnder] : null,
     margin: Math.abs(scores[0] - (scores[1] || 0)), post: ev.season && ev.season.type === 3 };
 }
@@ -424,7 +440,8 @@ function tileHTML(g){
     </div>`;
   }).join('');
   return `<a class="tile" href="${esc(g.link)}" data-gid="${g.sport.key}:${esc(g.id)}" target="_blank" rel="noopener">
-    <div class="t-top${live ? ' live' : ''}"><span class="st">${esc(g.label)}</span><span class="rt">${g.tv ? `<span class="tv">${esc(g.tv)}</span>` : ''}</span></div>
+    ${g.psLabel ? `<div class="t-ps">${esc(g.psLabel)}</div>` : ''}
+    <div class="t-top${live ? ' live' : ''}"><span class="st">${esc(g.label)}${g.seriesTxt ? ` <span class="ser">(${esc(g.seriesTxt)})</span>` : ''}</span><span class="rt">${g.tv ? `<span class="tv">${esc(g.tv)}</span>` : ''}</span></div>
     ${rows}<div class="blurb">${esc(g.blurb)}</div></a>`;
 }
 
@@ -732,9 +749,12 @@ pager.addEventListener('click', e => {
 });
 
 /* ===== Data ===== */
+const ymd = d => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+function dateRange(){ const d = new Date(); return ymd(new Date(d.getTime() - 864e5)) + '-' + ymd(new Date(d.getTime() + 864e5)); }
 async function loadSport(sport){
   try {
-    const r = await fetch(API + sport.path + '/scoreboard' + (sport.params ? '?' + sport.params : ''), { cache:'no-store' });
+    const q = [sport.params, sport.daily ? 'dates=' + dateRange() : ''].filter(Boolean).join('&');
+    const r = await fetch(API + sport.path + '/scoreboard' + (q ? '?' + q : ''), { cache:'no-store' });
     if (!r.ok) throw new Error(r.status);
     const j = await r.json();
     state.data[sport.key] = (j.events || []).map(ev => normalize(sport, ev));
