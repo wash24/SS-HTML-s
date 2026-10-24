@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Scoreline">
 <meta name="theme-color" content="#0a0a0a">
-<link rel="apple-touch-icon" id="touchIcon" href="">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 /* Layout: iOS 6–era app shell. Horizontally paged glossy panels, footer with settings gear, page dots and a headline ticker. */
 :root{
@@ -449,18 +449,6 @@ document.getElementById('closeBtn').onclick = () => sheet.hidden = true;
 sheet.onclick = e => { if (e.target === sheet) sheet.hidden = true; };
 document.getElementById('refreshBtn').onclick = () => { sheet.hidden = true; refresh(); loadNews(); };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
-
-(function makeIcon(){
-  const c = document.createElement('canvas'); c.width = c.height = 180;
-  const x = c.getContext('2d');
-  const g = x.createLinearGradient(0, 0, 0, 180); g.addColorStop(0, '#2a5aa3'); g.addColorStop(1, '#081733');
-  x.fillStyle = g; x.fillRect(0, 0, 180, 180);
-  x.fillStyle = '#ffb21f'; x.beginPath(); x.moveTo(0, 122); x.lineTo(180, 92); x.lineTo(180, 116); x.lineTo(0, 146); x.fill();
-  x.fillStyle = '#fff'; x.font = 'italic 900 92px Helvetica Neue, Arial'; x.textAlign = 'center'; x.fillText('SL', 90, 108);
-  const gl = x.createLinearGradient(0, 0, 0, 90); gl.addColorStop(0, 'rgba(255,255,255,.35)'); gl.addColorStop(1, 'rgba(255,255,255,.05)');
-  x.fillStyle = gl; x.fillRect(0, 0, 180, 86);
-  document.getElementById('touchIcon').href = c.toDataURL('image/png');
-})();
 
 refresh();
 loadNews().then(nextTick);
