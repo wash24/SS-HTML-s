@@ -82,21 +82,24 @@ body{overscroll-behavior:none}
   border:1px solid var(--t-line);box-shadow:0 2px 4px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35)}
 .tile:active{filter:brightness(1.25)}
 .t-top{display:flex;justify-content:space-between;align-items:center;padding:4px 8px 2px;font-size:12px;font-weight:700;color:var(--t-sub);text-transform:uppercase;letter-spacing:.2px}
+.t-top .rt{display:flex;gap:8px;align-items:center;white-space:nowrap}
+.t-top .tv{color:#fff}
 .t-top .lg{color:var(--amber)}
 .t-top.live{color:#fff}
 .t-top.live .st::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--live);margin-right:5px;vertical-align:1px;box-shadow:0 0 6px var(--live);animation:pulse 1.4s infinite}
 @keyframes pulse{50%{opacity:.35}}
-.row{display:grid;grid-template-columns:26px 18px minmax(0,1fr) auto 10px;align-items:center;gap:4px;padding:3px 0 3px 8px;font-size:17px;font-weight:700;text-shadow:0 -1px 0 rgba(0,0,0,.6)}
-.row img{width:24px;height:24px;object-fit:contain;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
-.row .rk{font-size:12px;font-weight:600;color:var(--t-sub);text-align:right}
+.row{display:grid;grid-template-columns:32px 20px minmax(0,1fr) auto 10px;align-items:center;column-gap:5px;padding:3px 0 3px 8px;font-size:17px;font-weight:700;text-shadow:0 -1px 0 rgba(0,0,0,.6)}
+.row img{width:32px;height:32px;object-fit:contain;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+.row .rk{font-size:12px;font-weight:600;color:var(--t-sub);text-align:left}
+.row .nm.wide{grid-column:2 / 4}
 .row .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.row .rec{font-size:11px;font-weight:600;color:var(--steel);margin-left:5px}
+.row .sc.rec{font-size:14px;font-weight:600;color:var(--t-sub)}
 .row .sc{font-variant-numeric:tabular-nums;text-align:right;min-width:24px}
 .row.loser{color:var(--t-sub)}
 .row .win{width:0;height:0;border-style:solid;border-width:6px 8px 6px 0;border-color:transparent #fff transparent transparent;justify-self:end;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
 .blurb{padding:6px 8px 7px;font-size:13px;line-height:1.3;color:#eef3fb;background:rgba(0,0,0,.28);border-top:1px solid rgba(0,0,0,.4)}
 .blurb:empty{display:none}
-.badge{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;letter-spacing:-.2px;color:#fff;border:1px solid rgba(255,255,255,.6);box-shadow:0 1px 2px rgba(0,0,0,.6);overflow:hidden}
+.badge{width:32px;height:32px;font-size:10px!important;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;letter-spacing:-.2px;color:#fff;border:1px solid rgba(255,255,255,.6);box-shadow:0 1px 2px rgba(0,0,0,.6);overflow:hidden}
 .notice{margin:8px 4px 0;padding:6px 8px;border-radius:6px;font-size:12px;font-weight:600;color:#1a1200;background:linear-gradient(#ffd06a,#ffb21f);box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
 
 .more{display:block;margin:12px 4px 4px;padding:10px;text-align:center;border-radius:7px;color:#fff;text-decoration:none;font-weight:700;font-size:14px;
@@ -200,9 +203,9 @@ function mk(id, st, detail, hrs, away, home, extra = {}){
 }
 const SAMPLE = {
   cfb: [
-    mk('c1','post','Final',-20,['Penn State','PSU','1c3a6e',24,6,'6-1'],['Ohio State','OSU','bb0000',38,2,'7-0'],{win:'home',head:'Sample recap: Ohio State pulls away in the fourth quarter at home.'}),
+    mk('c1','post','Final',-20,['Penn State','PSU','1c3a6e',24,null,'6-1'],['Ohio State','OSU','bb0000',38,2,'7-0'],{win:'home',head:'Sample recap: Ohio State pulls away in the fourth quarter at home.'}),
     mk('c2','in','3rd 6:12',-1,['Georgia','UGA','ba0c2f',17,5,'6-1'],['Texas','TEX','bf5700',20,3,'6-1'],{play:'Sample play: 14-yard completion to the Georgia 41.'}),
-    mk('c3','pre','',6,['Washington','UW','4b2e83',null,18,'5-2'],['Oregon','ORE','154733',null,4,'7-0'],{tv:'Sample TV',venue:'Autzen Stadium'}),
+    mk('c3','pre','',6,['Washington','UW','4b2e83',null,null,'5-2'],['Oregon','ORE','154733',null,4,'7-0'],{tv:'Sample TV',venue:'Autzen Stadium'}),
   ],
   nfl: [
     mk('n1','post','Final',-30,['Dallas','DAL','041e42',20],['Philadelphia','PHI','004c54',27],{win:'home',head:'Sample recap: Philadelphia holds on late to win the division matchup.'}),
@@ -298,12 +301,14 @@ function normalize(sport, ev){
     label = st.name === 'STATUS_SCHEDULED' ? `${md(date)}: ${hm(date)}` : `${md(date)}: ${st.shortDetail}`;
     const tv = c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names.join('/');
     const venue = c.venue && c.venue.fullName;
-    blurb = [tv, venue].filter(Boolean).join(' · ');
+    blurb = venue || '';
     if (c.notes && c.notes[0] && c.notes[0].headline) blurb = c.notes[0].headline + (blurb ? ' · ' + blurb : '');
   }
   if (!blurb && c.notes && c.notes[0]) blurb = c.notes[0].headline;
   const scores = teams.map(t => +t.score || 0);
-  return { id: ev.id, sport, state: st.state, date, label, blurb, teams, link: gameLink(sport, ev),
+  const bc = c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names.join('/');
+  const tv = st.state === 'post' ? '' : (bc || (c.geoBroadcasts && c.geoBroadcasts[0] && c.geoBroadcasts[0].media && c.geoBroadcasts[0].media.shortName) || '');
+  return { id: ev.id, sport, state: st.state, date, label, blurb, tv, teams, link: gameLink(sport, ev),
     margin: Math.abs(scores[0] - (scores[1] || 0)), post: ev.season && ev.season.type === 3 };
 }
 
@@ -328,14 +333,13 @@ function tileHTML(g, showLeague){
     const loser = g.state === 'post' && !t.winner && g.teams.some(x => x.winner);
     return `<div class="row${loser ? ' loser' : ''}">
       ${t.logo ? `<img src="${esc(t.darkLogo || t.logo)}" data-std="${esc(t.logo)}" alt="" loading="lazy" onerror="logoFallback(this)">` : `<span class="badge" style="background:#${esc(t.color)}">${esc(t.abbr)}</span>`}
-      <span class="rk">${t.rank || ''}</span>
-      <span class="nm">${esc(t.name)}${!showScore && t.record ? `<span class="rec">(${esc(t.record)})</span>` : ''}</span>
-      <span class="sc">${showScore ? esc(t.score) : ''}</span>
+      ${t.rank ? `<span class="rk">${t.rank}</span><span class="nm">` : '<span class="nm wide">'}${esc(t.name)}</span>
+      ${showScore ? `<span class="sc">${esc(t.score)}</span>` : `<span class="sc rec">${esc(t.record || '')}</span>`}
       ${t.winner && g.state === 'post' ? '<i class="win"></i>' : '<span></span>'}
     </div>`;
   }).join('');
   return `<a class="tile" href="${esc(g.link)}" target="_blank" rel="noopener">
-    <div class="t-top${live ? ' live' : ''}"><span class="st">${esc(g.label)}</span>${showLeague ? `<span class="lg">${g.sport.tag}</span>` : ''}</div>
+    <div class="t-top${live ? ' live' : ''}"><span class="st">${esc(g.label)}</span><span class="rt">${g.tv ? `<span class="tv">${esc(g.tv)}</span>` : ''}${showLeague ? `<span class="lg">${g.sport.tag}</span>` : ''}</span></div>
     ${rows}<div class="blurb">${esc(g.blurb)}</div></a>`;
 }
 
