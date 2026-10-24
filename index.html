@@ -408,10 +408,10 @@ async function loadNews(){
   for (let i = 0; i < 5; i++) res.forEach(list => list[i] && mixed.push(list[i]));
   state.news = mixed.length ? mixed : SAMPLE_NEWS;
 }
-const CRAWL_SPEED = 70;   // pixels per second while crawling
+const CRAWL_SPEED = 50;   // pixels per second while crawling
 const SLIDE_MS = 380;      // rise-in and lift-out duration
-const HOLD_START = 1200;   // pause after a headline rises in
-const HOLD_END = 900;      // pause once the end of the headline is showing
+const HOLD_START = 1600;   // pause after a headline rises in
+const HOLD_END = 1300;      // pause once the end of the headline is showing
 const PAD = 10;
 let tickIdx = 0, crawl = null;
 const ease = t => t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2;
