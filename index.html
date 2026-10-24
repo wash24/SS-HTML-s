@@ -168,7 +168,7 @@ body{overscroll-behavior:none}
 .gm-stats{display:grid;grid-template-columns:auto 1fr;column-gap:8px;row-gap:0;margin:-2px 0 0;line-height:1.2;font-size:14px;text-shadow:0 -1px 0 rgba(0,0,0,.5)}
 .gm-stats dt{font-weight:800}
 .gm-stats dd{margin:0;font-weight:600}
-.gm-ln{min-width:0;font-size:12px;line-height:1.2;text-shadow:0 -1px 0 rgba(0,0,0,.5)}
+.gm-ln{flex:1;min-width:0;font-size:12px;line-height:1.2;text-shadow:0 -1px 0 rgba(0,0,0,.5)}
 .gm-ln b{display:block;margin-top:-1px;font-size:10.5px;font-weight:800;letter-spacing:.4px;color:var(--t-sub)}
 .gm-ln span{display:block;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gm-ln em{display:block;font-style:normal;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.1px}
@@ -278,14 +278,14 @@ const SAMPLE = {
   ],
   nfl: [
     mk('n1','post','Final',-30,['Dallas','DAL','041e42',20],['Philadelphia','PHI','004c54',27],{win:'home',ls:[[3,7,7,3],[7,3,10,7]],lead:[[['passingYards','PASS','R. Mills','26/38, 271 YDS, 2 TD'],['rushingYards','RUSH','V. Ortiz','15 CAR, 63 YDS'],['receivingYards','REC','C. Lamb','8 REC, 104 YDS, TD']],[['passingYards','PASS','N. Ford','19/28, 233 YDS, TD'],['rushingYards','RUSH','S. Burke','24 CAR, 131 YDS, 2 TD'],['receivingYards','REC','A. Shaw','6 REC, 92 YDS']]],head:'Sample recap: Philadelphia holds on late to win the division matchup.'}),
-    mk('n2','pre','',36,['Buffalo','BUF','00338d',null,null,'5-2'],['Kansas City','KC','e31837',null,null,'6-1'],{odds:['KC -2.5',47.5],tv:'Sample TV',venue:['Arrowhead Stadium','Kansas City','MO'],lead:[[['passingYards','PASS','J. Allen','1,904'],['rushingYards','RUSH','T. Cook','512'],['receivingYards','REC','K. Shakir','447']],[['passingYards','PASS','P. Mason','1,766'],['rushingYards','RUSH','I. Pace','389'],['receivingYards','REC','T. Kirk','502']]]}),
+    mk('n2','pre','',36,['Buffalo','BUF','00338d',null,null,'5-2'],['Kansas City','KC','e31837',null,null,'6-1'],{odds:['KC -2.5',47.5],tv:'Sample TV',venue:['Arrowhead Stadium','Kansas City','MO'],lead:[[['passingYards','PASS','J. Allen','1,904 YDS, 14 TD, 3 INT'],['rushingYards','RUSH','T. Cook','512'],['receivingYards','REC','K. Shakir','447']],[['passingYards','PASS','P. Mason','1,766'],['rushingYards','RUSH','I. Pace','389'],['receivingYards','REC','T. Kirk','502']]]}),
   ],
   mlb: [
     mk('m1','post','Final',-26,['Los Angeles','LAD','005a9c',5],['New York','NYY','132448',3],{win:'away',ls:[[0,2,0,0,1,0,2,0,0],[1,0,0,0,0,2,0,0,0]],rhe:[[9,0],[6,1]],lead:[[['hits','BA','F. Ruiz','3-4, HR, 2 RBI'],['homeRuns','HR','S. Ohta','1-4, HR, R'],['RBIs','RBI','M. Betts','2-4, 2 RBI']],[['hits','BA','A. Judd','2-4, 2B, 2 RBI'],['homeRuns','HR','G. Stanton','1-3, HR, BB'],['RBIs','RBI','J. Soto','1-4, 2 RBI']]],post:true,head:'Sample recap: Los Angeles takes the series opener on the road.'}),
     mk('m2','pre','',18,['Los Angeles','LAD','005a9c'],['New York','NYY','132448'],{post:true,note:'Sample: Game 2',venue:['Yankee Stadium','Bronx','NY'],lead:[[['avg','AVG','F. Ruiz','.312'],['homeRuns','HR','S. Ohta','44'],['RBIs','RBI','F. Ruiz','109']],[['avg','AVG','A. Judd','.301'],['homeRuns','HR','A. Judd','49'],['RBIs','RBI','J. Soto','112']]]}),
   ],
   ncb: [
-    mk('b1','pre','',300,['Kansas','KU','0051ba',null,7],['Duke','DUKE','003087',null,3],{note:'Sample: season opener',venue:['State Farm Arena','Atlanta','GA'],lead:[[['points','PTS','H. Dickson','18.4'],['rebounds','REB','H. Dickson','10.2'],['assists','AST','D. Harris','6.3'],['steals','STL','D. Harris','1.9'],['blocks','BLK','K. Adams','1.7']],[['points','PTS','C. Flagg','19.7'],['rebounds','REB','K. Malik','8.1'],['assists','AST','T. Proctor','5.4'],['steals','STL','C. Flagg','1.5'],['blocks','BLK','K. Malik','2.2']]]}),
+    mk('b1','pre','',300,['Kansas','KU','0051ba',null,7],['Duke','DUKE','003087',null,3],{note:'Sample: season opener',venue:['State Farm Arena','Atlanta','GA'],lead:[[['pointsPerGame','PTS','H. Dickson','18.4'],['assistsPerGame','AST','D. Harris','6.3'],['reboundsPerGame','REB','H. Dickson','10.2']],[['pointsPerGame','PTS','C. Flagg','19.7'],['assistsPerGame','AST','T. Proctor','5.4'],['reboundsPerGame','REB','K. Malik','8.1']]]}),
   ],
   nba: [
     mk('a1','in','4th 2:48',-0.5,['Golden State','GSW','1d428a',104],['Los Angeles','LAL','552583',101],{ls:[[28,25,30,21],[26,27,27,21]],tv:'Sample TV',play:'Sample play: corner three ties the game, then a go-ahead layup.'}),
@@ -293,11 +293,15 @@ const SAMPLE = {
   ],
 };
 // Sample box score player lines (basketball), standing in for the per-game summary feed.
-const sampleBox = (teams) => ({ boxscore: { players: teams.map(([id, rows]) => ({ team: { id },
-  statistics: [{ labels: ['MIN','PTS','REB','AST','STL','BLK'], athletes: rows.map(([n, ...st]) => ({ athlete: { shortName: n }, stats: st.map(String) })) }] })) } });
+const sampleBox = (teams) => {
+  const stats = rows => rows.map(([n, ...st]) => ({ athlete: { shortName: n }, stats: st.map(String) }));
+  const top = (rows, i) => { const r = [...rows].sort((a, b) => b[i] - a[i])[0]; return { displayValue: String(r[i]), value: r[i], athlete: { shortName: r[0] } }; };
+  return { boxscore: { players: teams.map(([id, rows]) => ({ team: { id }, statistics: [{ labels: ['MIN','PTS','REB','AST','STL','BLK'], athletes: stats(rows) }] })) },
+    leaders: teams.map(([id, rows]) => ({ team: { id }, leaders: [['points', 2], ['assists', 4], ['rebounds', 3]].map(([name, i]) => ({ name, leaders: [top(rows, i)] })) })) };
+};
 const SAMPLE_SUMMARY = {
   a1: sampleBox([['GSW', [['S. Curry', 34, 31, 5, 7, 2, 0], ['J. Green', 30, 12, 9, 6, 1, 2]]], ['LAL', [['L. James', 36, 28, 8, 9, 1, 1], ['A. Davis', 35, 24, 13, 3, 2, 3]]]]),
-  a2: sampleBox([['NYK', [['J. Brunson', 37, 31, 4, 8, 1, 0]]], ['BOS', [['J. Tatum', 38, 33, 11, 5, 2, 1]]]]),
+  a2: sampleBox([['NYK', [['J. Brunson', 37, 31, 4, 8, 1, 0], ['K. Towns', 36, 22, 14, 3, 0, 1], ['J. Hart', 38, 12, 9, 9, 2, 0]]], ['BOS', [['J. Tatum', 38, 33, 11, 5, 2, 1], ['D. White', 34, 18, 4, 7, 1, 2], ['A. Horford', 28, 9, 12, 3, 0, 2]]]]),
 };
 const SAMPLE_NEWS = SPORTS.map(s => ({ tag: s.tag, text: `Sample headline for ${s.name}. Live headlines appear when this page runs on your own site.` }));
 
@@ -497,12 +501,13 @@ function linescoreHTML(g){
   const n = Math.max(reg, ...g.teams.map(t => t.lines.length));
   if (!g.teams.some(t => t.lines.length)) return '';
   const mlb = g.sport.key === 'mlb';
+  const useAbbr = n > 6 || g.teams.some(t => String(t.short || '').length > 10);
   const heads = Array.from({ length: n }, (_, i) => `<th>${periodLabel(g.sport.key, i)}</th>`).join('') + (mlb ? '<th>R</th><th>H</th><th>E</th>' : '<th>T</th>');
   const rows = g.teams.map(t => {
     const lost = g.state === 'post' && !t.winner && g.teams.some(x => x.winner);
     const cells = Array.from({ length: n }, (_, i) => `<td>${esc(t.lines[i] ?? '')}</td>`).join('');
     const tot = mlb ? `<td class="tot">${esc(t.score)}</td><td>${esc(t.hits ?? '')}</td><td>${esc(t.errors ?? '')}</td>` : `<td class="tot">${esc(t.score)}</td>`;
-    return `<tr class="${lost ? 'lost' : ''}"><td class="tm">${esc(n > 6 ? t.abbr : t.short)}</td>${cells}${tot}<td class="arw">${t.winner && g.state === 'post' ? '<i></i>' : ''}</td></tr>`;
+    return `<tr class="${lost ? 'lost' : ''}"><td class="tm">${esc(useAbbr ? t.abbr : t.short)}</td>${cells}${tot}<td class="arw">${t.winner && g.state === 'post' ? '<i></i>' : ''}</td></tr>`;
   }).join('');
   return `<div class="gm-ls${n > 6 ? ' dense' : ''}"><table><thead><tr><th></th>${heads}<th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
@@ -524,8 +529,8 @@ function card(label, a, stat){
 }
 // Football stat lines. Passing reads "2 TD/1 INT, 245 YDS"; rushing and receiving always end in YDS.
 function fbStat(label, l){
-  const dv = String(l.displayValue || '');
-  const num = typeof l.value === 'number' ? l.value.toLocaleString() : (dv.match(/^[\d,]+/) || [''])[0];
+  const dv = String(l.displayValue || '').replace(/(\d),(?=\d{3}\b)/g, '$1');
+  const num = typeof l.value === 'number' ? String(l.value) : (dv.match(/^[\d,]+/) || [''])[0];
   const yds = (dv.match(/([\d,]+)\s*YDS/i) || [])[1] || num;
   if (label === 'PASS') {
     const td = (dv.match(/(\d+)\s*TD/i) || [])[1], int = (dv.match(/(\d+)\s*INT/i) || [])[1];
@@ -536,36 +541,38 @@ function fbStat(label, l){
   return yds ? `${yds} YDS` : dv;
 }
 
+// Basketball game line for a leader: "31 PTS, 8 REB, 7 AST" from their box score row, else the feed's own value.
+function bbLine(l, box, t, side){
+  const a = l.athlete || {};
+  const team = box && (box.find(b => String(b.team && b.team.id) === String(t.id)) || box[side]);
+  const st = team && team.statistics && team.statistics[0];
+  if (st && st.athletes) {
+    const L = st.labels || st.names || [];
+    const row = st.athletes.find(x => x.athlete && ((a.id && String(x.athlete.id) === String(a.id)) || (x.athlete.shortName && x.athlete.shortName === a.shortName)));
+    if (row && row.stats) {
+      const v = k => row.stats[L.indexOf(k)];
+      const parts = ['PTS','REB','AST'].filter(k => L.indexOf(k) >= 0).map(k => `${v(k)} ${k}`);
+      if (parts.length) return parts.join(', ');
+    }
+  }
+  return l.displayValue;
+}
+
 // Top performers. Basketball box scores give a full stat line for each team's leading scorer;
 // other sports (and pregame) use the feed's leader categories.
 function performers(g, sum){
   const box = sum && sum.boxscore && sum.boxscore.players;
   const basketball = g.sport.key === 'nba' || g.sport.key === 'ncb';
   return g.teams.map((t, side) => {
-    if (basketball && box && g.state !== 'pre') {
-      const team = box.find(b => String(b.team && b.team.id) === String(t.id)) || box[side];
-      const st = team && team.statistics && team.statistics[0];
-      if (st && st.athletes && st.athletes.length) {
-        const L = st.labels || st.names || [];
-        const ix = k => L.indexOf(k);
-        const best = [...st.athletes].filter(a => a.stats && a.stats.length).sort((a, b) => (+b.stats[ix('PTS')] || 0) - (+a.stats[ix('PTS')] || 0))[0];
-        if (best) {
-          const a = best.athlete || {};
-          const stats = ['PTS','REB','AST','STL','BLK'].filter(k => ix(k) >= 0).map(k => `<dt>${k}</dt><dd>${esc(best.stats[ix(k)])}</dd>`).join('');
-          return `<div class="gm-col"><div class="gm-who">${esc(a.shortName || a.displayName)}, ${esc(t.abbr)}</div>
-            <div class="gm-card">${shot(a.headshot && a.headshot.href)}<dl class="gm-stats">${stats}</dl></div></div>`;
-        }
-      }
-    }
     const pool = leaderPool(t, side, sum);
     const fam = sportFamily(g.sport.key);
     let picks;
-    if (fam === 'football') picks = PRE_CATS.football.map(([label, re]) => [label, findCat(pool, re)]).filter(x => x[1]);
+    if (fam === 'football' || fam === 'basketball') picks = PRE_CATS[fam].map(([label, re]) => [label, findCat(pool, re)]).filter(x => x[1]);
     else picks = pool.filter(c => c.leaders && c.leaders[0]).slice(0, 3).map(c => [c.shortDisplayName || c.displayName || c.name, c]);
     const items = picks.map(([label, c]) => {
       const l = c.leaders[0];
       if (fam === 'baseball' && (/^hits$/i.test(c.name || '') || label === 'BA')) label = 'HITS';
-      const stat = fam === 'football' ? fbStat(label, l) : l.displayValue;
+      const stat = fam === 'football' ? fbStat(label, l) : fam === 'basketball' ? bbLine(l, box, t, side) : l.displayValue;
       return card(label, l.athlete, stat);
     }).join('');
     return items ? `<div class="gm-col"><div class="gm-who">${esc(t.short)}</div>${items}</div>` : '';
@@ -574,7 +581,7 @@ function performers(g, sum){
 
 // Pregame stat leaders: fixed categories per sport, matched against the feed's leader names.
 const PRE_CATS = {
-  basketball: [['PTS', /^(points|pointsPerGame|avgPoints|ppg)$/i], ['REB', /^(rebounds|reboundsPerGame|avgRebounds|rpg)$/i], ['AST', /^(assists|assistsPerGame|avgAssists|apg)$/i], ['STL', /^(steals|stealsPerGame|avgSteals)$/i], ['BLK', /^(blocks|blocksPerGame|avgBlocks)$/i]],
+  basketball: [['PTS', /^(points|pointsPerGame|avgPoints|ppg)$/i], ['AST', /^(assists|assistsPerGame|avgAssists|apg)$/i], ['REB', /^(rebounds|reboundsPerGame|avgRebounds|rpg)$/i]],
   football: [['PASS', /^passingYards$/i], ['RUSH', /^rushingYards$/i], ['REC', /^receivingYards$/i]],
   baseball: [['AVG', /^(avg|battingAverage)$/i], ['HR', /^homeRuns$/i], ['RBI', /^(RBIs?|runsBattedIn)$/i]],
 };
@@ -643,15 +650,15 @@ function gameHTML(g){
     const place = [v && v.fullName || g.venue, v && v.address ? [v.address.city, v.address.state].filter(Boolean).join(', ') : g.venueAddr].filter(Boolean).join(', ');
     const fam = sportFamily(g.sport.key);
     let lead;
-    if (fam === 'basketball') lead = preLeaders(g, sum && sum.data);
-    else {
+    {
       const cols = g.teams.map((t, side) => {
         const pool = leaderPool(t, side, sum && sum.data);
         const items = PRE_CATS[fam].map(([label, re]) => {
           const c = findCat(pool, re);
           if (!c) return '';
           const l = c.leaders[0];
-          return card(label, l.athlete, fam === 'football' ? fbStat(label, l) : leaderValue(label, l));
+          const stat = fam === 'football' ? fbStat(label, l) : fam === 'basketball' ? `${leaderValue(label, l)} ${({ PTS:'PPG', AST:'APG', REB:'RPG' })[label]}` : leaderValue(label, l);
+          return card(label, l.athlete, stat);
         }).join('');
         return items ? `<div class="gm-col"><div class="gm-who">${esc(t.short)}</div>${items}</div>` : '';
       });
@@ -679,8 +686,10 @@ function renderGame(keepScroll){
   box.innerHTML = gameHTML(g);
   box.querySelector('.gm-in').scrollTop = y;
   box.querySelectorAll('.gm-ln em').forEach(em => {
+    const r = document.createRange(); r.selectNodeContents(em);
+    const over = () => r.getBoundingClientRect().width > em.getBoundingClientRect().width - 0.5;
     let fs = 12;
-    while (em.scrollWidth > em.clientWidth + 0.5 && fs > 9.5) { fs -= 0.5; em.style.fontSize = fs + 'px'; }
+    while (over() && fs > 9) { fs -= 0.5; em.style.fontSize = fs + 'px'; }
   });
   document.getElementById('gmClose').onclick = closeGame;
 }
