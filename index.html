@@ -117,7 +117,7 @@ body{overscroll-behavior:none}
 .dots button{width:7px;height:7px;padding:0;border:0;border-radius:50%;background:#4a5566;cursor:pointer}
 .dots button.on{background:#fff}
 .ticker{display:flex;align-items:stretch;height:26px;border-top:1px solid #000;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
-.ticker .lab{flex:none;width:52px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#cfd6e0;background:linear-gradient(#4b5563,#2b323d);border-right:1px solid #000;text-shadow:0 -1px 0 #000}
+.ticker .lab{flex:none;width:56px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;font-style:italic;color:#fff;background:linear-gradient(#5a5a5a,#1c1c1c 55%,#000);border-right:1px solid #000;box-shadow:inset 0 1px 0 rgba(255,255,255,.3);text-shadow:0 -1px 0 #000}
 .ticker .rail{flex:1;min-width:0;overflow:hidden;position:relative;background:linear-gradient(#1a1a1a,#000);color:#fff;font-size:14px;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
 .ticker .txt{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;white-space:nowrap;will-change:transform}
 .brand{flex:none;display:flex;align-items:center;padding:0 10px;font:italic 900 15px/1 var(--font);letter-spacing:-.5px;color:#fff;
@@ -228,7 +228,7 @@ const SAMPLE_NEWS = SPORTS.map(s => ({ tag: s.tag, text: `Sample headline for ${
 const state = { data:{}, errors:{}, sample:{}, updated:null, news:[] };
 const pager = document.getElementById('pager');
 const dotsEl = document.getElementById('dots');
-const pages = [{ key:'top', name:'Top Events', mark:'TOP', theme:'red' }, ...SPORTS];
+const pages = [{ key:'top', name:'The Lead', mark:'LEAD', theme:'red' }, ...SPORTS];
 
 if (window.navigator.standalone || matchMedia('(display-mode: standalone)').matches) document.documentElement.classList.add('standalone');
 
