@@ -184,6 +184,15 @@ body{overscroll-behavior:none}
 .gl-v{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
 .gl-v b{font-weight:800;font-variant-numeric:tabular-nums}
 .gl-v .none{color:var(--t-sub)}
+.gm-stw{display:flex;flex-direction:column;gap:10px;padding:10px 10px 12px}
+.gm-st{border-radius:4px;background:rgba(0,0,0,.2);box-shadow:inset 0 1px 3px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.12);overflow:hidden}
+.gm-st table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;text-shadow:0 -1px 0 rgba(0,0,0,.55)}
+.gm-st th{padding:7px 10px 4px;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--t-sub);text-align:right;white-space:nowrap}
+.gm-st th.tm{text-align:left;color:#fff;font-size:12px}
+.gm-st td{padding:3px 10px;text-align:right;font-weight:500;color:var(--t-sub);white-space:nowrap}
+.gm-st td.tm{text-align:left;max-width:12em;overflow:hidden;text-overflow:ellipsis}
+.gm-st tr:last-child td{padding-bottom:8px}
+.gm-st tr.me td{color:#fff;font-weight:800}
 .gm-wait{padding:14px 12px;color:var(--t-sub);font-size:13px}
 .gm-foot{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;color:#fff;text-decoration:none;
   background:linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.28));border-top:1px solid rgba(0,0,0,.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.12);text-shadow:0 -1px 0 rgba(0,0,0,.6)}
@@ -302,6 +311,30 @@ const SAMPLE_SUMMARY = {
   a1: sampleBox([['GSW', [['S. Curry', 34, 31, 5, 7, 2, 0], ['J. Green', 30, 12, 9, 6, 1, 2]]], ['LAL', [['L. James', 36, 28, 8, 9, 1, 1], ['A. Davis', 35, 24, 13, 3, 2, 3]]]]),
   a2: sampleBox([['NYK', [['J. Brunson', 37, 31, 4, 8, 1, 0], ['K. Towns', 36, 22, 14, 3, 0, 1], ['J. Hart', 38, 12, 9, 9, 2, 0]]], ['BOS', [['J. Tatum', 38, 33, 11, 5, 2, 1], ['D. White', 34, 18, 4, 7, 1, 2], ['A. Horford', 28, 9, 12, 3, 0, 2]]]]),
 };
+// Sample standings. Rows: [team id, name, wins, losses, conf record?]
+const sampleStand = groups => ({ standings: { groups: groups.map(([header, rows]) => ({ header,
+  standings: { entries: rows.map(([id, team, w, l, conf]) => ({ id, team, stats: [{ name:'wins', value:w }, { name:'losses', value:l }, ...(conf ? [{ type:'vsconf', summary:conf }] : [])] })) } })) } });
+const STAND = {
+  b10: ['2026 Big Ten Conference Standings', [['OSU','Ohio State',7,0,'5-0'],['IND','Indiana',7,0,'4-0'],['ORE','Oregon',7,0,'4-0'],['PSU','Penn State',6,1,'3-1'],['MICH','Michigan',5,2,'3-1'],['UW','Washington',5,2,'2-2'],['IOWA','Iowa',4,3,'2-2'],['NEB','Nebraska',4,3,'1-3'],['MINN','Minnesota',3,4,'1-3'],['RUTG','Rutgers',3,4,'0-4']]],
+  sec: ['2026 SEC Standings', [['TEX','Texas',6,1,'4-0'],['UGA','Georgia',6,1,'3-1'],['ALA','Alabama',6,1,'3-1'],['LSU','LSU',5,2,'2-2'],['TENN','Tennessee',5,2,'2-2'],['OU','Oklahoma',4,3,'1-3']]],
+  nfce: ['2026 NFC East Standings', [['PHI','Philadelphia',5,2],['DAL','Dallas',4,3],['WSH','Washington',3,4],['NYG','New York',2,5]]],
+  afcw: ['2026 AFC West Standings', [['KC','Kansas City',6,1],['LAC','Los Angeles',4,3],['DEN','Denver',4,3],['LV','Las Vegas',1,6]]],
+  afce: ['2026 AFC East Standings', [['BUF','Buffalo',5,2],['MIA','Miami',3,4],['NYJ','New York',2,5],['NE','New England',2,5]]],
+  nlw: ['2026 NL West Standings', [['LAD','Los Angeles',98,64],['SD','San Diego',90,72],['ARI','Arizona',84,78],['SF','San Francisco',80,82],['COL','Colorado',58,104]]],
+  ale: ['2026 AL East Standings', [['NYY','New York',96,66],['BAL','Baltimore',88,74],['BOS','Boston',85,77],['TB','Tampa Bay',80,82],['TOR','Toronto',74,88]]],
+  east: ['2026-27 Eastern Conference Standings', [['BOS','Boston',2,0],['NYK','New York',1,1],['CLE','Cleveland',1,1],['MIL','Milwaukee',1,1],['ORL','Orlando',1,1],['MIA','Miami',0,2]]],
+  west: ['2026-27 Western Conference Standings', [['GSW','Golden State',2,0],['OKC','Oklahoma City',2,0],['LAL','Los Angeles',1,1],['DEN','Denver',1,1],['MIN','Minnesota',0,2]]],
+  b12: ['2026-27 Big 12 Conference Standings', [['KU','Kansas',0,0,'0-0'],['HOU','Houston',0,0,'0-0'],['ISU','Iowa State',0,0,'0-0'],['ARIZ','Arizona',0,0,'0-0']]],
+  acc: ['2026-27 ACC Standings', [['DUKE','Duke',0,0,'0-0'],['UNC','North Carolina',0,0,'0-0'],['UVA','Virginia',0,0,'0-0'],['LOU','Louisville',0,0,'0-0']]],
+};
+const withStand = (base, ...keys) => Object.assign(base || {}, sampleStand(keys.map(k => STAND[k])));
+withStand(SAMPLE_SUMMARY.a1, 'west'); withStand(SAMPLE_SUMMARY.a2, 'east');
+Object.assign(SAMPLE_SUMMARY, {
+  c1: withStand(null, 'b10'), c2: withStand(null, 'sec'), c3: withStand(null, 'b10'),
+  n1: withStand(null, 'nfce'), n2: withStand(null, 'afcw', 'afce'),
+  m1: withStand(null, 'nlw', 'ale'), m2: withStand(null, 'nlw', 'ale'),
+  b1: withStand(null, 'acc', 'b12'),
+});
 const SAMPLE_NEWS = SPORTS.map(s => ({ tag: s.tag, text: `Sample headline for ${s.name}. Live headlines appear when this page runs on your own site.` }));
 
 /* ===== State ===== */
@@ -637,6 +670,39 @@ function dateWord(d){
   return d.toLocaleDateString([], { weekday:'short', month:'short', day:'numeric' });
 }
 
+// Standings below the stats: home team's conference/division first, then the away team's (one table if shared).
+function standingsHTML(g, sum){
+  const groups = sum && sum.standings && sum.standings.groups;
+  if (!groups || !groups.length) return '';
+  const college = g.sport.college;
+  const entryId = e => String(e.id ?? (e.team && e.team.id) ?? '');
+  const entryName = e => typeof e.team === 'string' ? e.team : (e.team && (e.team.shortDisplayName || e.team.location || e.team.displayName || e.team.abbreviation)) || '';
+  const stat = (e, test) => (e.stats || []).find(test);
+  const overall = e => {
+    const o = stat(e, x => /^(overall|total)$/i.test(x.type || x.name || ''));
+    if (o && (o.summary || o.displayValue)) return o.summary || o.displayValue;
+    const v = n => { const x = stat(e, y => y.name === n); return x ? (x.value ?? x.displayValue) : null; };
+    const w = v('wins'), l = v('losses'), t = v('ties');
+    return w == null ? '' : `${w}-${l}${t && +t > 0 ? '-' + t : ''}`;
+  };
+  const conf = e => { const c = stat(e, x => /vsconf|conf/i.test((x.type || '') + ' ' + (x.name || '') + ' ' + (x.abbreviation || ''))); return c ? (c.summary || c.displayValue || '') : ''; };
+  const ids = g.teams.map(t => String(t.id));
+  const groupOf = id => groups.find(gr => ((gr.standings && gr.standings.entries) || []).some(e => entryId(e) === id || (g.teams.find(t => String(t.id) === id) || {}).name === entryName(e)));
+  const order = [];
+  [ids[1], ids[0]].forEach(id => { const gr = groupOf(id); if (gr && !order.includes(gr)) order.push(gr); });
+  if (!order.length) return '';
+  const names = g.teams.map(t => t.name);
+  const tables = order.map(gr => {
+    const title = String(gr.header || gr.name || '').replace(/^\d{4}(-\d{2})?\s+/, '').replace(/\s+Standings$/i, '');
+    const rows = ((gr.standings && gr.standings.entries) || []).map(e => {
+      const me = ids.includes(entryId(e)) || names.includes(entryName(e));
+      return `<tr class="${me ? 'me' : ''}"><td class="tm">${esc(entryName(e))}</td>${college ? `<td>${esc(conf(e))}</td>` : ''}<td>${esc(overall(e))}</td></tr>`;
+    }).join('');
+    return `<div class="gm-st"><table><thead><tr><th class="tm">${esc(title)}</th>${college ? '<th>CONF</th><th>OVR</th>' : '<th>W-L</th>'}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  }).join('');
+  return `<div class="gm-strip">Standings</div><div class="gm-stw">${tables}</div>`;
+}
+
 function gameHTML(g){
   const [a, h] = g.teams;
   const side = (t, cls) => {
@@ -683,7 +749,7 @@ function gameHTML(g){
 
   return `<button class="gm-x" id="gmClose" aria-label="Close">✕</button>
     <div class="gm-in"><div class="gm-head">${side(a, 'away')}${mid}${side(h, 'home')}</div>
-    ${linescoreHTML(g)}${perfHTML}${info}${foot}</div>`;
+    ${linescoreHTML(g)}${perfHTML}${info}${standingsHTML(g, sum && sum.data)}${foot}</div>`;
 }
 
 function renderGame(keepScroll){
