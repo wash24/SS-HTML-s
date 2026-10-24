@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Scoreline">
-<meta name="theme-color" content="#0b1a33">
+<meta name="theme-color" content="#0a0a0a">
 <link rel="apple-touch-icon" id="touchIcon" href="">
 <style>
 /* Layout: iOS 6–era app shell. Fake status bar, horizontally paged glossy panels, footer with settings gear, page dots and a headline ticker. */
@@ -27,21 +27,23 @@
 /* Per-sport panel themes (swap hex values to match the scoreboard pages) */
 .page{--p-hi:#173a70;--p-base:#0d2347;--p-deep:#0a1c3b;--p-line:rgba(160,195,255,.35);
   --t-hi:rgba(90,140,220,.55);--t-mid:rgba(30,70,140,.55);--t-lo:rgba(18,45,95,.65);--t-line:rgba(190,215,255,.55);--t-sub:#c9d6ea;--b-hi:#3e6fbf;--b-lo:#1d4689}
-.th-red{--p-hi:#c8251d;--p-base:#9e130d;--p-deep:#5e0905;--p-line:rgba(255,170,160,.45);
-  --t-hi:rgba(235,95,85,.6);--t-mid:rgba(170,28,20,.6);--t-lo:rgba(115,10,6,.72);--t-line:rgba(255,195,185,.6);--t-sub:#f3cfcb;--b-hi:#e0463a;--b-lo:#930f09}
-.th-nfl{--p-hi:#1f4687;--p-base:#11285a;--p-deep:#081636;--p-line:rgba(170,195,240,.4);
-  --t-hi:rgba(95,135,210,.55);--t-mid:rgba(30,60,125,.58);--t-lo:rgba(14,32,75,.7);--t-line:rgba(195,215,250,.55);--t-sub:#cdd8ee;--b-hi:#3b66b5;--b-lo:#152f6a}
-.th-mlb{--p-hi:#1b5d8f;--p-base:#0f3d63;--p-deep:#08243d;--p-line:rgba(160,210,240,.4);
-  --t-hi:rgba(85,155,205,.55);--t-mid:rgba(25,85,135,.58);--t-lo:rgba(12,52,88,.7);--t-line:rgba(190,225,250,.55);--t-sub:#cde0ee;--b-hi:#3a83bd;--b-lo:#114a78}
-.th-nba{--p-hi:#4a505b;--p-base:#2a2e36;--p-deep:#141619;--p-line:rgba(210,215,225,.35);
-  --t-hi:rgba(150,158,172,.5);--t-mid:rgba(70,76,88,.58);--t-lo:rgba(34,37,44,.75);--t-line:rgba(220,225,235,.5);--t-sub:#d3d7de;--b-hi:#666e7c;--b-lo:#2c3038}
+/* Colors pulled from each scoreboard page's .bg-pattern gradient (0/16/34/55/78% stops) */
+.th-red{--p-hi:#b30000;--p-base:#7a0000;--p-deep:#4a0000;--p-line:rgba(201,107,107,0.55);
+  --t-hi:rgba(201,107,107,0.55);--t-mid:rgba(179,0,0,0.6);--t-lo:rgba(122,0,0,0.75);--t-line:rgba(232,216,216,0.6);--t-sub:#e8d8d8;--b-hi:#b30000;--b-lo:#4a0000}
+.th-nfl{--p-hi:#1f7a3d;--p-base:#155c2e;--p-deep:#0a3d1f;--p-line:rgba(143,196,163,0.55);
+  --t-hi:rgba(143,196,163,0.55);--t-mid:rgba(31,122,61,0.6);--t-lo:rgba(21,92,46,0.75);--t-line:rgba(223,233,226,0.6);--t-sub:#dfe9e2;--b-hi:#1f7a3d;--b-lo:#0a3d1f}
+.th-mlb{--p-hi:#0059b3;--p-base:#003a7a;--p-deep:#00204a;--p-line:rgba(107,155,201,0.55);
+  --t-hi:rgba(107,155,201,0.55);--t-mid:rgba(0,89,179,0.6);--t-lo:rgba(0,58,122,0.75);--t-line:rgba(216,224,232,0.6);--t-sub:#d8e0e8;--b-hi:#0059b3;--b-lo:#00204a}
+.th-nba{--p-hi:#d66a00;--p-base:#a34d00;--p-deep:#6b3300;--p-line:rgba(232,163,102,0.55);
+  --t-hi:rgba(232,163,102,0.55);--t-mid:rgba(214,106,0,0.6);--t-lo:rgba(163,77,0,0.75);--t-line:rgba(240,221,201,0.6);--t-sub:#f0ddc9;--b-hi:#d66a00;--b-lo:#6b3300}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;margin:0;overflow:hidden;background:var(--navy-0);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;overflow:hidden;background:#0a0a0a;color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
 body{overscroll-behavior:none}
 .app{position:relative;height:100%;display:flex;flex-direction:column;
   background:
     repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 2px,transparent 2px 6px),
-    radial-gradient(120% 70% at 50% 0%,#1b3d75 0%,#0a1a35 55%,var(--navy-0) 100%);
+    radial-gradient(120% 70% at 50% 0%,#3a3a3a 0%,#1a1a1a 55%,#0a0a0a 100%);
   padding-top:env(safe-area-inset-top,0px)}
 
 /* fake status bar (hidden when launched from home screen, where iOS draws the real one) */
@@ -106,7 +108,7 @@ body{overscroll-behavior:none}
 
 /* footer */
 .foot{flex:none;padding-bottom:env(safe-area-inset-bottom,0px);background:linear-gradient(#20262e,#0d1015)}
-.dotsbar{display:flex;align-items:center;height:30px;padding:0 max(8px,env(safe-area-inset-right,0px)) 0 max(8px,env(safe-area-inset-left,0px));background:var(--navy-0)}
+.dotsbar{display:flex;align-items:center;height:30px;padding:0 max(8px,env(safe-area-inset-right,0px)) 0 max(8px,env(safe-area-inset-left,0px));background:#0a0a0a}
 .gear{width:28px;height:28px;border:0;background:none;padding:2px;cursor:pointer}
 .gear svg{width:22px;height:22px;fill:#8c95a3;filter:drop-shadow(0 -1px 0 #000)}
 .dots{flex:1;display:flex;justify-content:center;gap:9px;margin-right:28px}
