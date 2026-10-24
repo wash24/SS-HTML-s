@@ -75,7 +75,6 @@ body{overscroll-behavior:none}
 .t-top .rt{display:flex;gap:8px;align-items:center;white-space:nowrap}
 .t-top .tv{color:#fff}
 .t-top .ser{text-transform:none;color:#fff}
-.t-ps{padding:4px 8px 3px;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--amber);background:rgba(0,0,0,.22);border-bottom:1px solid rgba(0,0,0,.3);text-shadow:0 -1px 0 rgba(0,0,0,.6)}
 .t-top .lg{color:var(--amber)}
 .t-top.live{color:#fff}
 .t-top.live .st::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--live);margin-right:5px;vertical-align:1px;box-shadow:0 0 6px var(--live);animation:pulse 1.4s infinite}
@@ -379,7 +378,7 @@ function normalize(sport, ev){
   let label, blurb = '';
   const postseason = ev.season && ev.season.type === 3;
   const note = c.notes && c.notes[0] && c.notes[0].headline;
-  const psLabel = postseason ? (note || (c.series && c.series.title) || 'Postseason').replace(/\s+-\s+/g, ' · ') : '';
+  const psLabel = postseason ? (note || (c.series && c.series.title) || '').replace(/\s+-\s+/g, ' ') : '';
   // Series status before a playoff game: "(MIL leads 1-0)" or "(Series tied 0-0)"
   let seriesTxt = '';
   if (postseason && c.series && c.series.type !== 'season' && st.state === 'pre') {
@@ -400,7 +399,7 @@ function normalize(sport, ev){
     label = st.name === 'STATUS_SCHEDULED' ? `${md(date)}: ${hm(date)}` : `${md(date)}: ${st.shortDetail}`;
     const tv = c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names.join('/');
     const venue = c.venue && c.venue.fullName;
-    blurb = venue || '';
+    blurb = [psLabel, venue].filter(Boolean).join(' - ');
     if (!postseason && c.notes && c.notes[0] && c.notes[0].headline) blurb = c.notes[0].headline + (blurb ? ' · ' + blurb : '');
   }
   if (!blurb && !postseason && c.notes && c.notes[0]) blurb = c.notes[0].headline;
@@ -440,7 +439,6 @@ function tileHTML(g){
     </div>`;
   }).join('');
   return `<a class="tile" href="${esc(g.link)}" data-gid="${g.sport.key}:${esc(g.id)}" target="_blank" rel="noopener">
-    ${g.psLabel ? `<div class="t-ps">${esc(g.psLabel)}</div>` : ''}
     <div class="t-top${live ? ' live' : ''}"><span class="st">${esc(g.label)}${g.seriesTxt ? ` <span class="ser">(${esc(g.seriesTxt)})</span>` : ''}</span><span class="rt">${g.tv ? `<span class="tv">${esc(g.tv)}</span>` : ''}</span></div>
     ${rows}<div class="blurb">${esc(g.blurb)}</div></a>`;
 }
