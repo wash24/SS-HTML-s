@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NCAA College Football Scores</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #fff;
+    font-family: helvetica, arial, clean, sans-serif;
+    color: #000;
+    font-size: 13px;
+    line-height: 1.385;
+  }
+
+  body { position: relative; }
+  /* Gradient-only gutter background (behind .page, visible in the side margins),
+     extending down past the ScoreCenter box rather than stopping right at it. */
+  .bg-pattern {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 0;
+    background: linear-gradient(180deg, #4a0000 0%, #7a0000 16%, #b30000 34%, #c96b6b 55%, #e8d8d8 78%, #f6f6f6 92%, #ffffff 100%);
+  }
+  .page { position: relative; z-index: 1; max-width: 944px; margin: 0 auto; background: transparent; }
+  /* Real layout: masthead/nav/widgets/scorecenter span the full ~944px container,
+     but the actual game-listing column (.span-4) was only 614px wide, with a
+     right-hand ad/promo rail filling the rest. We're not building that rail,
+     so the game column is left-aligned and narrow rather than stretched full-width. */
+  .main-col { max-width: 646px; padding: 0 16px; }
+  a { color: #225db7; text-decoration: none; cursor: default; }
+  a:hover { text-decoration: underline; }
+
+  /* ---- masthead: red-to-white gradient, edition bar + brand row ---- */
+  /* Gradient now spans the whole header block (masthead through widgets-row) instead
+     of just the masthead, with a darker starting red — matches the reference showing
+     the red tone persisting and fading gradually all the way to the ScoreCenter box. */
+  /* No background of its own — shows the single shared gradient (.bg-pattern) through
+     it, so the masthead/nav content and the gutters are guaranteed to be the exact
+     same gradient rather than two independently-calculated copies that could drift. */
+  .header-wrap { background: transparent; }
+  .masthead { background: transparent; }
+  /* Confirmed real: #header .top-bar { height:24px }, label 10px/#AAA, links 10px/#CCC */
+  .edition-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    height: 24px; padding: 0 16px; font-size: 10px; color: #ccc; flex-wrap: wrap; gap: 8px;
+  }
+  .edition-bar .grp { display: flex; align-items: center; gap: 10px; }
+  .edition-bar b { color: #fff; }
+  .edition-bar .label { color: #aaa; }
+  .edition-bar a { color: #ccc; font-weight: normal; }
+  .edition-bar .right a { color: #fff; font-weight: bold; }
+
+  .brand-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 16px 16px; flex-wrap: wrap; gap: 12px;
+  }
+  .brand-row .title-group { display: flex; align-items: baseline; gap: 16px; }
+  /* Confirmed real: actual logo image is only 70x17px — much smaller/more compact
+     than a full wordmark; scaled the text approximation down to match that footprint. */
+  .espn-mark { font: italic 900 17px Helvetica, Arial, sans-serif; color: #fff; letter-spacing: -1px; }
+  /* Confirmed real: .espn-logo a.section-title { font-size:28px; font-family:Arial,Helvetica }
+     (this generic "section title" class is exactly what renders "College Football Scoreboard") */
+  .brand-row h1 { font: bold 28px Arial, Helvetica, sans-serif; color: #fff; }
+  .brand-row .tools { display: flex; align-items: center; gap: 8px; }
+  /* Confirmed real: #nav-main-search input.text { width:200px; font-size:14px } */
+  .brand-row .search { border: 1px solid #adadad; background: #fff; padding: 5px 8px; font-size: 14px; color: #999; width: 200px; }
+  /* Confirmed real: #shop a.shop-btn { width:54px; height:22px } — a small sprite button,
+     not a padded text button; approximated here as a compact flat block at the same size. */
+  .brand-row .shop { background: #2a2a2a; color: #fff; border: 1px solid #000; width: 54px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; }
+
+  /* ---- black sport nav ---- */
+  .sportnav { background: #000; display: flex; justify-content: space-between; height: 36px; font-size: 12px; font-weight: bold; }
+  .sportnav .left, .sportnav .right { display: flex; }
+  /* Confirmed real: #nav-main ul.top li.right-menu uses a textured background image,
+     not flat black — approximated here as a subtle dark gray gradient. */
+  .sportnav .right { background: linear-gradient(#3a3a3a, #262626); }
+  /* Confirmed real: #nav-main ul.top li a { padding:0 8px; margin-right:1px; line-height:36px } */
+  .sportnav span, .sportnav a { display: flex; align-items: center; padding: 0 8px; margin-right: 1px; color: #fff; cursor: pointer; }
+  /* Confirmed real: #nav-main ul.top li.selected a { background:#DDD; color:#000 } */
+  .sportnav .left span.active { background: #ddd; color: #000; }
+  .sportnav .right span { font-size: 10px; text-align: center; line-height: 1.1; }
+
+  /* ---- sub-nav (confirmed real class: .nav-main-secondary) ---- */
+  /* Confirmed real: ul { height:26px; background:#DDD; font-weight:bold }
+     li { font-family:Verdana,sans-serif; color:#666 }
+     a { font-size:77%; color:#225db7 }; li.active a { color:#000 } */
+  .subnav {
+    height: 26px; background: #ddd;
+    display: flex; align-items: center; gap: 14px; padding: 0 16px;
+    font-family: Verdana, sans-serif; font-size: 10px; font-weight: bold; color: #666;
+    overflow-x: auto; white-space: nowrap;
+  }
+  .subnav .current { color: #000; }
+  .subnav a { color: #225db7; }
+
+  /* ---- widgets row ---- */
+  .widgets-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; flex-wrap: wrap; gap: 8px; }
+  .widgets-row .widgets { display: flex; gap: 8px; flex-wrap: wrap; }
+  .widget-pill {
+    display: flex; align-items: center; gap: 5px;
+    border: 1px solid #8a1a1a; background: linear-gradient(#fbfbfb, #eeeeee); padding: 2px 2px; height: 17px;
+    font-family: Verdana, Arial, sans-serif; font-size: 9px; color: #555; font-weight: normal;
+  }
+  .widget-pill .dot { width: 17px; height: 17px; border-radius: 2px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .right-controls { display: flex; align-items: center; gap: 8px; font-size: 10.5px; color: #555; }
+  .right-controls select { font-size: 10.5px; border: 1px solid #c7c7c7; background: #fff; padding: 2px; }
+  .auto-update { border: 1px solid #c7c7c7; background: #fff; padding: 3px 8px; user-select: none; }
+  .auto-update strong { color: #cc0000; }
+  .auto-update.off strong { color: #888; }
+
+  /* ---- ScoreCenter box ---- */
+  .scorecenter-box {
+    display: grid; grid-template-columns: 1fr auto auto; column-gap: 24px; row-gap: 8px; align-items: center;
+    border: 1px solid #c2c2c2; background: linear-gradient(#f6f6f6, #e2e2e2); padding: 8px 12px; margin: 0 16px 10px; color: #565656;
+  }
+  /* Real wordmark is two-toned: "SCORE" in a light dot-matrix/stippled outline style,
+     "CENTER" solid and bold. Approximated here with an actual dot texture (radial-gradient
+     clipped to the text) rather than just a flat gray color. */
+  .scorecenter-wordmark { grid-column: 1; grid-row: 1; font: 900 26px Arial, sans-serif; letter-spacing: 1px; }
+  .scorecenter-wordmark .sc-score {
+    background-image: radial-gradient(circle, #9a9a9a 38%, transparent 38%);
+    background-size: 4px 4px;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 400;
+  }
+  .scorecenter-wordmark .sc-center { color: #4c4c4c; font-weight: 900; }
+  /* Was drastically oversized (30px) relative to the wordmark it sits under — corrected
+     to sit close to the wordmark's own size, matching the real proportions. */
+  .scorecenter-box .date-range { grid-column: 1; grid-row: 2; font-size: 12px; font-weight: bold; color: #333; }
+  /* Year and Week now share the same grid column, so their left edges align exactly
+     instead of floating independently per row. */
+  .year-select { grid-column: 2; grid-row: 1; display: flex; align-items: center; font-size: 11px; white-space: nowrap; }
+  .year-select .weekcaption { padding-top: 0; }
+  .tv-coverage-link { grid-column: 3; grid-row: 1; justify-self: end; font-size: 12px; color: #225db7; font-weight: normal; white-space: nowrap; }
+  .week-strip-row { grid-column: 2 / 4; grid-row: 2; display: flex; align-items: flex-start; }
+  .week-strip { display: flex; align-items: flex-start; }
+  .weekcaption { width: 50px; text-align: right; padding-top: 4px; margin-right: 5px; font-size: 11px; color: #565656; }
+  .week-strip a {
+    display: flex; align-items: center; justify-content: center;
+    width: 25px; height: 19px;
+    border: 1px solid #a5a5a5; border-right: 0; background: linear-gradient(#fbfbfb, #e8e8e8);
+    font: bold 12px Helvetica, Arial, sans-serif; color: #3e3e3e; cursor: pointer;
+  }
+  .week-strip a:hover { background: #ddd; text-decoration: none; }
+  /* Week 16 is the last of the numbered buttons — closes its own right border directly,
+     since :last-child now points at the Bowls button instead once it's appended after it. */
+  .week-strip a[data-week="16"] { border-right: 1px solid #a5a5a5; }
+  .week-strip a.selected { background: #000; color: #fff; }
+  .week-strip a.bowls-btn {
+    width: auto; padding: 0 10px; margin-left: 8px;
+    border: 1px solid #a5a5a5; font-size: 11px;
+  }
+
+  /* ---- filter row ---- */
+  .filter-row {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+    padding: 0 0 12px; font-size: 12px;
+  }
+  .filter-row .left-group { display: flex; align-items: center; gap: 10px; }
+  .filter-row select { font-size: 12px; padding: 2px; }
+  .espn-games-link { padding-left: 10px; border-left: 1px solid #a8a8a8; }
+  .expand-all { display: flex; align-items: center; justify-content: center; width: 128px; height: 19px; background: linear-gradient(#d8e6f7, #c0d2ec); border: 1px solid #9eb8dd; color: #366abe; font-weight: normal; font-size: 12px; }
+
+  /* ---- status line ---- */
+  .status-line { padding: 5px 0; font-size: 10.5px; color: #666; border-bottom: 1px solid #e5e5e5; display: flex; align-items: center; gap: 5px; }
+  .status-line.error { color: #b30000; }
+  .pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: #cc0000; display: inline-block; animation: pulse 1.4s infinite ease-in-out; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.25;} }
+
+  /* ---- date sections (plain text, no boxed banner) ---- */
+  .date-section { margin: 14px 0; }
+  .games-date { padding: 2px 0 6px; font: bold 14px Verdana, Arial, Helvetica, sans-serif; color: #454545; }
+  .games-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 6px; row-gap: 16px; align-items: start; }
+  @media (max-width: 640px) { .games-grid { grid-template-columns: 1fr; } }
+
+  .empty { text-align: center; color: #888; font-size: 12px; padding: 30px 0; }
+  .footnote { padding: 14px 16px 10px; }
+
+  /* ---- individual game box (real .mod-ncf-scorebox values) ---- */
+  /* .mod-container's real ambient font is Verdana — team-name/rank explicitly override to Helvetica/Arial below */
+  .game-box { border: 1px solid #c2c2c2; border-bottom: 0; background: #fff; font-family: Verdana, Helvetica, Arial, sans-serif; }
+
+  .game-header { padding: 2px 6px; border-bottom: 1px solid #dfdfdf; display: flex; justify-content: space-between; align-items: center; font-size: 10px; line-height: 16px; min-height: 16px; }
+  /* Real design confirmed: pregame header is a diagonal two-tone split — darker shade
+     behind the time, lighter behind the network, seam angled not flat vertical. */
+  .game-box.state-preview .game-header { background: linear-gradient(80deg, #d8d8d8 0%, #d8d8d8 43%, #f1f1f1 43%, #f1f1f1 100%); color: #454545; }
+  .game-box.state-live .game-header { background: linear-gradient(80deg, #464646 0%, #464646 39.8%, #d8d8d8 40%, #d8d8d8 100%); color: #fff; }
+  .game-box.state-live .game-header .final-linescore-header span { color: #5a5a5a; }
+  .game-box.state-live .game-header .final-linescore-header span.total-col { color: #000; }
+  /* Final-state header confirmed solid near-black (not the two-tone diagonal), with
+     linescore column headers merged directly into this row instead of the network name. */
+  .game-box.state-final .game-header { background: linear-gradient(80deg, #0d0d0d 0%, #0d0d0d 43%, #3f3f3f 43%, #3f3f3f 100%); color: #fff; }
+  .game-header .game-status { width: 130px; }
+  .game-header .tv { font-weight: 700; text-align: right; }
+  .game-header .final-linescore-header { display: flex; }
+  .game-header .final-linescore-header span { width: 19px; text-align: center; font-weight: normal; }
+  .game-header .final-linescore-header span.total-col { width: 28px; font-weight: 700; font-size: 12px; text-align: right; margin-left: 6px; }
+
+  .linescore-header { display: flex; justify-content: flex-end; padding: 0 6px; font-size: 10px; color: #454545; }
+  .linescore-header span { width: 19px; text-align: center; }
+  .linescore-header span.total-col { width: 28px; text-align: right; margin-left: 6px; }
+
+  .team-row { display: flex; align-items: center; overflow: hidden; padding: 6px 6px 6px 0; border-bottom: 1px solid #dfdfdf; background: linear-gradient(#ffffff, #f4f4f4); position: relative; }
+  .team-row.home { border-bottom: 1px solid #a8a8a8; }
+
+  .winner-arrow { position: absolute; left: 0; top: 13px; width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 3px solid #000; }
+
+  .logo-dot { width: 25px; height: 25px; margin-left: 4px; border-radius: 2px; flex-shrink: 0; object-fit: contain; }
+  .logo-fallback { border: 1px solid rgba(0,0,0,0.15); }
+
+  .team-main { flex: 1; min-width: 0; margin-left: 4px; }
+  .team-name-line { font: bold 13px Helvetica, Arial, sans-serif; color: #343434; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .team-name-line a { color: #343434; }
+  .rank-badge { font: bold 11px Helvetica, Arial, sans-serif; color: #343434; margin-right: 4px; }
+  .possession-ball { display: inline-block; vertical-align: middle; margin-left: 5px; margin-bottom: 1px; }
+  .record { display: block; font-size: 10px; color: #626262; margin-top: 1px; }
+  /* Real layout: Stats/Roster sit on the SAME line as the team name, right-aligned */
+  .team-links { font-size: 10px; white-space: nowrap; flex-shrink: 0; margin-left: 6px; }
+  .team-links span { color: #225db7; }
+  .team-links span::after { content: '\00bb'; margin: 0 6px 0 3px; }
+  .team-links span:last-child::after { margin-right: 0; }
+
+  .linescore { display: flex; flex-shrink: 0; padding-top: 2px; }
+  .linescore span { width: 19px; text-align: center; font-size: 11px; color: #454545; }
+  .total-score { width: 28px; text-align: right; font-size: 13px; font-weight: 700; color: #000; padding-top: 1px; margin-left: 6px; }
+
+  .team-row.winner .team-name-line { font-weight: bold; }
+
+  .live-watch-row {
+    display: block; text-align: center; padding: 4px; border-bottom: 1px solid #dfdfdf;
+    background: linear-gradient(#f2f2f2, #e6e6e6); font-size: 11px; font-weight: bold;
+  }
+  .live-watch-row .network { color: #333; }
+  .live-watch-row .sep { color: #999; margin: 0 3px; }
+  .live-watch-row .watch-live { color: #225db7; }
+
+  .recap-headline {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    padding: 4px 6px; border-bottom: 1px solid #a8a8a8; font-size: 9px; font-weight: bold; color: #225db7; line-height: 1.3;
+    background: linear-gradient(#fafafa, #f2f2f2);
+  }
+
+  .more-links { display: flex; justify-content: space-between; align-items: center; padding: 6px; border-bottom: 1px solid #a8a8a8; background: linear-gradient(#fafafa, #f2f2f2); }
+  .more-links .links { display: flex; gap: 6px; }
+  .more-links .links span { font-size: 10px; color: #225db7; }
+  .more-links .links span::after { content: ' \00bb'; }
+
+  /* Final-state links: two stacked rows instead of the single pregame row */
+  .final-links { border-bottom: 1px solid #a8a8a8; background: linear-gradient(#fafafa, #f2f2f2); }
+  .final-links .final-links-row { display: flex; align-items: center; padding: 4px 6px; gap: 8px; }
+  .final-links .final-links-row.top { padding-bottom: 2px; }
+  .final-links .final-links-row.bottom { padding-top: 2px; justify-content: space-between; }
+  .final-links .final-links-row span.link { font-size: 10px; color: #225db7; }
+  .final-links .final-links-row span.link::after { content: ' \00bb'; }
+  .final-links .final-links-row .links { display: flex; gap: 8px; }
+
+  .game-note { padding: 5px 6px; border-bottom: 1px solid #a8a8a8; font-family: Verdana, Arial, sans-serif; font-size: 9px; font-weight: normal; letter-spacing: 0.2px; color: #454545; text-align: left; }
+
+  .expand-toggle { background: linear-gradient(#d8e6f7, #c0d2ec); border: 1px solid #9eb8dd; color: #366abe; font-weight: bold; width: 17px; height: 15px; text-align: center; line-height: 14px; font-size: 11px; }
+  /* ---- scores ticker (confirmed real classes/values pulled from a live ESPN capture's
+     combined stylesheet: .ui-tabs-nav / #scores-description / .scores-carousel /
+     .game-status / .scores-prev / .scores-next). Sits on the same red masthead gradient,
+     above the black sport nav, exactly like the real front page's #scoreboard module. ---- */
+  /* ---- scores ticker: rebuilt from pixel-sampled colors off a close-up screenshot of
+     the real widget (not just the combined stylesheet, which mixed in other modules'
+     rules). The active tab is a DARKER inset maroon box with white text -- not a white
+     box with dark text -- and the game cells are two solid gray bands (#919191 time /
+     #a8a8a8 team row), not white. ---- */
+  .sb-widget {
+    padding: 8px 10px 11px; position: relative;
+  }
+  .sb-tabs { display: flex; align-items: center; flex-wrap: wrap; position: relative; height: 26px; padding-right: 200px; gap: 2px; }
+  /* Confirmed real (getComputedStyle() off the actual #scoreboard ui-tabs-nav): the tab
+     label and the "Full Scoreboard »" link are Verdana 10px, not Helvetica 11px bold --
+     inactive tab text is weight 400, the active tab's own label is weight 700, and the
+     "Full Scoreboard »" link inside it is an unusually thin weight 100. Both are white. */
+  .sb-tab {
+    font: 400 10px Verdana, sans-serif; color: #fff; padding: 6px 10px; cursor: pointer; white-space: nowrap;
+  }
+  .sb-tab.active {
+    background: #6b150f; border: 1px solid rgba(255,255,255,0.18);
+    padding: 5px 10px; display: flex; align-items: center; gap: 8px;
+    font-weight: 700;
+  }
+  .sb-tab.active .full-link { font-size: 10px; font-weight: 100; color: #fff; }
+  .sb-tab.active .full-link:hover { text-decoration: underline; }
+  /* Matches the tab-bar text size exactly (10px Verdana bold), not a separate larger size. */
+  .sb-desc { position: absolute; right: 0; top: 50%; transform: translateY(-50%); font: 700 10px Verdana, sans-serif; color: #fff; white-space: nowrap; }
+
+  .sb-carousel { position: relative; padding: 0 22px; overflow: hidden; margin-top: 2px; }
+  .sb-arrow {
+    position: absolute; top: 0; bottom: 0; width: 20px; cursor: pointer; z-index: 2;
+    background: transparent; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; font-weight: bold;
+  }
+  .sb-arrow:hover { color: #f2d9d9; }
+  .sb-arrow.prev { left: 0; } .sb-arrow.next { right: 0; }
+  .sb-track { display: flex; align-items: stretch; overflow-x: auto; scroll-behavior: smooth; -ms-overflow-style: none; scrollbar-width: none; }
+  .sb-track::-webkit-scrollbar { display: none; }
+  .sb-empty { padding: 14px 10px; font-size: 11px; color: #fff; font-family: Verdana, Arial, sans-serif; }
+
+  /* Pixel-measured off the close-up screenshot: total cell height ~35px CSS px, split
+     roughly 1/3 time band (#919191 bg / #464444 text -- also matches the combined
+     stylesheet's confirmed .pregame .game-status rule) to 2/3 team-code band (~#a8a8a8
+     bg / near-black text, two tight lines, not two separately-padded rows). Uniform
+     across cells -- no alternating shading in the real capture. */
+  /* These exact values came from DevTools Computed-style dumps on the real page
+     (not the combined stylesheet, which didn't cover this specific widget):
+     .status span -> font: 700 9px Verdana; color: rgb(70,68,68); line-height: 11px;
+     background transparent, padding 0 (the #919191 fill is on this block-level wrapper,
+     not the text itself). .away/.home span -> font: 400 10px Verdana; color: rgb(47,47,47);
+     line-height: 11px; background transparent, padding 0. Real elements have NO internal
+     padding at all -- spacing between cells comes from the small gap below, not padding. */
+  /* Widening this to fit the new arrow/rank content was a mistake -- 73px is the real,
+     DevTools-confirmed width of the actual homepage widget (see note above), measured
+     directly via getComputedStyle(), not estimated off a screenshot. Going back to it and
+     tightening the row's internal spacing instead, so the box size stays true to the real
+     page and the new content just fits inside it. */
+  .sb-game {
+    position: relative; flex-shrink: 0;
+    width: 73px; box-sizing: border-box; margin-right: 2px; color: inherit;
+  }
+  /* The cell's default content lives inside its own link (so a plain click still goes to
+     the sport's full scoreboard); .sb-status and .sb-team-block/-pre stack inside it as
+     ordinary block boxes, same as before. */
+  .sb-cell-link { display: block; color: inherit; text-decoration: none; }
+  .sb-game.state-live .sb-status { color: #696969; background: #dcdcdc; }
+  .sb-game.state-post .sb-status { color: #000; background: #c1c1c1; }
+
+  /* Hover reveals the real per-game action links instead of just dark-inverting the cell
+     -- matches the user's reference screenshot: two stacked options filling the cell,
+     each a real link (Recap/Box Score for a final, Conversation/Box Score live, Preview/
+     Conversation pregame), with the option the cursor is actually over turned white and
+     the other left gray. */
+  .sb-hover-actions {
+    display: none; position: absolute; inset: 0; z-index: 5;
+    flex-direction: column; border: 1px solid #6b150f; box-sizing: border-box;
+  }
+  .sb-game:hover .sb-hover-actions { display: flex; }
+  .sb-hover-link {
+    flex: 1 1 50%; display: flex; align-items: center; justify-content: flex-start; min-height: 0;
+    padding: 0 5px 0 2px; font: 700 9px/11px Verdana, sans-serif; color: #000; text-align: left;
+    background: #c1c1c1; text-decoration: none; white-space: nowrap; overflow: hidden;
+  }
+  .sb-hover-link:hover { background: #fff; text-decoration: none; }
+
+  /* Pixel-sampled directly off the user's close-up reference screenshot (2x capture,
+     scale-corrected /2): cell width 72.68px (DevTools-confirmed), gap between cells
+     ~2px real, team-row fill rgb(171,171,170) = #ababaa (not #a8a8a8), active-tab
+     fill rgb(~105,21,15) = #6b150f. */
+  .sb-status { font: 700 9px/11px Verdana, sans-serif; color: #464444; background: #919191; white-space: nowrap; padding: 0 4px; }
+
+  /* Final/live-game row layout, matched to the user's reference screenshot: a real
+     4-column grid -- victory arrow | AP rank | team code | score -- shared by BOTH team
+     rows of one game (the grid lives on .sb-team-block itself, not per-row), so a
+     column's width and position is identical whether or not that particular row has an
+     arrow or a rank in it. The arrow column is always reserved (just invisible on the
+     non-winning row) and the rank column only exists at all when at least one of the two
+     teams in this game is actually ranked (.has-rank) -- most pro-sport games carry no
+     rank data, so there's no reason to reserve dead space for it there. */
+  .sb-team-block {
+    display: grid; grid-template-columns: 6px 1fr auto; column-gap: 2px;
+    align-items: center; padding: 1px 3px;
+    background: linear-gradient(#b5b5b3, #a2a2a1);
+    font: 400 10px/11px Verdana, sans-serif; color: #2f2f2f; white-space: nowrap;
+  }
+  /* Ranked (CFB/NCAABB) rows only: a tighter arrow column and column-gap shift the
+     rank + team-code pair left a touch, handing that reclaimed width to the code
+     column (1fr) -- needed because a 2-digit rank plus a 3-digit score can otherwise
+     squeeze a bold 4-letter code (e.g. "NAVY", "USNA") until it's clipped by the
+     score column right next to it. */
+  .sb-team-block.has-rank { grid-template-columns: 4px 13px 1fr auto; column-gap: 1px; }
+
+  /* Column 1: winner arrow. Always present as a grid cell (so column 2 onward never
+     shifts between the two rows) but only visibly drawn on the winning row. A CSS
+     triangle, not a Unicode glyph -- a glyph's font metrics were blowing out flex/grid
+     baseline alignment in an earlier pass. Named .sb-win-arrow, not .sb-arrow, so it
+     doesn't collide with the ticker's own .sb-arrow prev/next carousel buttons above
+     (those are position:absolute -- that name clash was what caused that earlier bug). */
+  .sb-win-arrow {
+    width: 0; height: 0; visibility: hidden;
+    border-top: 3px solid transparent; border-bottom: 3px solid transparent; border-left: 3px solid #696969;
+  }
+  .sb-win-arrow.visible { visibility: visible; }
+
+  /* Column 2: AP rank, right-aligned so it sits snug against the team code regardless of
+     whether it's one digit or two. Neutral gray either way -- rank is not itself a
+     winner/loser signal. */
+  .sb-rank { text-align: right; color: #696969; padding-right: 1px; }
+
+  /* Column 3: team code, left-aligned -- this is the actual "column" the reference
+     image's codes line up against, whether or not the row above/below it has a rank. */
+  .sb-abbr { text-align: left; overflow: hidden; }
+  .sb-abbr.winner { color: #000; font-weight: 700; }
+
+  /* Column 4: score, right-aligned against the cell's own right edge. */
+  .sb-score { text-align: right; }
+  .sb-score.winner { color: #000; font-weight: 700; }
+
+  /* Pregame: the real page has nothing to put in the other 3 columns yet (no winner, no
+     score, and rank isn't shown before kickoff either) -- just the two team codes,
+     left-aligned in that same first column position rather than forced through the grid. */
+  .sb-team-block-pre {
+    padding: 1px 3px; background: linear-gradient(#b5b5b3, #a2a2a1);
+  }
+  .sb-team-line-pre {
+    font: 400 10px/11px Verdana, sans-serif; color: #2f2f2f; white-space: nowrap; text-align: left;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-pattern"></div>
+<div class="page">
+
+  <div class="header-wrap">
+  <div class="masthead">
+    <div class="edition-bar">
+      <div class="grp"><span class="label">EDITIONS:</span>&nbsp; <b>USA</b>&nbsp; <a href="#">DEPORTES</a>&nbsp; <a href="#">More &#9662;</a></div>
+      <div class="grp"><span class="label">CITIES:</span>&nbsp; <a href="#">BOSTON</a> <a href="#">CHICAGO</a> <a href="#">DALLAS</a> <a href="#">LOS ANGELES</a> <a href="#">NEW YORK</a></div>
+      <div class="grp right"><a href="#">Sign In</a> or <a href="#">Register</a></div>
+    </div>
+    <div class="brand-row">
+      <div class="title-group">
+        <a class="espn-mark" href="index.html">ESPN</a>
+        <h1>College Football Scoreboard</h1>
+      </div>
+      <div class="tools">
+        <input class="search" placeholder="Search" disabled>
+        <span class="shop">SHOP</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sb-widget">
+    <div class="sb-tabs" id="sb-tabs"></div>
+    <div class="sb-carousel">
+      <div class="sb-arrow prev" id="sb-prev">&#10094;</div>
+      <div class="sb-arrow next" id="sb-next">&#10095;</div>
+      <div class="sb-track" id="sb-track"><div class="sb-empty">Loading scores&hellip;</div></div>
+    </div>
+  </div>
+
+  <div class="sportnav">
+    <div class="left">
+      <span>myESPN</span><a href="nfl-scoreboard.html">NFL</a><a href="mlb-scoreboard.html">MLB</a><a href="nba-scoreboard.html">NBA</a><span>NHL</span>
+      <span class="active">NCAA FB</span><a href="ncaabb-scoreboard.html">NCAA BB</a><span>NASCAR</span><span>SOCCER</span><span>MORE SPORTS</span>
+    </div>
+    <div class="right">
+      <span>WATCH</span><span>FANTASY<br>&amp; GAMES</span><span>espnW</span><span>RADIO<br>&amp; MORE</span>
+    </div>
+  </div>
+
+  <div class="subnav">
+    <a href="#">CFB Home</a>
+    <span class="current">Scores</span>
+    <a href="#">Schedule</a>
+    <a href="#">Rankings</a>
+    <a href="#">Standings</a>
+    <a href="#">Stats</a>
+    <a href="#">Teams</a>
+    <a href="#">Blog</a>
+    <a href="#">Heisman</a>
+    <a href="#">Nation Sites &#9662;</a>
+    <a href="#">Recruiting &#9662;</a>
+    <a href="#">Odds</a>
+    <a href="#">Resources &#9662;</a>
+    <a href="#">Tickets &#8663;</a>
+  </div>
+
+  <div class="widgets-row">
+    <div class="widgets">
+      <span class="widget-pill"><span class="dot" style="background:#cc0000"><svg viewBox="3 1 18 22" width="9" height="11" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a5 5 0 00-5 5c0 5-2 6-2 7h14c0-1-2-2-2-7a5 5 0 00-5-5z"/><path d="M10 19a2 2 0 004 0"/></svg></span>ESPN Alerts</span>
+      <span class="widget-pill"><span class="dot" style="background:#555"><svg viewBox="2 2 20 20" width="12" height="12" fill="none" stroke="#fff" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="12" y1="7" x2="12" y2="17"/><line x1="7" y1="12" x2="17" y2="12"/></svg></span>Add Scoreboard Widget</span>
+      <span class="widget-pill"><span class="dot" style="background:#3a3a3a"><svg viewBox="2 5 20 14" width="12" height="8.5" fill="none" stroke="#fff" stroke-width="1.6"><ellipse cx="12" cy="12" rx="9" ry="6" fill="#8b4513" stroke="#fff"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="10" x2="9" y2="14"/><line x1="12" y1="9.5" x2="12" y2="14.5"/><line x1="15" y1="10" x2="15" y2="14"/></svg></span>Play College Football Challenge</span>
+      <span class="widget-pill"><span class="dot" style="background:#225db7"><svg viewBox="3 3 18 18" width="11" height="11" fill="none" stroke="#fff" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.2" fill="#fff"/></svg></span>Pick Center</span>
+    </div>
+    <div class="right-controls">
+      <div class="auto-update" id="auto-update-toggle">Auto Update: <strong id="auto-update-state">On</strong></div>
+      <select disabled title="Not wired up in this recreation">
+        <option>More Scoreboards</option>
+        <option>NFL</option><option>NBA</option><option>MLB</option><option>NHL</option><option>NCAA Basketball</option>
+      </select>
+    </div>
+  </div>
+  </div>
+
+  <div class="scorecenter-box">
+    <span class="scorecenter-wordmark"><span class="sc-score">SCORE</span><span class="sc-center">CENTER</span></span>
+    <span class="year-select"><span class="weekcaption">Year:</span> <select id="year-select"></select></span>
+    <a href="#" class="tv-coverage-link">TV Coverage Maps &raquo;</a>
+    <span class="date-range" id="date-range">Loading&hellip;</span>
+    <div class="week-strip-row">
+      <span class="weekcaption">Week:</span>
+      <div class="week-strip" id="week-strip"></div>
+    </div>
+  </div>
+
+  <div class="main-col">
+    <div class="filter-row">
+      <div class="left-group">
+        <span>Sorting By:</span>
+        <select id="sort-filter">
+          <option value="top25">Top 25</option>
+          <option value="all">All FBS</option>
+        </select>
+        <span class="espn-games-link">Games on ESPN Network</span>
+      </div>
+      <div class="expand-all">Expand All Games +</div>
+    </div>
+
+    <div class="status-line" id="status-line">
+      <span class="pulse-dot"></span> <span id="status-text">Loading current games&hellip;</span>
+    </div>
+
+    <main id="scoreboard-main">
+      <div class="empty">Loading&hellip;</div>
+    </main>
+  </div>
+
+  <div class="footnote"></div>
+</div>
+
+<script>
+  // groups=80 is the confirmed "all FBS" group ID for football specifically — groups=50
+  // is a different sport's ID (basketball) and returns no/wrong results here.
+  // Measures down through the status line (right before the game grid begins) rather
+  // than stopping right after the ScoreCenter box, giving the fade-to-white more room
+  // to happen gradually instead of resolving abruptly.
+  function syncBgPatternHeight() {
+    const statusLine = document.querySelector('.status-line');
+    const bgPattern = document.querySelector('.bg-pattern');
+    if (statusLine && bgPattern) {
+      const bottom = statusLine.getBoundingClientRect().bottom + window.scrollY;
+      bgPattern.style.height = bottom + 'px';
+    }
+  }
+  syncBgPatternHeight();
+  window.addEventListener('resize', syncBgPatternHeight);
+
+  const API_URL = 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=500';
+
+  // Placeholder crest (user-supplied shield image, inlined so the page stays a single file)
+  // for any team with no logo coming through, a logo that fails to load, or an opponent
+  // that's still "to be determined".
+  const PLACEHOLDER_LOGO = 'data:image/png;base64,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';
+  function isTbdTeam(t) {
+    if (!t) return true;
+    const re = /^(tbd|tba|to be determined|to be decided)$/i;
+    return [t.displayName, t.shortDisplayName, t.name, t.abbreviation, t.location].some(v => v && re.test(String(v).trim()));
+  }
+
+  const REFRESH_MS = 30000;
+
+  const statusText = document.getElementById('status-text');
+  const statusLine = document.getElementById('status-line');
+  const mainEl = document.getElementById('scoreboard-main');
+  const dateRangeEl = document.getElementById('date-range');
+  const weekStripEl = document.getElementById('week-strip');
+  const yearSelectEl = document.getElementById('year-select');
+  const sortFilter = document.getElementById('sort-filter');
+  const autoToggle = document.getElementById('auto-update-toggle');
+  const autoState = document.getElementById('auto-update-state');
+
+  let lastEvents = [];
+  let autoUpdateOn = true;
+  // null = "live/today" mode. A number = a specific regular-season week.
+  // 'bowls' = the whole postseason fetched as one combined block (see buildApiUrl).
+  let selectedWeek = null;
+  let selectedYear = null;
+
+  // Populate Year dropdown with the current real year back through the 2010 season -
+  // fixed at 2010 (not a relative offset) so this range doesn't drift forward in future years.
+  const nowYear = new Date().getFullYear();
+  for (let y = nowYear; y >= 2010; y--) {
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    yearSelectEl.appendChild(opt);
+  }
+  yearSelectEl.value = nowYear;
+  yearSelectEl.addEventListener('change', () => {
+    selectedYear = parseInt(yearSelectEl.value, 10);
+    // "Today" only means something for the current real year — switching years
+    // needs an explicit week to fetch, so pin to whatever week was last shown (or 1).
+    if (selectedWeek == null) selectedWeek = lastKnownWeek || 1;
+    loadScores();
+  });
+
+  let lastKnownWeek = null;
+
+  function buildApiUrl() {
+    if (selectedWeek == null) return API_URL;
+    const yr = selectedYear || nowYear;
+    if (selectedWeek === 'bowls') {
+      // Starts after championship weekend (already correctly included in week 15 of
+      // the regular season) so it doesn't duplicate those games — bowl season proper
+      // runs roughly Dec 11 through Jan 20 of the following year.
+      return `${API_URL}&dates=${yr}1211-${yr + 1}0120&seasontype=3`;
+    }
+    // Confirmed real param is dates=YYYY, not year=YYYY — the latter is silently ignored
+    return `${API_URL}&week=${selectedWeek}&dates=${yr}&seasontype=2`;
+  }
+
+  function setStatus(msg, isError) {
+    statusText.textContent = msg;
+    statusLine.classList.toggle('error', !!isError);
+  }
+
+  autoToggle.addEventListener('click', () => {
+    autoUpdateOn = !autoUpdateOn;
+    autoState.textContent = autoUpdateOn ? 'On' : 'Off';
+    autoToggle.classList.toggle('off', !autoUpdateOn);
+    if (autoUpdateOn) loadScores();
+  });
+
+  sortFilter.addEventListener('change', () => render(lastEvents));
+
+  // Decorative fallback only, used if the API response doesn't include week metadata
+  function approxWeek(d) {
+    const seasonStart = new Date(d.getFullYear(), 7, 24);
+    const diff = Math.floor((d - seasonStart) / (7 * 24 * 3600 * 1000)) + 1;
+    return Math.min(16, Math.max(1, diff));
+  }
+
+  function renderWeekStrip(currentWeek) {
+    lastKnownWeek = currentWeek;
+    let html = '';
+    for (let w = 1; w <= 16; w++) {
+      html += `<a data-week="${w}" class="${w === currentWeek ? 'selected' : ''}">${w}</a>`;
+    }
+    html += `<a data-week="bowls" class="bowls-btn ${currentWeek === 'bowls' ? 'selected' : ''}">Bowls</a>`;
+    weekStripEl.innerHTML = html;
+  }
+
+  weekStripEl.addEventListener('click', (e) => {
+    const target = e.target.closest('a[data-week]');
+    if (!target) return;
+    const val = target.dataset.week;
+    selectedWeek = val === 'bowls' ? 'bowls' : parseInt(val, 10);
+    if (selectedYear == null) selectedYear = nowYear;
+    loadScores();
+  });
+
+  function formatDateRange(events) {
+    const opts = { month: 'long', day: 'numeric', year: 'numeric' };
+    if (!events.length) return new Date().toLocaleDateString(undefined, opts);
+    const times = events.map(e => new Date(e.date).getTime());
+    const min = new Date(Math.min(...times));
+    const max = new Date(Math.max(...times));
+    if (min.toDateString() === max.toDateString()) {
+      return min.toLocaleDateString(undefined, opts);
+    }
+    return `${min.toLocaleDateString(undefined, opts)} to ${max.toLocaleDateString(undefined, opts)}`;
+  }
+
+  // Formats directly from the same "YYYY-MM-DD" key used for grouping (parsed
+  // explicitly as UTC), rather than re-parsing a raw event timestamp through local
+  // time separately — that mismatch was the actual cause of games appearing under
+  // the wrong date header, and of duplicate-looking headers for adjacent UTC dates.
+  function fmtDateHeaderFromKey(key) {
+    const [y, m, d] = key.split('-').map(Number);
+    const date = new Date(Date.UTC(y, m - 1, d));
+    return date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
+  }
+
+  // Confirmed cross-referenced from multiple community sources specifically for
+  // CFB group IDs. These represent the conference entities themselves, which
+  // should stay stable through realignment (teams move between conferences;
+  // the conference IDs don't get reassigned) - but this hasn't been verified
+  // against live 2026 data, so an unmapped ID falls back to a generic label
+  // rather than guessing at a name.
+  const CFB_CONFERENCE_NAMES = {
+    1: 'ACC', 4: 'Big 12', 5: 'Big Ten', 8: 'SEC', 9: 'Pac-12',
+    12: 'C-USA', 15: 'MAC', 17: 'Mountain West', 18: 'FBS Indep.', 37: 'Sun Belt', 151: 'American'
+  };
+
+  function teamRowHTML(team, periods, homeAway, possessionTeamId, year) {
+    if (!team) return '';
+    const t = team.team || {};
+    const rankVal = team.curatedRank && team.curatedRank.current;
+    const rankHTML = (rankVal && rankVal < 26) ? `<span class="rank-badge">${rankVal}</span>` : '';
+
+    // Fixed real bug: records[] is always ordered [overall, home, road] regardless
+    // of which side this team is on - matching by type instead of array position,
+    // same fix already applied to NFL/MLB.
+    //
+    // Conference-record display (added later) relies on a static, current-day
+    // conference ID map, which is only accurate for the post-realignment era.
+    // Rather than try to resolve historical conference names (confirmed not
+    // possible through this API - see prior notes), 2024 and later use the
+    // conference-record style; 2023 and earlier fall back to the original,
+    // always-correct home/away split.
+    const overall = team.records && team.records.find(r => r.type === 'total');
+    const isIndependent = String(t.conferenceId) === '18';
+    const useConferenceStyle = year >= 2024;
+    let recText = '';
+    if (overall) {
+      if (useConferenceStyle && isIndependent) {
+        recText = `(${overall.summary} Independent)`;
+      } else if (useConferenceStyle) {
+        const splitRecord = team.records && team.records.find(r => r.type === 'vsconf');
+        const splitLabel = CFB_CONFERENCE_NAMES[t.conferenceId] || 'Conf.';
+        recText = `(${overall.summary}`;
+        if (splitRecord) recText += `, ${splitRecord.summary} ${splitLabel}`;
+        recText += ')';
+      } else {
+        const splitRecord = team.records && team.records.find(r => r.type === (homeAway === 'home' ? 'home' : 'road'));
+        recText = `(${overall.summary}`;
+        if (splitRecord) recText += `, ${splitRecord.summary} ${homeAway}`;
+        recText += ')';
+      }
+    }
+    const recHTML = recText ? `<span class="record">${recText}</span>` : '';
+
+    const color = t.color ? ('#' + t.color) : '#999999';
+    const logoUrl = isTbdTeam(t) ? '' : (t.logo || (t.logos && t.logos[0] && t.logos[0].href) || '');
+    const name = t.shortDisplayName || t.displayName || t.name || 'TBD';
+    const hasPossession = !!(possessionTeamId && t.id && String(t.id) === String(possessionTeamId));
+
+    let cells = '';
+    if (periods > 0) {
+      for (let i = 0; i < periods; i++) {
+        let val = '';
+        if (i < 4) {
+          const ls = team.linescores && team.linescores[i];
+          val = (ls && ls.value !== undefined) ? ls.value : '';
+        } else {
+          // Combined OT column: sum every OT period's points together
+          const otPeriods = (team.linescores || []).slice(4);
+          if (otPeriods.length) {
+            val = otPeriods.reduce((sum, l) => sum + ((l && l.value !== undefined) ? Number(l.value) : 0), 0);
+          }
+        }
+        cells += `<span>${val}</span>`;
+      }
+    }
+
+    const winnerClass = team.winner ? ' winner' : '';
+    const homeClass = homeAway === 'home' ? ' home' : '';
+    const score = (periods > 0 && team.score !== undefined && team.score !== null && team.score !== '') ? team.score : '';
+
+    return `<div class="team-row${winnerClass}${homeClass}">
+      ${team.winner ? '<div class="winner-arrow"></div>' : ''}
+      <img class="logo-dot" src="${logoUrl || PLACEHOLDER_LOGO}" alt="${name}" onerror="this.onerror=null;this.src=PLACEHOLDER_LOGO">
+      <div class="team-main">
+        <div class="team-name-line">${rankHTML}<a href="#">${name}</a>${hasPossession ? `<svg class="possession-ball" width="13" height="9" viewBox="0 0 24 16"><ellipse cx="12" cy="8" rx="11" ry="7" fill="#8b4513" stroke="#4a2408" stroke-width="0.75"/><line x1="12" y1="4" x2="12" y2="12" stroke="#fff" stroke-width="1"/><line x1="9" y1="6" x2="15" y2="6" stroke="#fff" stroke-width="1"/><line x1="9" y1="8" x2="15" y2="8" stroke="#fff" stroke-width="1"/><line x1="9" y1="10" x2="15" y2="10" stroke="#fff" stroke-width="1"/></svg>` : ''}</div>
+        ${recHTML}
+      </div>
+      ${periods === 0 ? `<div class="team-links"><span>Roster</span><span>Stats</span></div>` : ''}
+      ${periods > 0 ? `<div class="linescore">${cells}</div>` : ''}
+      ${periods > 0 ? `<div class="total-score">${score}</div>` : ''}
+    </div>`;
+  }
+
+  function gameHTML(evt) {
+    const comp = evt.competitions && evt.competitions[0];
+    const competitors = (comp && comp.competitors) || [];
+    const away = competitors.find(c => c.homeAway === 'away') || competitors[0];
+    const home = competitors.find(c => c.homeAway === 'home') || competitors[1];
+
+    const statusType = (evt.status && evt.status.type) || {};
+    const state = statusType.state;
+    const isLive = state === 'in';
+    const isFinal = state === 'post';
+    const showLinescores = isLive || isFinal;
+
+    // Only shows an OT column when the game actually went to overtime. Multiple OT
+    // periods are combined into a single OT column (not split into OT/2OT/3OT).
+    const rawPeriods = showLinescores ? Math.max(
+      (away && away.linescores && away.linescores.length) || 0,
+      (home && home.linescores && home.linescores.length) || 0
+    ) : 0;
+    const hasOT = rawPeriods > 4;
+    const periods = showLinescores ? (hasOT ? 5 : Math.max(rawPeriods, 4)) : 0;
+
+    function periodLabel(i) {
+      return i < 4 ? String(i + 1) : 'OT';
+    }
+
+    let periodHeaders = '';
+    if (showLinescores) {
+      for (let i = 0; i < periods; i++) periodHeaders += `<span>${periodLabel(i)}</span>`;
+      periodHeaders += `<span class="total-col">T</span>`;
+    }
+
+    // Pregame: build our own time-only string in Central time from the raw kickoff
+    // timestamp, rather than ESPN's shortDetail — which includes a date prefix (e.g.
+    // "8/29 - 3:00 PM EDT") whenever the game isn't "today," and defaults to Eastern.
+    // Live/final status text ("Final", "2nd 10:23") is left as-is from the API.
+    const statusDetail = (state === 'pre')
+      ? new Date(evt.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Chicago', timeZoneName: 'short' })
+      : (statusType.shortDetail || statusType.detail || '');
+    const broadcasts = comp && comp.broadcasts;
+    const network = (broadcasts && broadcasts[0] && broadcasts[0].names && broadcasts[0].names.join('/')) || '';
+    const stateClass = isLive ? 'state-live' : (isFinal ? 'state-final' : 'state-preview');
+    // Prefer the real comp.notes field (confirmed real on NCAA BB/MLB/NBA - gives
+    // the actual bowl name, e.g. "Rose Bowl Game presented by Vizio", not just a
+    // location) over a synthetic "AT CITY STATE" string built from venue address.
+    // Only fall back to the synthetic version for neutral-site games that have a
+    // venue but no note text.
+    const realNote = comp && comp.notes && comp.notes[0] && comp.notes[0].headline;
+    const venueNote = realNote
+      ? realNote.toUpperCase()
+      : (comp && comp.neutralSite && comp.venue && comp.venue.address
+        ? `AT ${(comp.venue.address.city || '').toUpperCase()} ${(comp.venue.address.state || '').toUpperCase()}`.trim()
+        : '');
+
+    // Confirmed real header behavior for BOTH live and final: linescore column headers
+    // merge into the header row itself, replacing the network name (which moves down
+    // into its own row within the body instead — see the isLive branch below).
+    const headerRightHTML = (isLive || isFinal)
+      ? `<div class="final-linescore-header">${periodHeaders}</div>`
+      : `<span class="tv">${network}</span>`;
+
+    let bodyHTML;
+    if (isFinal) {
+      // Real recap headline text isn't in the public scoreboard feed — fall back to
+      // a simple generated recap sentence from the final score when unavailable.
+      const apiHeadline = comp && comp.headlines && comp.headlines[0]
+        && (comp.headlines[0].shortLinkText || comp.headlines[0].description);
+      let recap = apiHeadline || '';
+      if (!recap) {
+        const winner = competitors.find(c => c.winner);
+        const loser = competitors.find(c => c !== winner);
+        if (winner && loser) {
+          const wName = (winner.team && (winner.team.shortDisplayName || winner.team.displayName)) || '';
+          const lName = (loser.team && (loser.team.shortDisplayName || loser.team.displayName)) || '';
+          recap = `${wName} defeats ${lName} ${winner.score}-${loser.score}`;
+        }
+      }
+      bodyHTML = `
+        ${recap ? `<div class="recap-headline">${recap}</div>` : ''}
+        <div class="final-links">
+          <div class="final-links-row top">
+            <span class="link">Box Score</span><span class="link">Drive Chart</span><span class="link">Play-By-Play</span>
+          </div>
+          <div class="final-links-row bottom">
+            <span class="links"><span class="link">Conversation</span><span class="link">Highlights</span></span>
+            <span class="expand-toggle">+</span>
+          </div>
+        </div>`;
+    } else if (isLive) {
+      bodyHTML = `
+        <div class="live-watch-row">
+          <span class="network">${network}</span>${network ? '<span class="sep">/</span>' : ''}<span class="watch-live">Watch Live</span>
+        </div>
+        <div class="more-links">
+          <span class="links"><span>GameCast</span><span>Box Score</span><span>Conversation</span></span>
+          <span class="expand-toggle">+</span>
+        </div>`;
+    } else {
+      bodyHTML = `
+        <div class="more-links">
+          <span class="links"><span>Conversation</span><span>Tickets</span></span>
+          <span class="expand-toggle">+</span>
+        </div>`;
+    }
+
+    return `<div class="game-box ${stateClass}">
+      <div class="game-header">
+        <span class="game-status">${statusDetail}</span>
+        ${headerRightHTML}
+      </div>
+      ${(showLinescores && !isLive && !isFinal) ? `<div class="linescore-header">${periodHeaders}</div>` : ''}
+      ${teamRowHTML(away, periods, 'away', comp && comp.situation && comp.situation.possession, selectedYear || nowYear)}
+      ${teamRowHTML(home, periods, 'home', comp && comp.situation && comp.situation.possession, selectedYear || nowYear)}
+      ${bodyHTML}
+      ${venueNote ? `<div class="game-note">${venueNote}</div>` : ''}
+    </div>`;
+  }
+
+  function eventIsRanked(evt) {
+    const comp = evt.competitions && evt.competitions[0];
+    const competitors = (comp && comp.competitors) || [];
+    return competitors.some(c => c.curatedRank && c.curatedRank.current && c.curatedRank.current < 26);
+  }
+
+  function render(events) {
+    if (!events || !events.length) {
+      mainEl.innerHTML = '<div class="empty">No games scheduled for this period.</div>';
+      return;
+    }
+    let filtered = sortFilter.value === 'top25' ? events.filter(eventIsRanked) : events;
+    // Army-Navy is a standalone rivalry game, not a bowl game - exclude it from
+    // the Bowls view specifically, matched by team name since that's stable
+    // (unlike conference/group IDs, which shift with realignment).
+    if (selectedWeek === 'bowls') {
+      filtered = filtered.filter(evt => {
+        const comp = evt.competitions && evt.competitions[0];
+        const names = (comp && comp.competitors || []).map(c =>
+          ((c.team && (c.team.displayName || c.team.name)) || '').toLowerCase()
+        );
+        const isArmyNavy = names.some(n => n.includes('army')) && names.some(n => n.includes('navy'));
+        return !isArmyNavy;
+      });
+    }
+    if (!filtered.length) {
+      mainEl.innerHTML = '<div class="empty">No ranked matchups this period &mdash; try "All FBS".</div>';
+      return;
+    }
+    // Every game's date is computed the same way, from the same source: the raw
+    // timestamp, converted to Eastern Time (confirmed from real API samples — ESPN's
+    // own displayed times are consistently EDT/EST). Previously this tried to parse
+    // ESPN's status text instead, which only worked for games whose text happened to
+    // match an "M/D" pattern — anything that didn't match silently fell back to a
+    // different (UTC-slice) method, splitting games from the same real day across
+    // two different keys. A single uniform method can't produce that split.
+    function getDateKey(evt) {
+      return new Date(evt.date).toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+    }
+
+    const groups = {};
+    const order = [];
+    filtered.forEach(evt => {
+      const key = getDateKey(evt);
+      if (!groups[key]) { groups[key] = []; order.push(key); }
+      groups[key].push(evt);
+    });
+    mainEl.innerHTML = order.map(key => {
+      const dayEvents = groups[key];
+      return `<div class="date-section">
+        <div class="games-date">${fmtDateHeaderFromKey(key)}</div>
+        <div class="games-grid">${dayEvents.map(gameHTML).join('')}</div>
+      </div>`;
+    }).join('');
+  }
+
+  async function loadScores() {
+    if (!autoUpdateOn) return;
+    try {
+      const res = await fetch(buildApiUrl(), { cache: 'no-store' });
+      if (!res.ok) throw new Error('Bad response: ' + res.status);
+      const data = await res.json();
+      lastEvents = data.events || [];
+
+      // The Bowls date-range query doesn't reliably respect groups=80 (FBS-only) -
+      // FCS Playoff games can leak through since they run the same Dec/Jan window.
+      // Confirmed real group ID: 81 = FCS (parallel to 80 = FBS). Fetch that same
+      // date range under groups=81 and exclude any event ID that shows up there,
+      // using ESPN's own classification rather than guessing client-side.
+      if (selectedWeek === 'bowls' && lastEvents.length) {
+        const yr = selectedYear || nowYear;
+        try {
+          const fcsRes = await fetch(
+            `https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=81&limit=500&dates=${yr}1211-${yr + 1}0120&seasontype=3`,
+            { cache: 'no-store' }
+          );
+          if (fcsRes.ok) {
+            const fcsData = await fcsRes.json();
+            const fcsIds = new Set((fcsData.events || []).map(e => e.id));
+            lastEvents = lastEvents.filter(e => !fcsIds.has(e.id));
+          }
+        } catch (e) {
+          // If this secondary fetch fails, fall back to showing the unfiltered list
+          // rather than losing bowl games entirely over an FCS-exclusion hiccup.
+        }
+      }
+
+      // Prefer ESPN's own week/season metadata over date-math guessing when available
+      const apiWeek = data.week && data.week.number;
+      const apiYear = data.season && data.season.year;
+
+      if (selectedWeek == null) {
+        // "Today" mode: reflect whatever week/year the live data actually falls in
+        const refDate = lastEvents.length ? new Date(lastEvents[0].date) : new Date();
+        renderWeekStrip(apiWeek || approxWeek(refDate));
+        if (apiYear) yearSelectEl.value = apiYear;
+      } else {
+        renderWeekStrip(selectedWeek);
+        yearSelectEl.value = selectedYear || nowYear;
+      }
+
+      dateRangeEl.textContent = formatDateRange(lastEvents);
+
+      render(lastEvents);
+      setStatus('Live — updated ' + new Date().toLocaleTimeString());
+    } catch (err) {
+      setStatus('Unable to reach live scores right now (connection or CORS block). Retrying every 30s.', true);
+    }
+  }
+
+  loadScores();
+  setInterval(loadScores, REFRESH_MS);
+</script>
+
+<script>
+(function () {
+  var DEFAULT_SPORT_KEY = 'cfb';
+  var SPORTS = [
+    { key: 'nfl',    label: 'NFL',                tab: 'NFL',      newsUrl: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/news',
+      scoreUrl: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard', page: 'nfl-scoreboard.html' },
+    { key: 'cfb',    label: 'COLLEGE FOOTBALL',    tab: 'NCAAF',    newsUrl: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/news',
+      scoreUrl: 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=500', page: 'cfb-scoreboard-2012-v2.html' },
+    { key: 'mlb',    label: 'MLB',                 tab: 'MLB',      newsUrl: 'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/news',
+      scoreUrl: 'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard', page: 'mlb-scoreboard.html' },
+    { key: 'ncaabb', label: 'COLLEGE BASKETBALL',  tab: 'NCAA BB',  newsUrl: 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/news',
+      scoreUrl: 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?groups=50&limit=500', page: 'ncaabb-scoreboard.html' },
+    { key: 'nba',    label: 'NBA',                 tab: 'NBA',      newsUrl: 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/news',
+      scoreUrl: 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard', page: 'nba-scoreboard.html' }
+  ];
+
+  var SEASON_TYPE_NAMES = { 1: 'Preseason', 2: 'Regular Season', 3: 'Postseason', 4: 'Offseason' };
+  var MONTHS = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May', 'June', 'July', 'Aug.', 'Sept.', 'Oct.', 'Nov.', 'Dec.'];
+  function formatToday() {
+    var d = new Date();
+    return MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+  }
+
+  // Eastern-time kickoff formatter for upcoming games: today's games get just the time
+  // ("5:40 PM"), games on a future day get a short weekday prefix ("Sat 11:00 AM") --
+  // both always in Eastern time (the ticker's own timezone, independent of the rest of
+  // the page) regardless of the game's own broadcast timezone, and with no "EST"/"EDT"
+  // suffix cluttering up the compact ticker cell.
+  var ET_DAY_FMT = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
+  var ET_TIME_FMT = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' });
+  var ET_WEEKDAY_FMT = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short' });
+  function formatKickoffEastern(dateStr) {
+    var evtDate = new Date(dateStr);
+    var timeStr = ET_TIME_FMT.format(evtDate);
+    if (ET_DAY_FMT.format(evtDate) === ET_DAY_FMT.format(new Date())) {
+      return timeStr;
+    }
+    return ET_WEEKDAY_FMT.format(evtDate) + ' ' + timeStr;
+  }
+
+  function escapeHtml(str) {
+    return String(str == null ? '' : str).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  var tickerData = {};   // sport.key -> events[]
+  var activeSportKey = null;
+
+  // Looks up a real ESPN link off the event's own top-level "links" array (each entry has
+  // a "rel" array and an "href" -- confirmed via the live API, e.g. rel:["recap","desktop",
+  // "event"]). Returns null if that specific rel isn't present (recap/boxscore links only
+  // exist once the game has actually started).
+  function findLink(evt, rel) {
+    var links = evt.links || [];
+    for (var i = 0; i < links.length; i++) {
+      if (links[i].rel && links[i].rel.indexOf(rel) !== -1 && links[i].href) return links[i].href;
+    }
+    return null;
+  }
+
+  // Hover-card labels, matched to the real front page's per-state convention. ESPN's API
+  // only ever exposes "recap" and "boxscore" as their own distinct link rels; Conversation
+  // and Preview aren't separate API resources, so both point at the game's real Gamecast
+  // page instead (rel "summary" -- the same link the cell itself uses as a fallback).
+  var ACTION_LABELS = {
+    post: [{ label: 'Recap', rel: 'recap' }, { label: 'Box Score', rel: 'boxscore' }],
+    in: [{ label: 'Conversation', rel: 'summary' }, { label: 'Box Score', rel: 'boxscore' }],
+    pre: [{ label: 'Preview', rel: 'summary' }, { label: 'Conversation', rel: 'summary' }]
+  };
+
+  function hoverActionsHtml(evt, stateKey, fallbackHref) {
+    var actions = ACTION_LABELS[stateKey] || ACTION_LABELS.pre;
+    return '<div class="sb-hover-actions">' + actions.map(function (a) {
+      var href = findLink(evt, a.rel) || findLink(evt, 'summary') || fallbackHref;
+      return '<a class="sb-hover-link" href="' + escapeHtml(href) + '" target="_blank" rel="noopener">' + a.label + '</a>';
+    }).join('') + '</div>';
+  }
+
+  // College sports' tickers only ever show ranked (AP Top 25) matchups -- everything else
+  // in a given day's slate is filtered out before it ever reaches the ticker.
+  function eventHasRankedTeam(evt) {
+    var comp = evt.competitions && evt.competitions[0];
+    var competitors = (comp && comp.competitors) || [];
+    return competitors.some(function (c) {
+      var r = c.curatedRank && c.curatedRank.current;
+      return r && r <= 25;
+    });
+  }
+
+  // Renders one team's 4 grid cells (arrow, rank, code, score) for a final/live game.
+  // These are emitted as plain sibling spans, not wrapped in their own row container --
+  // the grid lives on the shared .sb-team-block parent (see CSS), which is what keeps a
+  // column's width and position identical between the away and home rows regardless of
+  // which row actually has an arrow or a rank in it. showRank is decided per-game (true
+  // only if at least one of the two teams is actually ranked), so the rank cell itself is
+  // only emitted at all when the game needs that column.
+  function teamRowCells(comp, abbr, score, showRank) {
+    var isWinner = !!comp.winner;
+    var rank = comp.curatedRank && comp.curatedRank.current;
+    var rankText = (rank && rank <= 25) ? rank : '';
+    return '<span class="sb-win-arrow' + (isWinner ? ' visible' : '') + '"></span>' +
+      (showRank ? '<span class="sb-rank">' + escapeHtml(rankText) + '</span>' : '') +
+      '<span class="sb-abbr' + (isWinner ? ' winner' : '') + '">' + escapeHtml(abbr) + '</span>' +
+      '<span class="sb-score' + (isWinner ? ' winner' : '') + '">' + escapeHtml(score) + '</span>';
+  }
+
+  function renderGameCell(sport, evt) {
+    var comp = evt.competitions && evt.competitions[0];
+    if (!comp) return '';
+    var competitors = comp.competitors || [];
+    var away = competitors.filter(function (c) { return c.homeAway === 'away'; })[0] || competitors[1];
+    var home = competitors.filter(function (c) { return c.homeAway === 'home'; })[0] || competitors[0];
+    if (!away || !home) return '';
+    var state = evt.status && evt.status.type ? evt.status.type.state : 'pre';
+    var showScore = state === 'in' || state === 'post';
+    // Pregame: our own Eastern-time-only string (see formatKickoffEastern) instead of
+    // ESPN's shortDetail, which includes a date prefix we don't want in the compact
+    // ticker cell. Live/final status ("Final", "Top 4th") is left exactly as the API reports it.
+    var statusText = (state === 'pre')
+      ? formatKickoffEastern(evt.date)
+      : ((evt.status && evt.status.type) ? evt.status.type.shortDetail : '');
+    var awayAbbr = (away.team && away.team.abbreviation) || '';
+    var homeAbbr = (home.team && home.team.abbreviation) || '';
+    var stateClass = state === 'in' ? 'state-live' : (state === 'post' ? 'state-post' : 'state-pre');
+
+    var teamBlockHtml;
+    if (!showScore) {
+      // Pregame: nothing to put in an arrow/rank/score column yet -- just the two team
+      // codes, left-aligned in the cell's first column.
+      teamBlockHtml = '<div class="sb-team-block-pre">' +
+        '<div class="sb-team-line-pre">' + escapeHtml(awayAbbr) + '</div>' +
+        '<div class="sb-team-line-pre">' + escapeHtml(homeAbbr) + '</div>' +
+        '</div>';
+    } else {
+      var awayRank = away.curatedRank && away.curatedRank.current;
+      var homeRank = home.curatedRank && home.curatedRank.current;
+      var anyRanked = (awayRank && awayRank <= 25) || (homeRank && homeRank <= 25);
+      teamBlockHtml = '<div class="sb-team-block' + (anyRanked ? ' has-rank' : '') + '">' +
+        teamRowCells(away, awayAbbr, away.score, anyRanked) +
+        teamRowCells(home, homeAbbr, home.score, anyRanked) +
+        '</div>';
+    }
+
+    var stateKey = state === 'in' ? 'in' : (state === 'post' ? 'post' : 'pre');
+    return '<div class="sb-game ' + stateClass + '">' +
+      '<a class="sb-cell-link" href="' + sport.page + '">' +
+      '<div class="sb-status">' + escapeHtml(statusText) + '</div>' +
+      teamBlockHtml +
+      '</a>' +
+      hoverActionsHtml(evt, stateKey, sport.page) +
+      '</div>';
+  }
+
+  function renderTicker() {
+    var sport = SPORTS.filter(function (s) { return s.key === activeSportKey; })[0];
+    if (!sport) return;
+
+    var tabsHtml = SPORTS.map(function (s) {
+      if (s.key === activeSportKey) {
+        return '<span class="sb-tab active">' + s.tab +
+          ' <a class="full-link" href="' + s.page + '">Full Scoreboard &raquo;</a></span>';
+      }
+      return '<span class="sb-tab" data-sport="' + s.key + '">' + s.tab + '</span>';
+    }).join('');
+    document.getElementById('sb-tabs').innerHTML = tabsHtml;
+    Array.prototype.forEach.call(document.querySelectorAll('.sb-tab[data-sport]'), function (el) {
+      el.addEventListener('click', function () {
+        activeSportKey = el.getAttribute('data-sport');
+        renderTicker();
+      });
+    });
+
+    var events = tickerData[sport.key] || [];
+    var track = document.getElementById('sb-track');
+    if (!events.length) {
+      track.innerHTML = '<div class="sb-empty">No ' + sport.tab + ' games today.</div>';
+    } else {
+      track.innerHTML = events.map(function (evt) { return renderGameCell(sport, evt); }).join('');
+      track.scrollLeft = 0;
+    }
+
+    var seasonType = events[0] && events[0].season ? SEASON_TYPE_NAMES[events[0].season.type] : null;
+    document.getElementById('sb-tabs').insertAdjacentHTML('beforeend',
+      '<div class="sb-desc">' + (seasonType ? escapeHtml(seasonType) + ': ' : '') + formatToday() + '</div>');
+
+    // Ticker content height can shift once real games replace the "Loading..." placeholder,
+    // which moves the sport nav bar below it -- re-measure so the red background still
+    // reaches exactly to the bottom of the nav.
+    syncBgPatternHeight();
+  }
+
+  function loadScores() {
+    Promise.all(SPORTS.map(function (sport) {
+      return fetch(sport.scoreUrl)
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var events = data.events || [];
+          // The ticker only shows ranked matchups for the two college sports -- otherwise
+          // a full slate of unranked games would crowd out the games people actually want
+          // to see on a homepage-sized widget.
+          if (sport.key === 'cfb' || sport.key === 'ncaabb') {
+            events = events.filter(eventHasRankedTeam);
+          }
+          return { key: sport.key, events: events };
+        })
+        .catch(function () { return { key: sport.key, events: [] }; });
+    })).then(function (results) {
+      results.forEach(function (r) { tickerData[r.key] = r.events; });
+      var withGames = SPORTS.filter(function (s) { return tickerData[s.key] && tickerData[s.key].length; });
+      var preferred = withGames.filter(function (s) { return s.key === DEFAULT_SPORT_KEY; })[0];
+      activeSportKey = (preferred || withGames[0] || SPORTS[0]).key;
+      renderTicker();
+    });
+
+    document.getElementById('sb-prev').addEventListener('click', function () {
+      document.getElementById('sb-track').scrollBy({ left: -280, behavior: 'smooth' });
+    });
+    document.getElementById('sb-next').addEventListener('click', function () {
+      document.getElementById('sb-track').scrollBy({ left: 280, behavior: 'smooth' });
+    });
+  }
+
+  loadScores();
+  // Same 30s cadence as the page's own full scoreboard -- ticker and full scoreboard
+  // now poll ESPN in lockstep. Hardcoded (not read off the main scoreboard's own
+  // refresh constant/timer) so the ticker's cadence doesn't silently break on pages
+  // whose main scoreboard names or scopes that value differently.
+  setInterval(loadScores, 30000);
+})();
+</script>
+</body>
+</html>

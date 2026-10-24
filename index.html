@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Scoreline</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Scoreline">
+<meta name="theme-color" content="#0b1a33">
+<link rel="apple-touch-icon" id="touchIcon" href="">
+<style>
+/* Layout: iOS 6–era app shell. Fake status bar, horizontally paged glossy panels, footer with settings gear, page dots and a headline ticker. */
+:root{
+  --navy-0:#06101f;      /* app ground */
+  --navy-1:#0d2347;      /* panel base */
+  --navy-2:#173a70;      /* panel highlight */
+  --navy-3:#2a5aa3;      /* tile highlight */
+  --steel:#9fb6d8;       /* muted text */
+  --ink:#ffffff;
+  --amber:#ffb21f;       /* brand accent / live */
+  --live:#ff4b3a;
+  --font:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  color-scheme:dark;
+}
+/* Per-sport panel themes (swap hex values to match the scoreboard pages) */
+.page{--p-hi:#173a70;--p-base:#0d2347;--p-deep:#0a1c3b;--p-line:rgba(160,195,255,.35);
+  --t-hi:rgba(90,140,220,.55);--t-mid:rgba(30,70,140,.55);--t-lo:rgba(18,45,95,.65);--t-line:rgba(190,215,255,.55);--t-sub:#c9d6ea;--b-hi:#3e6fbf;--b-lo:#1d4689}
+.th-red{--p-hi:#c8251d;--p-base:#9e130d;--p-deep:#5e0905;--p-line:rgba(255,170,160,.45);
+  --t-hi:rgba(235,95,85,.6);--t-mid:rgba(170,28,20,.6);--t-lo:rgba(115,10,6,.72);--t-line:rgba(255,195,185,.6);--t-sub:#f3cfcb;--b-hi:#e0463a;--b-lo:#930f09}
+.th-nfl{--p-hi:#1f4687;--p-base:#11285a;--p-deep:#081636;--p-line:rgba(170,195,240,.4);
+  --t-hi:rgba(95,135,210,.55);--t-mid:rgba(30,60,125,.58);--t-lo:rgba(14,32,75,.7);--t-line:rgba(195,215,250,.55);--t-sub:#cdd8ee;--b-hi:#3b66b5;--b-lo:#152f6a}
+.th-mlb{--p-hi:#1b5d8f;--p-base:#0f3d63;--p-deep:#08243d;--p-line:rgba(160,210,240,.4);
+  --t-hi:rgba(85,155,205,.55);--t-mid:rgba(25,85,135,.58);--t-lo:rgba(12,52,88,.7);--t-line:rgba(190,225,250,.55);--t-sub:#cde0ee;--b-hi:#3a83bd;--b-lo:#114a78}
+.th-nba{--p-hi:#4a505b;--p-base:#2a2e36;--p-deep:#141619;--p-line:rgba(210,215,225,.35);
+  --t-hi:rgba(150,158,172,.5);--t-mid:rgba(70,76,88,.58);--t-lo:rgba(34,37,44,.75);--t-line:rgba(220,225,235,.5);--t-sub:#d3d7de;--b-hi:#666e7c;--b-lo:#2c3038}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--navy-0);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+body{overscroll-behavior:none}
+.app{position:relative;height:100%;display:flex;flex-direction:column;
+  background:
+    repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 2px,transparent 2px 6px),
+    radial-gradient(120% 70% at 50% 0%,#1b3d75 0%,#0a1a35 55%,var(--navy-0) 100%);
+  padding-top:env(safe-area-inset-top,0px)}
+
+/* fake status bar (hidden when launched from home screen, where iOS draws the real one) */
+.status{height:20px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 6px;
+  font-size:12px;font-weight:700;background:linear-gradient(#000,#111);text-shadow:0 -1px 0 #000}
+.status .sig{display:flex;align-items:center;gap:4px}
+.bars{display:flex;gap:1px;align-items:flex-end;height:10px}
+.bars i{display:block;width:3px;background:#fff;border-radius:1px}
+.batt{width:24px;height:11px;border:1px solid #fff;border-radius:2px;padding:1px;position:relative}
+.batt::after{content:"";position:absolute;right:-3px;top:3px;width:2px;height:4px;background:#fff;border-radius:0 1px 1px 0}
+.batt b{display:block;height:100%;width:85%;background:#fff}
+.standalone .status{display:none}
+
+/* pager */
+.pager{flex:1;min-height:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.pager::-webkit-scrollbar{display:none}
+.page{flex:0 0 100%;width:100%;scroll-snap-align:center;scroll-snap-stop:always;padding:10px max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));display:flex;max-width:100vw}
+.panel{flex:1;min-width:0;max-width:520px;margin:0 auto;display:flex;flex-direction:column;border-radius:14px;overflow:hidden;
+  background:linear-gradient(180deg,var(--p-hi) 0%,var(--p-base) 120px,var(--p-deep) 100%);
+  border:1px solid var(--p-line);
+  box-shadow:0 0 0 1px rgba(0,0,0,.6),0 6px 18px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.35)}
+.panel-head{position:relative;flex:none;text-align:center;padding:12px 10px 10px}
+.panel-head::before{content:"";position:absolute;inset:0 0 50% 0;background:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,.05));pointer-events:none}
+.panel-head::after{content:attr(data-watermark);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font:italic 900 64px/1 var(--font);letter-spacing:-2px;color:rgba(255,255,255,.06);pointer-events:none;white-space:nowrap;overflow:hidden}
+.panel-head h1{position:relative;margin:0;font-size:33px;font-weight:700;letter-spacing:-.5px;text-shadow:0 -1px 0 rgba(0,0,0,.6),0 2px 4px rgba(0,0,0,.35)}
+.scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 8px 10px;overscroll-behavior:contain}
+.section{margin:8px -8px 6px;padding:5px 12px;font-size:14px;font-weight:700;
+  background:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.2));border-top:1px solid rgba(0,0,0,.5);border-bottom:1px solid rgba(255,255,255,.12);
+  text-shadow:0 -1px 0 #000;display:flex;justify-content:space-between;align-items:baseline}
+.section small{font-size:11px;font-weight:600;color:var(--steel)}
+
+/* game tile */
+.tile{display:block;color:inherit;text-decoration:none;margin:8px 4px;border-radius:7px;overflow:hidden;
+  background:linear-gradient(180deg,var(--t-hi),var(--t-mid) 40%,var(--t-lo));
+  border:1px solid var(--t-line);box-shadow:0 2px 4px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35)}
+.tile:active{filter:brightness(1.25)}
+.t-top{display:flex;justify-content:space-between;align-items:center;padding:4px 8px 2px;font-size:12px;font-weight:700;color:var(--t-sub);text-transform:uppercase;letter-spacing:.2px}
+.t-top .lg{color:var(--amber)}
+.t-top.live{color:#fff}
+.t-top.live .st::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--live);margin-right:5px;vertical-align:1px;box-shadow:0 0 6px var(--live);animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.row{display:grid;grid-template-columns:26px 18px minmax(0,1fr) auto 10px;align-items:center;gap:4px;padding:3px 0 3px 8px;font-size:17px;font-weight:700;text-shadow:0 -1px 0 rgba(0,0,0,.6)}
+.row img{width:24px;height:24px;object-fit:contain;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+.row .rk{font-size:12px;font-weight:600;color:var(--t-sub);text-align:right}
+.row .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .rec{font-size:11px;font-weight:600;color:var(--steel);margin-left:5px}
+.row .sc{font-variant-numeric:tabular-nums;text-align:right;min-width:24px}
+.row.loser{color:var(--t-sub)}
+.row .win{width:0;height:0;border-style:solid;border-width:6px 8px 6px 0;border-color:transparent #fff transparent transparent;justify-self:end;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+.blurb{padding:6px 8px 7px;font-size:13px;line-height:1.3;color:#eef3fb;background:rgba(0,0,0,.28);border-top:1px solid rgba(0,0,0,.4)}
+.blurb:empty{display:none}
+.badge{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;letter-spacing:-.2px;color:#fff;border:1px solid rgba(255,255,255,.6);box-shadow:0 1px 2px rgba(0,0,0,.6);overflow:hidden}
+.notice{margin:8px 4px 0;padding:6px 8px;border-radius:6px;font-size:12px;font-weight:600;color:#1a1200;background:linear-gradient(#ffd06a,#ffb21f);box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+
+.more{display:block;margin:12px 4px 4px;padding:10px;text-align:center;border-radius:7px;color:#fff;text-decoration:none;font-weight:700;font-size:14px;
+  background:linear-gradient(var(--b-hi),var(--b-lo));border:1px solid var(--p-deep);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 1px 0 rgba(255,255,255,.15);text-shadow:0 -1px 0 rgba(0,0,0,.5)}
+.empty{margin:20px 6px;text-align:center;color:var(--steel);font-size:14px;line-height:1.4}
+.empty button{margin-top:8px}
+.skel{height:92px;margin:8px 4px;border-radius:7px;background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.12),rgba(255,255,255,.05));background-size:200% 100%;animation:sh 1.2s linear infinite}
+@keyframes sh{to{background-position:-200% 0}}
+
+/* footer */
+.foot{flex:none;padding-bottom:env(safe-area-inset-bottom,0px);background:linear-gradient(#20262e,#0d1015)}
+.dotsbar{display:flex;align-items:center;height:30px;padding:0 max(8px,env(safe-area-inset-right,0px)) 0 max(8px,env(safe-area-inset-left,0px));background:var(--navy-0)}
+.gear{width:28px;height:28px;border:0;background:none;padding:2px;cursor:pointer}
+.gear svg{width:22px;height:22px;fill:#8c95a3;filter:drop-shadow(0 -1px 0 #000)}
+.dots{flex:1;display:flex;justify-content:center;gap:9px;margin-right:28px}
+.dots button{width:7px;height:7px;padding:0;border:0;border-radius:50%;background:#4a5566;cursor:pointer}
+.dots button.on{background:#fff}
+.ticker{display:flex;align-items:stretch;height:26px;border-top:1px solid #000;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+.ticker .lab{flex:none;width:52px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#cfd6e0;background:linear-gradient(#4b5563,#2b323d);border-right:1px solid #000;text-shadow:0 -1px 0 #000}
+.ticker .rail{flex:1;min-width:0;overflow:hidden;position:relative;background:linear-gradient(#1a1a1a,#000);color:#fff;font-size:14px;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+.ticker .txt{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;white-space:nowrap;padding-left:100%;will-change:transform}
+.brand{flex:none;display:flex;align-items:center;padding:0 10px;font:italic 900 15px/1 var(--font);letter-spacing:-.5px;color:#fff;
+  background:linear-gradient(#e8382b,#b3100a 55%,#8f0c07);border-left:1px solid #000;text-shadow:0 -1px 0 rgba(0,0,0,.5);clip-path:polygon(10px 0,100% 0,100% 100%,0 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.brand span{color:#fff}
+
+/* settings sheet */
+.sheet{position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.55);display:flex;align-items:flex-end}
+.sheet .box{width:100%;padding:14px max(14px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));
+  background:linear-gradient(#5d6a7d,#2f3947);border-top:1px solid #8a97aa;box-shadow:0 -4px 16px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:10px}
+.sheet h2{margin:0;font-size:17px;text-align:center;text-shadow:0 -1px 0 #000}
+.sheet p{margin:0;font-size:13px;line-height:1.4;color:#dde3ec;text-shadow:0 -1px 0 rgba(0,0,0,.5)}
+.btn{display:block;width:100%;padding:11px;border-radius:9px;font:700 16px var(--font);color:#fff;cursor:pointer;
+  background:linear-gradient(#5a8be0,#2459b8 50%,#1a4aa3);border:1px solid #0d2a62;box-shadow:inset 0 1px 0 rgba(255,255,255,.45);text-shadow:0 -1px 0 rgba(0,0,0,.5)}
+.btn.dark{background:linear-gradient(#4c5563,#262c35 50%,#1c2129);border-color:#0b0d11}
+.btn:focus-visible,.dots button:focus-visible,.gear:focus-visible,.tile:focus-visible,.more:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}.pager{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="status" aria-hidden="true">
+    <div class="sig"><span class="bars"><i style="height:3px"></i><i style="height:5px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:10px;opacity:.35"></i></span>Carrier&nbsp;3G</div>
+    <div id="clock">12:00 PM</div>
+    <div class="batt"><b></b></div>
+  </div>
+
+  <main class="pager" id="pager" aria-label="Score pages"></main>
+
+  <footer class="foot">
+    <div class="dotsbar">
+      <button class="gear" id="gear" aria-label="Settings"><svg viewBox="0 0 24 24"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.4-2.5 1a7.4 7.4 0 0 0-1.7-1l-.4-2.6h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.4L4.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.4 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.4L19.4 13zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
+      <div class="dots" id="dots" role="tablist"></div>
+    </div>
+    <div class="ticker">
+      <div class="lab" id="tickLab">TOP</div>
+      <div class="rail"><div class="txt" id="tickTxt">Loading headlines…</div></div>
+      <div class="brand">SCORE<span>LINE</span></div>
+    </div>
+  </footer>
+
+  <div class="sheet" id="sheet" hidden>
+    <div class="box">
+      <h2>Settings</h2>
+      <p id="updated">Not updated yet.</p>
+      <p>Scores refresh every 30 seconds while games are live and every 2 minutes otherwise. To install, open this page in Safari, tap Share, then Add to Home Screen.</p>
+      <button class="btn" id="refreshBtn">Refresh Now</button>
+      <button class="btn dark" id="closeBtn">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== Config: point these at your existing scoreboard pages ===== */
+const SPORTS = [
+  { key:'cfb', theme:'red', name:'College Football', tag:'NCAAF', mark:'NCAAF', path:'football/college-football',          params:'groups=80&limit=300', college:true,  page:'ncaafb-scoreboard.html' },
+  { key:'nfl', theme:'nfl', name:'NFL',              tag:'NFL',   mark:'NFL',   path:'football/nfl',                       params:'',                    college:false, page:'nfl-scoreboard.html' },
+  { key:'mlb', theme:'mlb', name:'MLB',              tag:'MLB',   mark:'MLB',   path:'baseball/mlb',                       params:'',                    college:false, page:'mlb-scoreboard.html' },
+  { key:'ncb', theme:'red', name:'College Hoops',    tag:'NCAAB', mark:'NCAAB', path:'basketball/mens-college-basketball', params:'groups=50&limit=300', college:true,  page:'ncaabb-scoreboard.html' },
+  { key:'nba', theme:'nba', name:'NBA',              tag:'NBA',   mark:'NBA',   path:'basketball/nba',                     params:'',                    college:false, page:'nba-scoreboard.html' },
+];
+// Where tapping a game goes. Default: the game's own page from the feed.
+const gameLink = (sport, ev) => (ev.links && ev.links[0] && ev.links[0].href) || '#';
+const API = 'https://site.api.espn.com/apis/site/v2/sports/';
+const TOP_COUNT = 12;
+
+/* ===== Sample games: shown only when a live feed can't be reached (e.g. in a preview) ===== */
+const H = 36e5;
+function mk(id, st, detail, hrs, away, home, extra = {}){
+  const team = ([name, abbr, color, score, rank, rec], side) => ({
+    homeAway: side, score: String(score ?? ''), winner: st === 'post' && extra.win === side,
+    team: { location: name, displayName: name, shortDisplayName: name, abbreviation: abbr, color },
+    curatedRank: { current: rank || 99 }, records: rec ? [{ summary: rec }] : [],
+  });
+  return { id, date: new Date(Date.now() + hrs * H).toISOString(), links: [], season: { type: extra.post ? 3 : 2 },
+    competitions: [{ status: { type: { state: st, shortDetail: detail, name: st === 'pre' ? 'STATUS_SCHEDULED' : 'X' } },
+      competitors: [team(away, 'away'), team(home, 'home')],
+      headlines: extra.head ? [{ shortLinkText: extra.head }] : [],
+      situation: extra.play ? { lastPlay: { text: extra.play } } : null,
+      broadcasts: extra.tv ? [{ names: [extra.tv] }] : [], venue: extra.venue ? { fullName: extra.venue } : null,
+      notes: extra.note ? [{ headline: extra.note }] : [] }] };
+}
+const SAMPLE = {
+  cfb: [
+    mk('c1','post','Final',-20,['Penn State','PSU','1c3a6e',24,6,'6-1'],['Ohio State','OSU','bb0000',38,2,'7-0'],{win:'home',head:'Sample recap: Ohio State pulls away in the fourth quarter at home.'}),
+    mk('c2','in','3rd 6:12',-1,['Georgia','UGA','ba0c2f',17,5,'6-1'],['Texas','TEX','bf5700',20,3,'6-1'],{play:'Sample play: 14-yard completion to the Georgia 41.'}),
+    mk('c3','pre','',6,['Washington','UW','4b2e83',null,18,'5-2'],['Oregon','ORE','154733',null,4,'7-0'],{tv:'Sample TV',venue:'Autzen Stadium'}),
+  ],
+  nfl: [
+    mk('n1','post','Final',-30,['Dallas','DAL','041e42',20],['Philadelphia','PHI','004c54',27],{win:'home',head:'Sample recap: Philadelphia holds on late to win the division matchup.'}),
+    mk('n2','pre','',36,['Buffalo','BUF','00338d',null,null,'5-2'],['Kansas City','KC','e31837',null,null,'6-1'],{tv:'Sample TV',venue:'Arrowhead Stadium'}),
+  ],
+  mlb: [
+    mk('m1','post','Final',-26,['Los Angeles','LAD','005a9c',5],['New York','NYY','132448',3],{win:'away',post:true,head:'Sample recap: Los Angeles takes the series opener on the road.'}),
+    mk('m2','pre','',18,['Los Angeles','LAD','005a9c'],['New York','NYY','132448'],{post:true,note:'Sample: Game 2',venue:'Yankee Stadium'}),
+  ],
+  ncb: [
+    mk('b1','pre','',300,['Kansas','KU','0051ba',null,7],['Duke','DUKE','003087',null,3],{note:'Sample: season opener',venue:'Neutral site'}),
+  ],
+  nba: [
+    mk('a1','in','4th 2:48',-0.5,['Golden State','GSW','1d428a',104],['Los Angeles','LAL','552583',101],{play:'Sample play: corner three ties the game, then a go-ahead layup.'}),
+    mk('a2','post','Final',-22,['New York','NYK','006bb6',109],['Boston','BOS','007a33',116],{win:'home',head:'Sample recap: Boston pulls away with a 12-2 run in the fourth.'}),
+  ],
+};
+const SAMPLE_NEWS = SPORTS.map(s => ({ tag: s.tag, text: `Sample headline for ${s.name}. Live headlines appear when this page runs on your own site.` }));
+
+/* ===== State ===== */
+const state = { data:{}, errors:{}, sample:{}, updated:null, news:[] };
+const pager = document.getElementById('pager');
+const dotsEl = document.getElementById('dots');
+const pages = [{ key:'top', name:'Top Events', mark:'TOP', theme:'red' }, ...SPORTS];
+
+if (window.navigator.standalone || matchMedia('(display-mode: standalone)').matches) document.documentElement.classList.add('standalone');
+
+/* ===== Build shell ===== */
+pages.forEach((p, i) => {
+  const sec = document.createElement('section');
+  sec.className = 'page th-' + p.theme; sec.id = 'p-' + p.key; sec.setAttribute('aria-label', p.name);
+  sec.innerHTML = `<div class="panel"><div class="panel-head" data-watermark="${p.mark}"><h1>${p.name}</h1></div>
+    <div class="scroll" id="s-${p.key}"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div></div>`;
+  pager.appendChild(sec);
+  const d = document.createElement('button');
+  d.setAttribute('role','tab'); d.setAttribute('aria-label', p.name);
+  d.onclick = () => pager.scrollTo({ left: i * pager.clientWidth, behavior: 'smooth' });
+  dotsEl.appendChild(d);
+});
+let current = 0;
+function syncDots(){
+  const i = Math.round(pager.scrollLeft / pager.clientWidth);
+  current = Math.max(0, Math.min(pages.length - 1, i));
+  [...dotsEl.children].forEach((d, j) => { d.classList.toggle('on', j === current); d.setAttribute('aria-selected', j === current); });
+  try { localStorage.setItem('scoreline.page', current); } catch(e){}
+}
+pager.addEventListener('scroll', () => requestAnimationFrame(syncDots), { passive:true });
+addEventListener('resize', () => pager.scrollLeft = current * pager.clientWidth);
+try { const saved = +localStorage.getItem('scoreline.page'); if (saved > 0) requestAnimationFrame(() => { pager.scrollLeft = saved * pager.clientWidth; syncDots(); }); } catch(e){}
+syncDots();
+
+/* ===== Helpers ===== */
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const md = d => `${d.getMonth()+1}/${d.getDate()}`;
+const hm = d => d.toLocaleTimeString([], { hour:'numeric', minute:'2-digit' });
+
+function normalize(sport, ev){
+  const c = ev.competitions[0];
+  const st = c.status.type;
+  const date = new Date(ev.date);
+  const teams = [...c.competitors].sort((a, b) => (a.homeAway === 'away' ? -1 : 1) - (b.homeAway === 'away' ? -1 : 1)).map(t => {
+    const r = t.curatedRank && t.curatedRank.current;
+    return {
+      name: sport.college ? (t.team.location || t.team.shortDisplayName) : t.team.displayName,
+      abbr: t.team.abbreviation || (t.team.shortDisplayName || '').slice(0,3).toUpperCase(), color: t.team.color || '2a5aa3',
+      logo: t.team.logo || (t.team.logos && t.team.logos[0] && t.team.logos[0].href) || '',
+      rank: r && r <= 25 ? r : null,
+      score: t.score, winner: !!t.winner,
+      record: t.records && t.records[0] && t.records[0].summary,
+    };
+  });
+  let label, blurb = '';
+  if (st.state === 'post') {
+    label = `${md(date)}: ${st.shortDetail.replace(/^Final/i,'FINAL')}`;
+    blurb = (c.headlines && c.headlines[0] && (c.headlines[0].shortLinkText || c.headlines[0].description)) || '';
+  } else if (st.state === 'in') {
+    label = st.shortDetail;
+    blurb = (c.situation && c.situation.lastPlay && c.situation.lastPlay.text) || (c.situation && c.situation.downDistanceText) || '';
+  } else {
+    label = st.name === 'STATUS_SCHEDULED' ? `${md(date)}: ${hm(date)}` : `${md(date)}: ${st.shortDetail}`;
+    const tv = c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names.join('/');
+    const venue = c.venue && c.venue.fullName;
+    blurb = [tv, venue].filter(Boolean).join(' · ');
+    if (c.notes && c.notes[0] && c.notes[0].headline) blurb = c.notes[0].headline + (blurb ? ' · ' + blurb : '');
+  }
+  if (!blurb && c.notes && c.notes[0]) blurb = c.notes[0].headline;
+  const scores = teams.map(t => +t.score || 0);
+  return { id: ev.id, sport, state: st.state, date, label, blurb, teams, link: gameLink(sport, ev),
+    margin: Math.abs(scores[0] - (scores[1] || 0)), post: ev.season && ev.season.type === 3 };
+}
+
+function interest(g){
+  let s = 0;
+  if (g.state === 'in') s += 60;
+  if (g.state === 'post') s += 25;
+  if (g.post) s += 45;
+  g.teams.forEach(t => { if (t.rank) s += 26 - t.rank; });
+  if (g.teams.every(t => t.rank)) s += 20;
+  if (g.state !== 'pre' && g.margin <= 7) s += 12;
+  if (!g.sport.college) s += 8;
+  const hrs = Math.abs(Date.now() - g.date) / 36e5;
+  s -= Math.min(hrs, 72) * 0.6;
+  return s;
+}
+
+function tileHTML(g, showLeague){
+  const live = g.state === 'in';
+  const rows = g.teams.map(t => {
+    const showScore = g.state !== 'pre';
+    const loser = g.state === 'post' && !t.winner && g.teams.some(x => x.winner);
+    return `<div class="row${loser ? ' loser' : ''}">
+      ${t.logo ? `<img src="${esc(t.logo)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : `<span class="badge" style="background:#${esc(t.color)}">${esc(t.abbr)}</span>`}
+      <span class="rk">${t.rank || ''}</span>
+      <span class="nm">${esc(t.name)}${!showScore && t.record ? `<span class="rec">(${esc(t.record)})</span>` : ''}</span>
+      <span class="sc">${showScore ? esc(t.score) : ''}</span>
+      ${t.winner && g.state === 'post' ? '<i class="win"></i>' : '<span></span>'}
+    </div>`;
+  }).join('');
+  return `<a class="tile" href="${esc(g.link)}" target="_blank" rel="noopener">
+    <div class="t-top${live ? ' live' : ''}"><span class="st">${esc(g.label)}</span>${showLeague ? `<span class="lg">${g.sport.tag}</span>` : ''}</div>
+    ${rows}<div class="blurb">${esc(g.blurb)}</div></a>`;
+}
+
+function grouped(games, showLeague){
+  const order = [['in','Live Now'],['post','Last Results'],['pre','Upcoming']];
+  return order.map(([k, title]) => {
+    const list = games.filter(g => g.state === k);
+    if (!list.length) return '';
+    return `<div class="section">${title}<small>${list.length} ${list.length === 1 ? 'game' : 'games'}</small></div>` + list.map(g => tileHTML(g, showLeague)).join('');
+  }).join('');
+}
+
+/* ===== Render ===== */
+const NOTICE = '<div class="notice">Sample games. Live scores load when this page runs on your own site.</div>';
+function renderSport(sport){
+  const el = document.getElementById('s-' + sport.key);
+  const games = state.data[sport.key];
+  const more = sport.page ? `<a class="more" href="${esc(sport.page)}">Full ${esc(sport.name)} Scoreboard ›</a>` : '';
+  if (!games) {
+    if (state.errors[sport.key]) el.innerHTML = `<div class="empty">Couldn't reach ${esc(sport.name)} scores. Check your connection and try again.<br><button class="btn" onclick="refresh()">Try Again</button></div>${more}`;
+    return;
+  }
+  if (!games.length) { el.innerHTML = `<div class="empty">No ${esc(sport.name)} games on today's slate.</div>${more}`; return; }
+  games.sort((a, b) => {
+    if (a.state === 'post' && b.state === 'post') return b.date - a.date || interest(b) - interest(a);
+    return a.date - b.date || interest(b) - interest(a);
+  });
+  el.innerHTML = (state.sample[sport.key] ? NOTICE : '') + grouped(games, false) + more;
+}
+
+function renderTop(){
+  const el = document.getElementById('s-top');
+  const all = SPORTS.flatMap(s => state.data[s.key] || []);
+  if (!all.length) {
+    if (SPORTS.every(s => state.errors[s.key])) el.innerHTML = `<div class="empty">Couldn't reach the score feeds. Check your connection and try again.<br><button class="btn" onclick="refresh()">Try Again</button></div>`;
+    return;
+  }
+  const picks = [...all].sort((a, b) => interest(b) - interest(a)).slice(0, TOP_COUNT);
+  picks.sort((a, b) => interest(b) - interest(a));
+  el.innerHTML = (SPORTS.some(s => state.sample[s.key]) ? NOTICE : '') + grouped(picks, true);
+}
+
+/* ===== Data ===== */
+async function loadSport(sport){
+  try {
+    const r = await fetch(API + sport.path + '/scoreboard' + (sport.params ? '?' + sport.params : ''), { cache:'no-store' });
+    if (!r.ok) throw new Error(r.status);
+    const j = await r.json();
+    state.data[sport.key] = (j.events || []).map(ev => normalize(sport, ev));
+    state.errors[sport.key] = false;
+    state.sample[sport.key] = false;
+  } catch (e) {
+    if (SAMPLE[sport.key]) { state.data[sport.key] = SAMPLE[sport.key].map(ev => normalize(sport, ev)); state.sample[sport.key] = true; }
+    else state.errors[sport.key] = true;
+  }
+  renderSport(sport);
+}
+
+async function refresh(){
+  await Promise.all(SPORTS.map(loadSport));
+  renderTop();
+  state.updated = new Date();
+  document.getElementById('updated').textContent = 'Last updated ' + hm(state.updated) + '.';
+  schedule();
+}
+let timer;
+function schedule(){
+  clearTimeout(timer);
+  const anyLive = SPORTS.some(s => (state.data[s.key] || []).some(g => g.state === 'in'));
+  timer = setTimeout(refresh, anyLive ? 30000 : 120000);
+}
+
+/* ===== Ticker ===== */
+async function loadNews(){
+  const res = await Promise.all(SPORTS.map(async s => {
+    try {
+      const r = await fetch(API + s.path + '/news?limit=5');
+      const j = await r.json();
+      return (j.articles || []).map(a => ({ tag: s.tag, text: a.headline })).filter(a => a.text);
+    } catch (e) { return []; }
+  }));
+  const mixed = [];
+  for (let i = 0; i < 5; i++) res.forEach(list => list[i] && mixed.push(list[i]));
+  state.news = mixed.length ? mixed : SAMPLE_NEWS;
+}
+let tickIdx = 0, tickAnim;
+function nextTick(){
+  const lab = document.getElementById('tickLab'), txt = document.getElementById('tickTxt');
+  if (!state.news.length) { setTimeout(nextTick, 3000); return; }
+  const item = state.news[tickIdx++ % state.news.length];
+  lab.textContent = item.tag; txt.textContent = item.text;
+  const w = txt.scrollWidth;
+  if (tickAnim) tickAnim.cancel();
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { txt.style.paddingLeft = '8px'; setTimeout(nextTick, 6000); return; }
+  tickAnim = txt.animate([{ transform:'translateX(0)' }, { transform:`translateX(-${w}px)` }], { duration: w * 14, easing:'linear' });
+  tickAnim.onfinish = nextTick;
+}
+
+/* ===== Clock, settings, icon ===== */
+const clock = document.getElementById('clock');
+const tickClock = () => clock.textContent = hm(new Date());
+tickClock(); setInterval(tickClock, 15000);
+
+const sheet = document.getElementById('sheet');
+document.getElementById('gear').onclick = () => { sheet.hidden = false; document.getElementById('closeBtn').focus(); };
+document.getElementById('closeBtn').onclick = () => sheet.hidden = true;
+sheet.onclick = e => { if (e.target === sheet) sheet.hidden = true; };
+document.getElementById('refreshBtn').onclick = () => { sheet.hidden = true; refresh(); loadNews(); };
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+
+(function makeIcon(){
+  const c = document.createElement('canvas'); c.width = c.height = 180;
+  const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 0, 180); g.addColorStop(0, '#2a5aa3'); g.addColorStop(1, '#081733');
+  x.fillStyle = g; x.fillRect(0, 0, 180, 180);
+  x.fillStyle = '#ffb21f'; x.beginPath(); x.moveTo(0, 122); x.lineTo(180, 92); x.lineTo(180, 116); x.lineTo(0, 146); x.fill();
+  x.fillStyle = '#fff'; x.font = 'italic 900 92px Helvetica Neue, Arial'; x.textAlign = 'center'; x.fillText('SL', 90, 108);
+  const gl = x.createLinearGradient(0, 0, 0, 90); gl.addColorStop(0, 'rgba(255,255,255,.35)'); gl.addColorStop(1, 'rgba(255,255,255,.05)');
+  x.fillStyle = gl; x.fillRect(0, 0, 180, 86);
+  document.getElementById('touchIcon').href = c.toDataURL('image/png');
+})();
+
+refresh();
+loadNews().then(nextTick);
+</script>
+</body>
+</html>
