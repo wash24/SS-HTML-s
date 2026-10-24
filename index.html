@@ -175,6 +175,17 @@ body{overscroll-behavior:none}
 .gm-info{display:grid;grid-template-columns:auto 1fr;column-gap:12px;row-gap:5px;padding:10px 12px 12px;font-size:14px;text-shadow:0 -1px 0 rgba(0,0,0,.5)}
 .gm-info dt{font-weight:800;color:var(--t-sub);text-transform:uppercase;font-size:12px;padding-top:2px}
 .gm-info dd{margin:0;font-weight:600}
+.gm-num .pre{display:block;font-size:clamp(16px,5.4vw,22px);font-weight:800;padding-top:2px;white-space:nowrap}
+.gm-num .pre i{font-style:normal;font-size:13px;color:var(--t-sub);vertical-align:3px}
+.gm-mid.pre{font-size:15px;text-transform:none;max-width:110px}
+.gm-mid.pre small{font-size:13px;color:#fff;margin-top:2px}
+.gm-venue{margin:0 0 0;padding:8px 12px;font-size:14px;font-weight:700;background:rgba(0,0,0,.18);border-top:1px solid rgba(0,0,0,.4);border-bottom:1px solid rgba(255,255,255,.1);text-shadow:0 -1px 0 rgba(0,0,0,.55)}
+.gm-lead{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);column-gap:10px;row-gap:4px;padding:10px 12px 12px;font-size:15px;text-shadow:0 -1px 0 rgba(0,0,0,.55)}
+.gl-h{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;padding-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gl-k{font-weight:800;font-size:13px;padding-top:2px}
+.gl-v{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.gl-v b{font-weight:800;font-variant-numeric:tabular-nums}
+.gl-v .none{color:var(--t-sub)}
 .gm-wait{padding:14px 12px;color:var(--t-sub);font-size:13px}
 .gm-foot{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;color:#fff;text-decoration:none;
   background:linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.28));border-top:1px solid rgba(0,0,0,.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.12);text-shadow:0 -1px 0 rgba(0,0,0,.6)}
@@ -255,7 +266,7 @@ function mk(id, st, detail, hrs, away, home, extra = {}){
       competitors: [team(away, 'away'), team(home, 'home')],
       headlines: extra.head ? [{ shortLinkText: extra.head }] : [],
       situation: extra.play ? { lastPlay: { text: extra.play } } : null,
-      broadcasts: extra.tv ? [{ names: [extra.tv] }] : [], venue: extra.venue ? { fullName: extra.venue } : null,
+      broadcasts: extra.tv ? [{ names: [extra.tv] }] : [], venue: extra.venue ? { fullName: extra.venue[0], address: { city: extra.venue[1], state: extra.venue[2] } } : null,
       notes: extra.note ? [{ headline: extra.note }] : [],
       odds: extra.odds ? [{ details: extra.odds[0], overUnder: extra.odds[1] }] : [] }] };
 }
@@ -263,18 +274,18 @@ const SAMPLE = {
   cfb: [
     mk('c1','post','Final',-20,['Penn State','PSU','1c3a6e',24,null,'6-1'],['Ohio State','OSU','bb0000',38,2,'7-0'],{win:'home',ls:[[7,3,7,7],[7,14,3,14]],lead:[[['passingYards','PASS','J. Carter','21/34, 241 YDS, TD'],['rushingYards','RUSH','M. Ellis','14 CAR, 88 YDS'],['receivingYards','REC','D. Owens','7 REC, 82 YDS']],[['passingYards','PASS','T. Brooks','24/31, 318 YDS, 3 TD'],['rushingYards','RUSH','R. Hayes','19 CAR, 112 YDS, TD'],['receivingYards','REC','K. Price','9 REC, 141 YDS, 2 TD']]],head:'Sample recap: Ohio State pulls away in the fourth quarter at home.'}),
     mk('c2','in','3rd 6:12',-1,['Georgia','UGA','ba0c2f',17,5,'6-1'],['Texas','TEX','bf5700',20,3,'6-1'],{ls:[[7,10,0],[3,10,7]],tv:'Sample TV',lead:[[['passingYards','PASS','C. Reed','15/24, 176 YDS, TD'],['rushingYards','RUSH','A. Moss','11 CAR, 61 YDS, TD']],[['passingYards','PASS','L. Grant','17/25, 204 YDS, 2 TD'],['rushingYards','RUSH','J. Vance','12 CAR, 74 YDS']]],play:'Sample play: 14-yard completion to the Georgia 41.'}),
-    mk('c3','pre','',6,['Washington','UW','4b2e83',null,null,'5-2'],['Oregon','ORE','154733',null,4,'7-0'],{odds:['ORE -13.5',52.5],lead:[[['passingYards','PASS YDS','S. Nolan','1,842'],['rushingYards','RUSH YDS','P. Diaz','611'],['receivingYards','REC YDS','E. Hart','598']],[['passingYards','PASS YDS','B. Cole','2,105'],['rushingYards','RUSH YDS','O. Fields','702'],['receivingYards','REC YDS','G. Lane','655']]],tv:'Sample TV',venue:'Autzen Stadium'}),
+    mk('c3','pre','',6,['Washington','UW','4b2e83',null,null,'5-2'],['Oregon','ORE','154733',null,4,'7-0'],{odds:['ORE -13.5',52.5],lead:[[['passingYards','PASS','S. Nolan','1,842'],['rushingYards','RUSH','P. Diaz','611'],['receivingYards','REC','E. Hart','598']],[['passingYards','PASS','B. Cole','2,105'],['rushingYards','RUSH','O. Fields','702'],['receivingYards','REC','G. Lane','655']]],tv:'Sample TV',venue:['Autzen Stadium','Eugene','OR']}),
   ],
   nfl: [
     mk('n1','post','Final',-30,['Dallas','DAL','041e42',20],['Philadelphia','PHI','004c54',27],{win:'home',ls:[[3,7,7,3],[7,3,10,7]],lead:[[['passingYards','PASS','R. Mills','26/38, 271 YDS, 2 TD'],['rushingYards','RUSH','V. Ortiz','15 CAR, 63 YDS'],['receivingYards','REC','C. Lamb','8 REC, 104 YDS, TD']],[['passingYards','PASS','N. Ford','19/28, 233 YDS, TD'],['rushingYards','RUSH','S. Burke','24 CAR, 131 YDS, 2 TD'],['receivingYards','REC','A. Shaw','6 REC, 92 YDS']]],head:'Sample recap: Philadelphia holds on late to win the division matchup.'}),
-    mk('n2','pre','',36,['Buffalo','BUF','00338d',null,null,'5-2'],['Kansas City','KC','e31837',null,null,'6-1'],{odds:['KC -2.5',47.5],tv:'Sample TV',venue:'Arrowhead Stadium'}),
+    mk('n2','pre','',36,['Buffalo','BUF','00338d',null,null,'5-2'],['Kansas City','KC','e31837',null,null,'6-1'],{odds:['KC -2.5',47.5],tv:'Sample TV',venue:['Arrowhead Stadium','Kansas City','MO'],lead:[[['passingYards','PASS','J. Allen','1,904'],['rushingYards','RUSH','T. Cook','512'],['receivingYards','REC','K. Shakir','447']],[['passingYards','PASS','P. Mason','1,766'],['rushingYards','RUSH','I. Pace','389'],['receivingYards','REC','T. Kirk','502']]]}),
   ],
   mlb: [
     mk('m1','post','Final',-26,['Los Angeles','LAD','005a9c',5],['New York','NYY','132448',3],{win:'away',ls:[[0,2,0,0,1,0,2,0,0],[1,0,0,0,0,2,0,0,0]],rhe:[[9,0],[6,1]],lead:[[['hits','BATTING','F. Ruiz','3-4, HR, 2 RBI'],['pitching','PITCHING','Y. Sato','6.0 IP, 2 ER, 8 K']],[['hits','BATTING','A. Judd','2-4, 2B, 2 RBI'],['pitching','PITCHING','G. Cole','5.1 IP, 3 ER, 6 K']]],post:true,head:'Sample recap: Los Angeles takes the series opener on the road.'}),
-    mk('m2','pre','',18,['Los Angeles','LAD','005a9c'],['New York','NYY','132448'],{post:true,note:'Sample: Game 2',venue:'Yankee Stadium'}),
+    mk('m2','pre','',18,['Los Angeles','LAD','005a9c'],['New York','NYY','132448'],{post:true,note:'Sample: Game 2',venue:['Yankee Stadium','Bronx','NY'],lead:[[['avg','AVG','F. Ruiz','.312'],['homeRuns','HR','S. Ohta','44'],['RBIs','RBI','F. Ruiz','109']],[['avg','AVG','A. Judd','.301'],['homeRuns','HR','A. Judd','49'],['RBIs','RBI','J. Soto','112']]]}),
   ],
   ncb: [
-    mk('b1','pre','',300,['Kansas','KU','0051ba',null,7],['Duke','DUKE','003087',null,3],{note:'Sample: season opener',venue:'Neutral site'}),
+    mk('b1','pre','',300,['Kansas','KU','0051ba',null,7],['Duke','DUKE','003087',null,3],{note:'Sample: season opener',venue:['State Farm Arena','Atlanta','GA'],lead:[[['points','PTS','H. Dickson','18.4'],['rebounds','REB','H. Dickson','10.2'],['assists','AST','D. Harris','6.3'],['steals','STL','D. Harris','1.9'],['blocks','BLK','K. Adams','1.7']],[['points','PTS','C. Flagg','19.7'],['rebounds','REB','K. Malik','8.1'],['assists','AST','T. Proctor','5.4'],['steals','STL','C. Flagg','1.5'],['blocks','BLK','K. Malik','2.2']]]}),
   ],
   nba: [
     mk('a1','in','4th 2:48',-0.5,['Golden State','GSW','1d428a',104],['Los Angeles','LAL','552583',101],{ls:[[28,25,30,21],[26,27,27,21]],tv:'Sample TV',play:'Sample play: corner three ties the game, then a go-ahead layup.'}),
@@ -378,7 +389,7 @@ function normalize(sport, ev){
   const tv = st.state === 'post' ? '' : (bc || (c.geoBroadcasts && c.geoBroadcasts[0] && c.geoBroadcasts[0].media && c.geoBroadcasts[0].media.shortName) || '');
   const odds = c.odds && c.odds[0];
   return { id: ev.id, sport, state: st.state, date, label, blurb, tv, teams, link: gameLink(sport, ev),
-    detail: st.shortDetail || '', venue: c.venue && c.venue.fullName, odds: odds ? [odds.details, odds.overUnder] : null,
+    detail: st.shortDetail || '', venue: c.venue && c.venue.fullName, venueAddr: c.venue && c.venue.address ? [c.venue.address.city, c.venue.address.state].filter(Boolean).join(', ') : '', odds: odds ? [odds.details, odds.overUnder] : null,
     margin: Math.abs(scores[0] - (scores[1] || 0)), post: ev.season && ev.season.type === 3 };
 }
 
@@ -530,28 +541,78 @@ function performers(g, sum){
   });
 }
 
+// Pregame stat leaders: fixed categories per sport, matched against the feed's leader names.
+const PRE_CATS = {
+  basketball: [['PTS', /^(points|pointsPerGame|avgPoints|ppg)$/i], ['REB', /^(rebounds|reboundsPerGame|avgRebounds|rpg)$/i], ['AST', /^(assists|assistsPerGame|avgAssists|apg)$/i], ['STL', /^(steals|stealsPerGame|avgSteals)$/i], ['BLK', /^(blocks|blocksPerGame|avgBlocks)$/i]],
+  football: [['PASS', /^passingYards$/i], ['RUSH', /^rushingYards$/i], ['REC', /^receivingYards$/i]],
+  baseball: [['AVG', /^(avg|battingAverage)$/i], ['HR', /^homeRuns$/i], ['RBI', /^(RBIs?|runsBattedIn)$/i]],
+};
+const sportFamily = k => (k === 'nba' || k === 'ncb') ? 'basketball' : k === 'mlb' ? 'baseball' : 'football';
+function leaderValue(label, l){
+  if (typeof l.value === 'number') {
+    if (label === 'AVG') return l.value.toFixed(3).replace(/^0/, '');
+    return Number.isInteger(l.value) ? l.value.toLocaleString() : l.value.toFixed(1);
+  }
+  const dv = String(l.displayValue || '');
+  const m = dv.match(/^[\d.,]+/);
+  return m ? m[0].replace(/,$/, '') : dv;
+}
+function preLeaders(g, sum){
+  const cats = PRE_CATS[sportFamily(g.sport.key)];
+  const pools = g.teams.map((t, side) => {
+    let list = [];
+    if (sum && sum.leaders) {
+      const tl = sum.leaders.find(x => String(x.team && x.team.id) === String(t.id)) || sum.leaders[side];
+      if (tl && tl.leaders) list = tl.leaders;
+    }
+    return [...list, ...(t.leaders || [])];
+  });
+  const rows = cats.map(([label, re]) => {
+    const cells = pools.map(pool => {
+      const c = pool.find(c => re.test(c.name || '') || re.test(c.abbreviation || '') || re.test(c.shortDisplayName || ''));
+      const l = c && c.leaders && c.leaders[0];
+      if (!l) return '<span class="none">–</span>';
+      const a = l.athlete || {};
+      return `<span>${esc(a.shortName || a.displayName || '')}</span> <b>${esc(leaderValue(label, l))}</b>`;
+    });
+    return { label, cells, has: !cells.every(c => c.includes('class="none"')) };
+  });
+  if (!rows.some(r => r.has)) return '';
+  const heads = g.teams.map(t => `<div class="gl-h">${esc(t.short)}</div>`).join('');
+  return `<div class="gm-strip">Stat Leaders</div><div class="gm-lead"><div></div>${heads}${rows.map(r => `<div class="gl-k">${r.label}</div>${r.cells.map(c => `<div class="gl-v">${c}</div>`).join('')}`).join('')}</div>`;
+}
+function dateWord(d){
+  const diff = Math.round((dayKey(d) - dayKey(Date.now())) / 864e5);
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Tomorrow';
+  return d.toLocaleDateString([], { weekday:'short', month:'short', day:'numeric' });
+}
+
 function gameHTML(g){
   const [a, h] = g.teams;
   const side = (t, cls) => {
     const lost = g.state === 'post' && !t.winner && g.teams.some(x => x.winner);
-    const big = g.state === 'pre' ? `<b class="pre">${esc(t.abbr)}</b>` : `<b>${esc(t.score)}</b><span>${esc(t.abbr)}</span>`;
-    return `<div class="gm-side ${cls}">${logoImg(t)}<div class="gm-num${lost ? ' lost' : ''}">${t.rank ? `<small>#${t.rank}</small>` : ''}${big}${t.record ? `<small>(${esc(t.record)})</small>` : ''}</div></div>`;
+    const big = g.state === 'pre' ? `<span class="pre">${t.rank ? `<i>${t.rank}</i> ` : ''}${esc(t.abbr)}</span>` : `<b>${esc(t.score)}</b><span>${esc(t.abbr)}</span>`;
+    return `<div class="gm-side ${cls}">${logoImg(t)}<div class="gm-num${lost ? ' lost' : ''}">${t.rank && g.state !== 'pre' ? `<small>#${t.rank}</small>` : ''}${big}${t.record ? `<small>(${esc(t.record)})</small>` : ''}</div></div>`;
   };
   let mid;
   if (g.state === 'post') mid = `<div class="gm-mid">${esc(g.detail.replace(/^Final/i, 'Final'))}</div>`;
   else if (g.state === 'in') mid = `<div class="gm-mid live">${esc(g.detail)}${g.tv ? `<small>${esc(g.tv)}</small>` : ''}</div>`;
-  else mid = `<div class="gm-mid">${esc(g.date.toLocaleDateString([], { weekday:'short' }))} ${md(g.date)}<small>${esc(hm(g.date))}${g.tv ? ' · ' + esc(g.tv) : ''}</small></div>`;
+  else mid = `<div class="gm-mid pre">${esc(dateWord(g.date))}<small>${esc(g.detail && !/^\d/.test(g.detail) && !/\d:\d\d/.test(g.detail) ? g.detail : hm(g.date))}</small></div>`;
 
   const sum = summaries[g.sport.key + ':' + g.id];
-  const perf = performers(g, sum && sum.data);
+  const perf = g.state === 'pre' ? [] : performers(g, sum && sum.data);
   const perfHTML = perf.some(Boolean)
     ? `<div class="gm-strip">${g.state === 'pre' ? 'Season Leaders' : 'Top Performers'}</div><div class="gm-perf">${perf.map(x => x || '<div class="gm-col"></div>').join('')}</div>`
     : (sum && sum.loading ? `<div class="gm-strip">${g.state === 'pre' ? 'Season Leaders' : 'Top Performers'}</div><div class="gm-wait">Loading stats…</div>` : '');
 
   let info = '';
   if (g.state === 'pre') {
-    const rows = [['Venue', g.venue], ['TV', g.tv], ['Line', g.odds && g.odds[0]], ['Over/Under', g.odds && g.odds[1]]].filter(r => r[1]);
-    if (rows.length) info = `<div class="gm-strip">Game Info</div><dl class="gm-info">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
+    const v = sum && sum.data && sum.data.gameInfo && sum.data.gameInfo.venue;
+    const place = [v && v.fullName || g.venue, v && v.address ? [v.address.city, v.address.state].filter(Boolean).join(', ') : g.venueAddr].filter(Boolean).join(', ');
+    const lead = preLeaders(g, sum && sum.data);
+    info = (place ? `<div class="gm-venue">${esc(place)}</div>` : '')
+      + (lead || (sum && sum.loading ? '<div class="gm-strip">Stat Leaders</div><div class="gm-wait">Loading stats…</div>' : ''));
   }
   const footLabel = g.state === 'post' ? 'Recap' : g.state === 'in' ? 'Live Game' : 'Preview';
   const foot = g.link && g.link !== '#' ? `<a class="gm-foot" href="${esc(g.link)}" target="_blank" rel="noopener"><div><small>Full game page</small><span>${footLabel}</span></div><i></i></a>` : '';
