@@ -534,28 +534,25 @@ function fbStat(label, l){
   const yds = (dv.match(/([\d,]+)\s*YDS/i) || [])[1] || num;
   if (label === 'PASS') {
     const td = (dv.match(/(\d+)\s*TD/i) || [])[1], int = (dv.match(/(\d+)\s*INT/i) || [])[1];
-    const lead = td != null || int != null ? `${td || 0} TD/${int || 0} INT, ` : '';
+    const lead = td != null || int != null ? `${td || 0} TD, ${int || 0} INT, ` : '';
     return yds ? `${lead}${yds} YDS` : dv;
   }
   if (/YDS/i.test(dv)) return dv;
   return yds ? `${yds} YDS` : dv;
 }
 
-// Basketball game line for a leader: "31 PTS, 8 REB, 7 AST" from their box score row, else the feed's own value.
-function bbLine(l, box, t, side){
+// Basketball game total for a leader's category: "31 PTS". Box score row first, else the feed's own value.
+function bbLine(label, l, box, t, side){
   const a = l.athlete || {};
   const team = box && (box.find(b => String(b.team && b.team.id) === String(t.id)) || box[side]);
   const st = team && team.statistics && team.statistics[0];
   if (st && st.athletes) {
     const L = st.labels || st.names || [];
     const row = st.athletes.find(x => x.athlete && ((a.id && String(x.athlete.id) === String(a.id)) || (x.athlete.shortName && x.athlete.shortName === a.shortName)));
-    if (row && row.stats) {
-      const v = k => row.stats[L.indexOf(k)];
-      const parts = ['PTS','REB','AST'].filter(k => L.indexOf(k) >= 0).map(k => `${v(k)} ${k}`);
-      if (parts.length) return parts.join(', ');
-    }
+    if (row && row.stats && L.indexOf(label) >= 0) return `${row.stats[L.indexOf(label)]} ${label}`;
   }
-  return l.displayValue;
+  const n = typeof l.value === 'number' ? l.value : (String(l.displayValue || '').match(/^[\d.]+/) || [l.displayValue])[0];
+  return `${n} ${label}`;
 }
 
 // Top performers. Basketball box scores give a full stat line for each team's leading scorer;
@@ -572,7 +569,7 @@ function performers(g, sum){
     const items = picks.map(([label, c]) => {
       const l = c.leaders[0];
       if (fam === 'baseball' && (/^hits$/i.test(c.name || '') || label === 'BA')) label = 'HITS';
-      const stat = fam === 'football' ? fbStat(label, l) : fam === 'basketball' ? bbLine(l, box, t, side) : l.displayValue;
+      const stat = fam === 'football' ? fbStat(label, l) : fam === 'basketball' ? bbLine(label, l, box, t, side) : l.displayValue;
       return card(label, l.athlete, stat);
     }).join('');
     return items ? `<div class="gm-col"><div class="gm-who">${esc(t.short)}</div>${items}</div>` : '';
