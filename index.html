@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#0a0a0a">
 <link rel="apple-touch-icon" id="touchIcon" href="">
 <style>
-/* Layout: iOS 6–era app shell. Fake status bar, horizontally paged glossy panels, footer with settings gear, page dots and a headline ticker. */
+/* Layout: iOS 6–era app shell. Horizontally paged glossy panels, footer with settings gear, page dots and a headline ticker. */
 :root{
   --navy-0:#06101f;      /* app ground */
   --navy-1:#0d2347;      /* panel base */
@@ -46,16 +46,6 @@ body{overscroll-behavior:none}
     radial-gradient(120% 70% at 50% 0%,#3a3a3a 0%,#1a1a1a 55%,#0a0a0a 100%);
   padding-top:env(safe-area-inset-top,0px)}
 
-/* fake status bar (hidden when launched from home screen, where iOS draws the real one) */
-.status{height:20px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 6px;
-  font-size:12px;font-weight:700;background:linear-gradient(#000,#111);text-shadow:0 -1px 0 #000}
-.status .sig{display:flex;align-items:center;gap:4px}
-.bars{display:flex;gap:1px;align-items:flex-end;height:10px}
-.bars i{display:block;width:3px;background:#fff;border-radius:1px}
-.batt{width:24px;height:11px;border:1px solid #fff;border-radius:2px;padding:1px;position:relative}
-.batt::after{content:"";position:absolute;right:-3px;top:3px;width:2px;height:4px;background:#fff;border-radius:0 1px 1px 0}
-.batt b{display:block;height:100%;width:85%;background:#fff}
-.standalone .status{display:none}
 
 /* pager */
 .pager{flex:1;min-height:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -139,12 +129,6 @@ body{overscroll-behavior:none}
 </head>
 <body>
 <div class="app" id="app">
-  <div class="status" aria-hidden="true">
-    <div class="sig"><span class="bars"><i style="height:3px"></i><i style="height:5px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:10px;opacity:.35"></i></span>Carrier&nbsp;3G</div>
-    <div id="clock">12:00 PM</div>
-    <div class="batt"><b></b></div>
-  </div>
-
   <main class="pager" id="pager" aria-label="Score pages"></main>
 
   <footer class="foot">
@@ -424,32 +408,40 @@ async function loadNews(){
   for (let i = 0; i < 5; i++) res.forEach(list => list[i] && mixed.push(list[i]));
   state.news = mixed.length ? mixed : SAMPLE_NEWS;
 }
-const CRAWL_SPEED = 70; // pixels per second
+const CRAWL_SPEED = 70;   // pixels per second while crawling
+const SLIDE_MS = 380;      // rise-in and lift-out duration
+const HOLD_START = 1200;   // pause after a headline rises in
+const HOLD_END = 900;      // pause once the end of the headline is showing
+const PAD = 10;
 let tickIdx = 0, crawl = null;
+const ease = t => t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2;
 function nextTick(){
   const lab = document.getElementById('tickLab'), txt = document.getElementById('tickTxt');
   if (!state.news.length) { setTimeout(nextTick, 3000); return; }
   const item = state.news[tickIdx++ % state.news.length];
   lab.textContent = item.tag; txt.textContent = item.text;
-  crawl = { x: txt.parentElement.clientWidth, end: -txt.scrollWidth, last: null };
-  txt.style.transform = `translate3d(${crawl.x}px,0,0)`;
+  const railW = txt.parentElement.clientWidth, h = txt.parentElement.clientHeight;
+  crawl = { phase:'in', t0:null, x: PAD, y: h, h, endX: Math.min(PAD, railW - txt.scrollWidth - PAD), last:null };
 }
 function crawlFrame(ts){
   const txt = document.getElementById('tickTxt');
-  if (crawl) {
-    if (crawl.last != null) crawl.x -= CRAWL_SPEED * Math.min(ts - crawl.last, 100) / 1000;
-    crawl.last = ts;
-    txt.style.transform = `translate3d(${crawl.x.toFixed(1)}px,0,0)`;
-    if (crawl.x <= crawl.end) { crawl = null; nextTick(); }
+  const c = crawl;
+  if (c) {
+    if (c.t0 == null) c.t0 = ts;
+    const el = ts - c.t0, dt = c.last == null ? 0 : Math.min(ts - c.last, 100);
+    c.last = ts;
+    if (c.phase === 'in') { const k = Math.min(el / SLIDE_MS, 1); c.y = c.h * (1 - ease(k)); if (k === 1) { c.phase = 'hold'; c.t0 = ts; } }
+    else if (c.phase === 'hold') { if (el >= HOLD_START) { c.phase = 'crawl'; c.t0 = ts; } }
+    else if (c.phase === 'crawl') { c.x = Math.max(c.endX, c.x - CRAWL_SPEED * dt / 1000); if (c.x <= c.endX) { c.phase = 'hold2'; c.t0 = ts; } }
+    else if (c.phase === 'hold2') { if (el >= HOLD_END) { c.phase = 'out'; c.t0 = ts; } }
+    else if (c.phase === 'out') { const k = Math.min(el / SLIDE_MS, 1); c.y = -c.h * ease(k); if (k === 1) { crawl = null; nextTick(); } }
+    txt.style.transform = `translate3d(${c.x.toFixed(1)}px,${c.y.toFixed(1)}px,0)`;
   }
   requestAnimationFrame(crawlFrame);
 }
 requestAnimationFrame(crawlFrame);
 
-/* ===== Clock, settings, icon ===== */
-const clock = document.getElementById('clock');
-const tickClock = () => clock.textContent = hm(new Date());
-tickClock(); setInterval(tickClock, 15000);
+/* ===== Settings, icon ===== */
 
 const sheet = document.getElementById('sheet');
 document.getElementById('gear').onclick = () => { sheet.hidden = false; document.getElementById('closeBtn').focus(); };
