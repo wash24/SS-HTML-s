@@ -74,7 +74,6 @@ body{overscroll-behavior:none}
 .t-top{display:flex;justify-content:space-between;align-items:center;padding:4px 8px 2px;font-size:12px;font-weight:700;color:var(--t-sub);text-transform:uppercase;letter-spacing:.2px}
 .t-top .rt{display:flex;gap:8px;align-items:center;white-space:nowrap}
 .t-top .tv{color:#fff}
-.t-top .ser{text-transform:none;color:#fff}
 .t-top .lg{color:var(--amber)}
 .t-top.live{color:#fff}
 .t-top.live .st::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--live);margin-right:5px;vertical-align:1px;box-shadow:0 0 6px var(--live);animation:pulse 1.4s infinite}
@@ -283,7 +282,7 @@ const SAMPLE = {
     mk('n2','pre','',36,['Buffalo','BUF','00338d',null,null,'5-2'],['Kansas City','KC','e31837',null,null,'6-1'],{odds:['KC -2.5',47.5],tv:'Sample TV',venue:['Arrowhead Stadium','Kansas City','MO'],lead:[[['passingYards','PASS','J. Allen','1,904 YDS, 14 TD, 3 INT'],['rushingYards','RUSH','T. Cook','512'],['receivingYards','REC','K. Shakir','447']],[['passingYards','PASS','P. Mason','1,766'],['rushingYards','RUSH','I. Pace','389'],['receivingYards','REC','T. Kirk','502']]]}),
   ],
   mlb: [
-    mk('m1','post','Final',-26,['Los Angeles','LAD','005a9c',5],['New York','NYY','132448',3],{win:'away',note:'World Series - Game 1',ls:[[0,2,0,0,1,0,2,0,0],[1,0,0,0,0,2,0,0,0]],rhe:[[9,0],[6,1]],lead:[[['hits','BA','F. Ruiz','3-4, HR, 2 RBI'],['homeRuns','HR','S. Ohta','1-4, HR, R'],['RBIs','RBI','M. Betts','2-4, 2 RBI']],[['hits','BA','A. Judd','2-4, 2B, 2 RBI'],['homeRuns','HR','G. Stanton','1-3, HR, BB'],['RBIs','RBI','J. Soto','1-4, 2 RBI']]],post:true,head:'Sample recap: Los Angeles takes the series opener on the road.'}),
+    mk('m1','post','Final',-26,['Los Angeles','LAD','005a9c',5],['New York','NYY','132448',3],{win:'away',note:'World Series - Game 1',series:[1,0],ls:[[0,2,0,0,1,0,2,0,0],[1,0,0,0,0,2,0,0,0]],rhe:[[9,0],[6,1]],lead:[[['hits','BA','F. Ruiz','3-4, HR, 2 RBI'],['homeRuns','HR','S. Ohta','1-4, HR, R'],['RBIs','RBI','M. Betts','2-4, 2 RBI']],[['hits','BA','A. Judd','2-4, 2B, 2 RBI'],['homeRuns','HR','G. Stanton','1-3, HR, BB'],['RBIs','RBI','J. Soto','1-4, 2 RBI']]],post:true,head:'Sample recap: Los Angeles takes the series opener on the road.'}),
     mk('m2','pre','',18,['Los Angeles','LAD','005a9c'],['New York','NYY','132448'],{post:true,note:'World Series - Game 2',series:[1,0],venue:['Yankee Stadium','Bronx','NY'],lead:[[['avg','AVG','F. Ruiz','.312'],['homeRuns','HR','S. Ohta','44'],['RBIs','RBI','F. Ruiz','109']],[['avg','AVG','A. Judd','.301'],['homeRuns','HR','A. Judd','49'],['RBIs','RBI','J. Soto','112']]]}),
   ],
   ncb: [
@@ -381,12 +380,14 @@ function normalize(sport, ev){
   const psLabel = postseason ? (note || (c.series && c.series.title) || '').replace(/\s+-\s+/g, ' ') : '';
   // Series status before a playoff game: "(MIL leads 1-0)" or "(Series tied 0-0)"
   let seriesTxt = '';
-  if (postseason && c.series && c.series.type !== 'season' && st.state === 'pre') {
+  if (postseason && c.series && c.series.type !== 'season' && st.state !== 'in') {
     const comp = c.series.competitors || [];
     const wins = teams.map(t => { const x = comp.find(y => String(y.id) === String(t.id)); return x ? +x.wins || 0 : null; });
     if (wins.every(w => w != null)) {
       const [w0, w1] = wins;
-      seriesTxt = w0 === w1 ? `Series tied ${w0}-${w1}` : `${teams[w0 > w1 ? 0 : 1].abbr} leads ${Math.max(w0, w1)}-${Math.min(w0, w1)}`;
+      const need = c.series.totalCompetitions ? Math.floor(c.series.totalCompetitions / 2) + 1 : null;
+      const hi = Math.max(w0, w1), lo = Math.min(w0, w1), lead = teams[w0 > w1 ? 0 : 1].abbr;
+      seriesTxt = w0 === w1 ? `Series tied ${w0}-${w1}` : (c.series.completed || (need && hi >= need)) ? `${lead} wins ${hi}-${lo}` : `${lead} leads ${hi}-${lo}`;
     } else if (c.series.summary) seriesTxt = c.series.summary.replace(/\s+series\s+/i, ' ');
   }
   if (st.state === 'post') {
