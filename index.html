@@ -28,12 +28,12 @@
 .page{--p-hi:#173a70;--p-base:#0d2347;--p-deep:#0a1c3b;--p-line:rgba(160,195,255,.35);
   --t-hi:rgba(90,140,220,.55);--t-mid:rgba(30,70,140,.55);--t-lo:rgba(18,45,95,.65);--t-line:rgba(190,215,255,.55);--t-sub:#c9d6ea;--b-hi:#3e6fbf;--b-lo:#1d4689}
 /* Colors pulled from each scoreboard page's .bg-pattern gradient (0/16/34/55/78% stops) */
-.th-red{--p-hi:#b30000;--p-base:#7a0000;--p-deep:#4a0000;--p-line:rgba(201,107,107,0.55);
-  --t-hi:rgba(201,107,107,0.55);--t-mid:rgba(179,0,0,0.6);--t-lo:rgba(122,0,0,0.75);--t-line:rgba(232,216,216,0.6);--t-sub:#e8d8d8;--b-hi:#b30000;--b-lo:#4a0000}
+.th-red{--p-hi:#c42020;--p-base:#941414;--p-deep:#661010;--p-line:rgba(212,122,122,0.55);
+  --t-hi:rgba(212,122,122,0.55);--t-mid:rgba(196,32,32,0.6);--t-lo:rgba(148,20,20,0.75);--t-line:rgba(238,220,220,0.6);--t-sub:#eedcdc;--b-hi:#c42020;--b-lo:#661010}
 .th-nfl{--p-hi:#1f7a3d;--p-base:#155c2e;--p-deep:#0a3d1f;--p-line:rgba(143,196,163,0.55);
   --t-hi:rgba(143,196,163,0.55);--t-mid:rgba(31,122,61,0.6);--t-lo:rgba(21,92,46,0.75);--t-line:rgba(223,233,226,0.6);--t-sub:#dfe9e2;--b-hi:#1f7a3d;--b-lo:#0a3d1f}
-.th-mlb{--p-hi:#0059b3;--p-base:#003a7a;--p-deep:#00204a;--p-line:rgba(107,155,201,0.55);
-  --t-hi:rgba(107,155,201,0.55);--t-mid:rgba(0,89,179,0.6);--t-lo:rgba(0,58,122,0.75);--t-line:rgba(216,224,232,0.6);--t-sub:#d8e0e8;--b-hi:#0059b3;--b-lo:#00204a}
+.th-mlb{--p-hi:#1f6cc4;--p-base:#145094;--p-deep:#0f3463;--p-line:rgba(126,170,212,0.55);
+  --t-hi:rgba(126,170,212,0.55);--t-mid:rgba(31,108,196,0.6);--t-lo:rgba(20,80,148,0.75);--t-line:rgba(221,229,238,0.6);--t-sub:#dde5ee;--b-hi:#1f6cc4;--b-lo:#0f3463}
 .th-nba{--p-hi:#d66a00;--p-base:#a34d00;--p-deep:#6b3300;--p-line:rgba(232,163,102,0.55);
   --t-hi:rgba(232,163,102,0.55);--t-mid:rgba(214,106,0,0.6);--t-lo:rgba(163,77,0,0.75);--t-line:rgba(240,221,201,0.6);--t-sub:#f0ddc9;--b-hi:#d66a00;--b-lo:#6b3300}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -117,7 +117,7 @@ body{overscroll-behavior:none}
 .ticker{display:flex;align-items:stretch;height:26px;border-top:1px solid #000;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
 .ticker .lab{flex:none;width:52px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#cfd6e0;background:linear-gradient(#4b5563,#2b323d);border-right:1px solid #000;text-shadow:0 -1px 0 #000}
 .ticker .rail{flex:1;min-width:0;overflow:hidden;position:relative;background:linear-gradient(#1a1a1a,#000);color:#fff;font-size:14px;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
-.ticker .txt{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;white-space:nowrap;padding-left:100%;will-change:transform}
+.ticker .txt{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;white-space:nowrap;will-change:transform}
 .brand{flex:none;display:flex;align-items:center;padding:0 10px;font:italic 900 15px/1 var(--font);letter-spacing:-.5px;color:#fff;
   background:linear-gradient(#e8382b,#b3100a 55%,#8f0c07);border-left:1px solid #000;text-shadow:0 -1px 0 rgba(0,0,0,.5);clip-path:polygon(10px 0,100% 0,100% 100%,0 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
 .brand span{color:#fff}
@@ -259,6 +259,18 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;
 const md = d => `${d.getMonth()+1}/${d.getDate()}`;
 const hm = d => d.toLocaleTimeString([], { hour:'numeric', minute:'2-digit' });
 
+// Logo built for dark backgrounds (e.g. a white "A" for Alabama). Uses the feed's own dark entry when it has one,
+// otherwise the CDN's 500-dark folder. If that image is missing, logoFallback() swaps in the standard logo.
+function darkVariant(team){
+  const tagged = (team.logos || []).find(l => (l.rel || []).includes('dark'));
+  if (tagged) return tagged.href;
+  const base = team.logo || (team.logos && team.logos[0] && team.logos[0].href) || '';
+  return /\/500\//.test(base) ? base.replace('/500/', '/500-dark/') : base;
+}
+function logoFallback(img){
+  if (img.dataset.std && img.src !== img.dataset.std) { const std = img.dataset.std; img.dataset.std = ''; img.src = std; }
+  else img.style.visibility = 'hidden';
+}
 function normalize(sport, ev){
   const c = ev.competitions[0];
   const st = c.status.type;
@@ -269,6 +281,7 @@ function normalize(sport, ev){
       name: sport.college ? (t.team.location || t.team.shortDisplayName) : t.team.displayName,
       abbr: t.team.abbreviation || (t.team.shortDisplayName || '').slice(0,3).toUpperCase(), color: t.team.color || '2a5aa3',
       logo: t.team.logo || (t.team.logos && t.team.logos[0] && t.team.logos[0].href) || '',
+      darkLogo: darkVariant(t.team),
       rank: r && r <= 25 ? r : null,
       score: t.score, winner: !!t.winner,
       record: t.records && t.records[0] && t.records[0].summary,
@@ -314,7 +327,7 @@ function tileHTML(g, showLeague){
     const showScore = g.state !== 'pre';
     const loser = g.state === 'post' && !t.winner && g.teams.some(x => x.winner);
     return `<div class="row${loser ? ' loser' : ''}">
-      ${t.logo ? `<img src="${esc(t.logo)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : `<span class="badge" style="background:#${esc(t.color)}">${esc(t.abbr)}</span>`}
+      ${t.logo ? `<img src="${esc(t.darkLogo || t.logo)}" data-std="${esc(t.logo)}" alt="" loading="lazy" onerror="logoFallback(this)">` : `<span class="badge" style="background:#${esc(t.color)}">${esc(t.abbr)}</span>`}
       <span class="rk">${t.rank || ''}</span>
       <span class="nm">${esc(t.name)}${!showScore && t.record ? `<span class="rec">(${esc(t.record)})</span>` : ''}</span>
       <span class="sc">${showScore ? esc(t.score) : ''}</span>
@@ -408,18 +421,27 @@ async function loadNews(){
   for (let i = 0; i < 5; i++) res.forEach(list => list[i] && mixed.push(list[i]));
   state.news = mixed.length ? mixed : SAMPLE_NEWS;
 }
-let tickIdx = 0, tickAnim;
+const CRAWL_SPEED = 70; // pixels per second
+let tickIdx = 0, crawl = null;
 function nextTick(){
   const lab = document.getElementById('tickLab'), txt = document.getElementById('tickTxt');
   if (!state.news.length) { setTimeout(nextTick, 3000); return; }
   const item = state.news[tickIdx++ % state.news.length];
   lab.textContent = item.tag; txt.textContent = item.text;
-  const w = txt.scrollWidth;
-  if (tickAnim) tickAnim.cancel();
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { txt.style.paddingLeft = '8px'; setTimeout(nextTick, 6000); return; }
-  tickAnim = txt.animate([{ transform:'translateX(0)' }, { transform:`translateX(-${w}px)` }], { duration: w * 14, easing:'linear' });
-  tickAnim.onfinish = nextTick;
+  crawl = { x: txt.parentElement.clientWidth, end: -txt.scrollWidth, last: null };
+  txt.style.transform = `translate3d(${crawl.x}px,0,0)`;
 }
+function crawlFrame(ts){
+  const txt = document.getElementById('tickTxt');
+  if (crawl) {
+    if (crawl.last != null) crawl.x -= CRAWL_SPEED * Math.min(ts - crawl.last, 100) / 1000;
+    crawl.last = ts;
+    txt.style.transform = `translate3d(${crawl.x.toFixed(1)}px,0,0)`;
+    if (crawl.x <= crawl.end) { crawl = null; nextTick(); }
+  }
+  requestAnimationFrame(crawlFrame);
+}
+requestAnimationFrame(crawlFrame);
 
 /* ===== Clock, settings, icon ===== */
 const clock = document.getElementById('clock');
