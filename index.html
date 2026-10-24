@@ -114,6 +114,74 @@ body{overscroll-behavior:none}
   background:linear-gradient(#e8382b,#b3100a 55%,#8f0c07);border-left:1px solid #000;text-shadow:0 -1px 0 rgba(0,0,0,.5);clip-path:polygon(10px 0,100% 0,100% 100%,0 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
 .brand span{color:#fff}
 
+/* game pop-up */
+.gm-veil{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;
+  padding:calc(env(safe-area-inset-top,0px) + 22px) max(18px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 22px) max(18px,env(safe-area-inset-left,0px));
+  background:rgba(0,0,0,.6)}
+.gm{position:relative;width:100%;max-width:420px;max-height:100%;display:flex;flex-direction:column;border-radius:6px;
+  background:linear-gradient(180deg,var(--p-hi) 0%,var(--p-base) 45%,var(--p-deep) 100%);
+  border:1px solid var(--p-line);box-shadow:0 0 0 1px rgba(0,0,0,.7),0 12px 30px rgba(0,0,0,.75);animation:gm-in .22s ease-out}
+@keyframes gm-in{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+.gm-x{position:absolute;top:-13px;right:-13px;z-index:2;width:34px;height:34px;border-radius:50%;padding:0;cursor:pointer;
+  border:2px solid #fff;background:radial-gradient(circle at 50% 30%,#8a8a8a,#3a3a3a 70%);box-shadow:0 2px 6px rgba(0,0,0,.7);
+  color:#fff;font:700 20px/1 var(--font);display:flex;align-items:center;justify-content:center}
+.gm-x:focus-visible,.gm-foot:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.gm-in{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:6px;min-height:0}
+.gm-head{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:4px;padding:14px 10px 12px;text-shadow:0 -1px 0 rgba(0,0,0,.55)}
+.gm-head::before{content:"";position:absolute;inset:0 0 50% 0;background:linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.04));pointer-events:none}
+.gm-side{position:relative;display:flex;align-items:center;gap:4px;min-width:0}
+.gm-side.home{flex-direction:row-reverse}
+.gm-side img,.gm-side .badge{flex:none;width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 2px 2px rgba(0,0,0,.55))}
+.gm-side .badge{font-size:13px!important}
+.gm-num{flex:1;min-width:0;text-align:center;line-height:1.05}
+.gm-num b{display:block;font-size:clamp(28px,9vw,40px);font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-1px}
+.gm-num b.pre{font-size:26px;letter-spacing:0;padding:6px 0 2px}
+.gm-num span{display:block;font-size:15px;font-weight:800}
+.gm-num small{display:block;font-size:13px;font-weight:600;color:var(--t-sub)}
+.gm-num.lost b{color:var(--t-sub)}
+.gm-mid{position:relative;text-align:center;font-size:13px;min-width:44px;font-weight:800;text-transform:uppercase;max-width:96px}
+.gm-mid small{display:block;margin-top:3px;font-size:11px;font-weight:700;color:var(--t-sub)}
+.gm-mid.live::before{content:"";display:block;margin:0 auto 4px;width:8px;height:8px;border-radius:50%;background:var(--live);box-shadow:0 0 6px var(--live);animation:pulse 1.4s infinite}
+.gm-ls{margin:0 10px 10px;border-radius:4px;background:rgba(0,0,0,.2);box-shadow:inset 0 1px 3px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.12);overflow-x:auto}
+.gm-ls table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;text-shadow:0 -1px 0 rgba(0,0,0,.55)}
+.gm-ls th{padding:8px 6px 2px;font-size:13px;font-weight:700;color:var(--t-sub);text-align:center;min-width:26px}
+.gm-ls td{padding:5px 6px;font-size:19px;font-weight:700;text-align:center}
+.gm-ls td.tm{text-align:left;padding-left:12px;white-space:nowrap;max-width:9em;overflow:hidden;text-overflow:ellipsis}
+.gm-ls tr:last-child td{padding-bottom:9px}
+.gm-ls td.tot{font-weight:800;border-left:1px solid rgba(255,255,255,.15)}
+.gm-ls .lost td{color:var(--t-sub)}
+.gm-ls .arw{width:12px;padding:0 6px 0 0}
+.gm-ls.dense td{font-size:15px;padding:5px 3px}
+.gm-ls.dense th{font-size:12px;padding:8px 3px 2px;min-width:16px}
+.gm-ls.dense td.tm{padding-left:10px}
+.gm-ls .arw i{display:inline-block;width:0;height:0;border-style:solid;border-width:5px 7px 5px 0;border-color:transparent #fff transparent transparent}
+.gm-strip{padding:6px 12px;font-size:13px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
+  background:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.2));border-top:1px solid rgba(0,0,0,.5);border-bottom:1px solid rgba(255,255,255,.12);text-shadow:0 -1px 0 #000}
+.gm-perf{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:10px 12px 12px}
+.gm-col{min-width:0;display:flex;flex-direction:column;gap:9px}
+.gm-who{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 -1px 0 rgba(0,0,0,.5)}
+.gm-card{display:flex;gap:9px;align-items:flex-start}
+.gm-shot{flex:none;width:58px;height:66px;border-radius:2px;background:linear-gradient(#f2f2f2,#cfcfcf);border:1px solid rgba(255,255,255,.7);box-shadow:0 1px 3px rgba(0,0,0,.6);overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
+.gm-shot img{width:100%;height:100%;object-fit:cover;object-position:top}
+.gm-shot svg{width:80%;fill:#9a9a9a}
+.gm-shot.sm{width:38px;height:44px}
+.gm-stats{display:grid;grid-template-columns:auto 1fr;column-gap:8px;row-gap:1px;font-size:14px;text-shadow:0 -1px 0 rgba(0,0,0,.5)}
+.gm-stats dt{font-weight:800}
+.gm-stats dd{margin:0;font-weight:600}
+.gm-ln{min-width:0;font-size:13px;line-height:1.25;text-shadow:0 -1px 0 rgba(0,0,0,.5)}
+.gm-ln b{display:block;font-size:11px;font-weight:800;letter-spacing:.4px;color:var(--t-sub)}
+.gm-ln span{display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gm-ln em{display:block;font-style:normal;font-weight:600}
+.gm-info{display:grid;grid-template-columns:auto 1fr;column-gap:12px;row-gap:5px;padding:10px 12px 12px;font-size:14px;text-shadow:0 -1px 0 rgba(0,0,0,.5)}
+.gm-info dt{font-weight:800;color:var(--t-sub);text-transform:uppercase;font-size:12px;padding-top:2px}
+.gm-info dd{margin:0;font-weight:600}
+.gm-wait{padding:14px 12px;color:var(--t-sub);font-size:13px}
+.gm-foot{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;color:#fff;text-decoration:none;
+  background:linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.28));border-top:1px solid rgba(0,0,0,.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.12);text-shadow:0 -1px 0 rgba(0,0,0,.6)}
+.gm-foot small{display:block;font-size:11px;font-weight:600;color:var(--t-sub)}
+.gm-foot span{font-size:19px;font-weight:800}
+.gm-foot i{width:0;height:0;border-style:solid;border-width:8px 0 8px 10px;border-color:transparent transparent transparent rgba(255,255,255,.85);font-style:normal}
+.gm-foot:active{filter:brightness(1.2)}
 /* settings sheet */
 .sheet{position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.55);display:flex;align-items:flex-end}
 .sheet .box{width:100%;padding:14px max(14px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));
@@ -142,6 +210,8 @@ body{overscroll-behavior:none}
       <div class="brand">SCORE<span>LINE</span></div>
     </div>
   </footer>
+
+  <div class="gm-veil" id="gm" hidden></div>
 
   <div class="sheet" id="sheet" hidden>
     <div class="box">
@@ -173,8 +243,12 @@ const H = 36e5;
 function mk(id, st, detail, hrs, away, home, extra = {}){
   const team = ([name, abbr, color, score, rank, rec], side) => ({
     homeAway: side, score: String(score ?? ''), winner: st === 'post' && extra.win === side,
-    team: { location: name, displayName: name, shortDisplayName: name, abbreviation: abbr, color },
+    team: { id: abbr, location: name, displayName: name, shortDisplayName: name, abbreviation: abbr, color },
     curatedRank: { current: rank || 99 }, records: rec ? [{ summary: rec }] : [],
+    linescores: (extra.ls ? extra.ls[side === 'away' ? 0 : 1] : []).map(value => ({ value })),
+    ...(extra.rhe ? { hits: extra.rhe[side === 'away' ? 0 : 1][0], errors: extra.rhe[side === 'away' ? 0 : 1][1] } : {}),
+    leaders: (extra.lead ? extra.lead[side === 'away' ? 0 : 1] : []).map(([name, label, who, val]) =>
+      ({ name, shortDisplayName: label, leaders: [{ displayValue: val, athlete: { shortName: who } }] })),
   });
   return { id, date: new Date(Date.now() + hrs * H).toISOString(), links: [], season: { type: extra.post ? 3 : 2 },
     competitions: [{ status: { type: { state: st, shortDetail: detail, name: st === 'pre' ? 'STATUS_SCHEDULED' : 'X' } },
@@ -182,29 +256,37 @@ function mk(id, st, detail, hrs, away, home, extra = {}){
       headlines: extra.head ? [{ shortLinkText: extra.head }] : [],
       situation: extra.play ? { lastPlay: { text: extra.play } } : null,
       broadcasts: extra.tv ? [{ names: [extra.tv] }] : [], venue: extra.venue ? { fullName: extra.venue } : null,
-      notes: extra.note ? [{ headline: extra.note }] : [] }] };
+      notes: extra.note ? [{ headline: extra.note }] : [],
+      odds: extra.odds ? [{ details: extra.odds[0], overUnder: extra.odds[1] }] : [] }] };
 }
 const SAMPLE = {
   cfb: [
-    mk('c1','post','Final',-20,['Penn State','PSU','1c3a6e',24,null,'6-1'],['Ohio State','OSU','bb0000',38,2,'7-0'],{win:'home',head:'Sample recap: Ohio State pulls away in the fourth quarter at home.'}),
-    mk('c2','in','3rd 6:12',-1,['Georgia','UGA','ba0c2f',17,5,'6-1'],['Texas','TEX','bf5700',20,3,'6-1'],{play:'Sample play: 14-yard completion to the Georgia 41.'}),
-    mk('c3','pre','',6,['Washington','UW','4b2e83',null,null,'5-2'],['Oregon','ORE','154733',null,4,'7-0'],{tv:'Sample TV',venue:'Autzen Stadium'}),
+    mk('c1','post','Final',-20,['Penn State','PSU','1c3a6e',24,null,'6-1'],['Ohio State','OSU','bb0000',38,2,'7-0'],{win:'home',ls:[[7,3,7,7],[7,14,3,14]],lead:[[['passingYards','PASS','J. Carter','21/34, 241 YDS, TD'],['rushingYards','RUSH','M. Ellis','14 CAR, 88 YDS'],['receivingYards','REC','D. Owens','7 REC, 82 YDS']],[['passingYards','PASS','T. Brooks','24/31, 318 YDS, 3 TD'],['rushingYards','RUSH','R. Hayes','19 CAR, 112 YDS, TD'],['receivingYards','REC','K. Price','9 REC, 141 YDS, 2 TD']]],head:'Sample recap: Ohio State pulls away in the fourth quarter at home.'}),
+    mk('c2','in','3rd 6:12',-1,['Georgia','UGA','ba0c2f',17,5,'6-1'],['Texas','TEX','bf5700',20,3,'6-1'],{ls:[[7,10,0],[3,10,7]],tv:'Sample TV',lead:[[['passingYards','PASS','C. Reed','15/24, 176 YDS, TD'],['rushingYards','RUSH','A. Moss','11 CAR, 61 YDS, TD']],[['passingYards','PASS','L. Grant','17/25, 204 YDS, 2 TD'],['rushingYards','RUSH','J. Vance','12 CAR, 74 YDS']]],play:'Sample play: 14-yard completion to the Georgia 41.'}),
+    mk('c3','pre','',6,['Washington','UW','4b2e83',null,null,'5-2'],['Oregon','ORE','154733',null,4,'7-0'],{odds:['ORE -13.5',52.5],lead:[[['passingYards','PASS YDS','S. Nolan','1,842'],['rushingYards','RUSH YDS','P. Diaz','611'],['receivingYards','REC YDS','E. Hart','598']],[['passingYards','PASS YDS','B. Cole','2,105'],['rushingYards','RUSH YDS','O. Fields','702'],['receivingYards','REC YDS','G. Lane','655']]],tv:'Sample TV',venue:'Autzen Stadium'}),
   ],
   nfl: [
-    mk('n1','post','Final',-30,['Dallas','DAL','041e42',20],['Philadelphia','PHI','004c54',27],{win:'home',head:'Sample recap: Philadelphia holds on late to win the division matchup.'}),
-    mk('n2','pre','',36,['Buffalo','BUF','00338d',null,null,'5-2'],['Kansas City','KC','e31837',null,null,'6-1'],{tv:'Sample TV',venue:'Arrowhead Stadium'}),
+    mk('n1','post','Final',-30,['Dallas','DAL','041e42',20],['Philadelphia','PHI','004c54',27],{win:'home',ls:[[3,7,7,3],[7,3,10,7]],lead:[[['passingYards','PASS','R. Mills','26/38, 271 YDS, 2 TD'],['rushingYards','RUSH','V. Ortiz','15 CAR, 63 YDS'],['receivingYards','REC','C. Lamb','8 REC, 104 YDS, TD']],[['passingYards','PASS','N. Ford','19/28, 233 YDS, TD'],['rushingYards','RUSH','S. Burke','24 CAR, 131 YDS, 2 TD'],['receivingYards','REC','A. Shaw','6 REC, 92 YDS']]],head:'Sample recap: Philadelphia holds on late to win the division matchup.'}),
+    mk('n2','pre','',36,['Buffalo','BUF','00338d',null,null,'5-2'],['Kansas City','KC','e31837',null,null,'6-1'],{odds:['KC -2.5',47.5],tv:'Sample TV',venue:'Arrowhead Stadium'}),
   ],
   mlb: [
-    mk('m1','post','Final',-26,['Los Angeles','LAD','005a9c',5],['New York','NYY','132448',3],{win:'away',post:true,head:'Sample recap: Los Angeles takes the series opener on the road.'}),
+    mk('m1','post','Final',-26,['Los Angeles','LAD','005a9c',5],['New York','NYY','132448',3],{win:'away',ls:[[0,2,0,0,1,0,2,0,0],[1,0,0,0,0,2,0,0,0]],rhe:[[9,0],[6,1]],lead:[[['hits','BATTING','F. Ruiz','3-4, HR, 2 RBI'],['pitching','PITCHING','Y. Sato','6.0 IP, 2 ER, 8 K']],[['hits','BATTING','A. Judd','2-4, 2B, 2 RBI'],['pitching','PITCHING','G. Cole','5.1 IP, 3 ER, 6 K']]],post:true,head:'Sample recap: Los Angeles takes the series opener on the road.'}),
     mk('m2','pre','',18,['Los Angeles','LAD','005a9c'],['New York','NYY','132448'],{post:true,note:'Sample: Game 2',venue:'Yankee Stadium'}),
   ],
   ncb: [
     mk('b1','pre','',300,['Kansas','KU','0051ba',null,7],['Duke','DUKE','003087',null,3],{note:'Sample: season opener',venue:'Neutral site'}),
   ],
   nba: [
-    mk('a1','in','4th 2:48',-0.5,['Golden State','GSW','1d428a',104],['Los Angeles','LAL','552583',101],{play:'Sample play: corner three ties the game, then a go-ahead layup.'}),
-    mk('a2','post','Final',-22,['New York','NYK','006bb6',109],['Boston','BOS','007a33',116],{win:'home',head:'Sample recap: Boston pulls away with a 12-2 run in the fourth.'}),
+    mk('a1','in','4th 2:48',-0.5,['Golden State','GSW','1d428a',104],['Los Angeles','LAL','552583',101],{ls:[[28,25,30,21],[26,27,27,21]],tv:'Sample TV',play:'Sample play: corner three ties the game, then a go-ahead layup.'}),
+    mk('a2','post','Final',-22,['New York','NYK','006bb6',109],['Boston','BOS','007a33',116],{win:'home',ls:[[27,30,26,26],[29,24,29,34]],head:'Sample recap: Boston pulls away with a 12-2 run in the fourth.'}),
   ],
+};
+// Sample box score player lines (basketball), standing in for the per-game summary feed.
+const sampleBox = (teams) => ({ boxscore: { players: teams.map(([id, rows]) => ({ team: { id },
+  statistics: [{ labels: ['MIN','PTS','REB','AST','STL','BLK'], athletes: rows.map(([n, ...st]) => ({ athlete: { shortName: n }, stats: st.map(String) })) }] })) } });
+const SAMPLE_SUMMARY = {
+  a1: sampleBox([['GSW', [['S. Curry', 34, 31, 5, 7, 2, 0], ['J. Green', 30, 12, 9, 6, 1, 2]]], ['LAL', [['L. James', 36, 28, 8, 9, 1, 1], ['A. Davis', 35, 24, 13, 3, 2, 3]]]]),
+  a2: sampleBox([['NYK', [['J. Brunson', 37, 31, 4, 8, 1, 0]]], ['BOS', [['J. Tatum', 38, 33, 11, 5, 2, 1]]]]),
 };
 const SAMPLE_NEWS = SPORTS.map(s => ({ tag: s.tag, text: `Sample headline for ${s.name}. Live headlines appear when this page runs on your own site.` }));
 
@@ -271,6 +353,9 @@ function normalize(sport, ev){
       rank: r && r <= 25 ? r : null,
       score: t.score, winner: !!t.winner,
       record: t.records && t.records[0] && t.records[0].summary,
+      id: t.team.id, short: t.team.shortDisplayName || t.team.name || t.team.abbreviation,
+      lines: (t.linescores || []).map(l => l.displayValue ?? l.value),
+      hits: t.hits, errors: t.errors, leaders: t.leaders || [],
     };
   });
   let label, blurb = '';
@@ -291,7 +376,9 @@ function normalize(sport, ev){
   const scores = teams.map(t => +t.score || 0);
   const bc = c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names.join('/');
   const tv = st.state === 'post' ? '' : (bc || (c.geoBroadcasts && c.geoBroadcasts[0] && c.geoBroadcasts[0].media && c.geoBroadcasts[0].media.shortName) || '');
+  const odds = c.odds && c.odds[0];
   return { id: ev.id, sport, state: st.state, date, label, blurb, tv, teams, link: gameLink(sport, ev),
+    detail: st.shortDetail || '', venue: c.venue && c.venue.fullName, odds: odds ? [odds.details, odds.overUnder] : null,
     margin: Math.abs(scores[0] - (scores[1] || 0)), post: ev.season && ev.season.type === 3 };
 }
 
@@ -321,7 +408,7 @@ function tileHTML(g){
       ${t.winner && g.state === 'post' ? '<i class="win"></i>' : '<span></span>'}
     </div>`;
   }).join('');
-  return `<a class="tile" href="${esc(g.link)}" target="_blank" rel="noopener">
+  return `<a class="tile" href="${esc(g.link)}" data-gid="${g.sport.key}:${esc(g.id)}" target="_blank" rel="noopener">
     <div class="t-top${live ? ' live' : ''}"><span class="st">${esc(g.label)}</span><span class="rt">${g.tv ? `<span class="tv">${esc(g.tv)}</span>` : ''}</span></div>
     ${rows}<div class="blurb">${esc(g.blurb)}</div></a>`;
 }
@@ -377,6 +464,156 @@ function renderTop(){
   el.innerHTML = (SPORTS.some(s => state.sample[s.key]) ? NOTICE : '') + grouped(picks, true);
 }
 
+/* ===== Game pop-up ===== */
+const REG = { nba:4, ncb:2, nfl:4, cfb:4, mlb:9 };
+const gm = document.getElementById('gm');
+const summaries = {};
+let openGid = null, gmTheme = 'red', gmTimer;
+const findGame = gid => { const [k, id] = gid.split(':'); return (state.data[k] || []).find(g => g.id === id); };
+const silhouette = '<svg viewBox="0 0 40 44"><circle cx="20" cy="15" r="10"/><path d="M2 44c0-11 8-18 18-18s18 7 18 18z"/></svg>';
+const shot = (src, sm) => `<div class="gm-shot${sm ? ' sm' : ''}">${src ? `<img src="${esc(src)}" alt="" onerror="this.replaceWith(document.createRange().createContextualFragment(silhouette))">` : silhouette}</div>`;
+const logoImg = t => t.logo ? `<img src="${esc(t.darkLogo || t.logo)}" data-std="${esc(t.logo)}" alt="" onerror="logoFallback(this)">` : `<span class="badge" style="background:#${esc(t.color)}">${esc(t.abbr)}</span>`;
+
+function periodLabel(key, i){
+  const reg = REG[key] || 4;
+  if (key === 'mlb' || i < reg) return String(i + 1);
+  const n = i - reg + 1;
+  return n === 1 ? 'OT' : n + 'OT';
+}
+function linescoreHTML(g){
+  if (g.state === 'pre') return '';
+  const reg = REG[g.sport.key] || 4;
+  const n = Math.max(reg, ...g.teams.map(t => t.lines.length));
+  if (!g.teams.some(t => t.lines.length)) return '';
+  const mlb = g.sport.key === 'mlb';
+  const heads = Array.from({ length: n }, (_, i) => `<th>${periodLabel(g.sport.key, i)}</th>`).join('') + (mlb ? '<th>R</th><th>H</th><th>E</th>' : '<th>T</th>');
+  const rows = g.teams.map(t => {
+    const lost = g.state === 'post' && !t.winner && g.teams.some(x => x.winner);
+    const cells = Array.from({ length: n }, (_, i) => `<td>${esc(t.lines[i] ?? '')}</td>`).join('');
+    const tot = mlb ? `<td class="tot">${esc(t.score)}</td><td>${esc(t.hits ?? '')}</td><td>${esc(t.errors ?? '')}</td>` : `<td class="tot">${esc(t.score)}</td>`;
+    return `<tr class="${lost ? 'lost' : ''}"><td class="tm">${esc(n > 6 ? t.abbr : t.short)}</td>${cells}${tot}<td class="arw">${t.winner && g.state === 'post' ? '<i></i>' : ''}</td></tr>`;
+  }).join('');
+  return `<div class="gm-ls${n > 6 ? ' dense' : ''}"><table><thead><tr><th></th>${heads}<th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+// Top performers. Basketball box scores give a full stat line for each team's leading scorer;
+// other sports (and pregame) use the feed's leader categories.
+function performers(g, sum){
+  const box = sum && sum.boxscore && sum.boxscore.players;
+  const basketball = g.sport.key === 'nba' || g.sport.key === 'ncb';
+  return g.teams.map((t, side) => {
+    if (basketball && box && g.state !== 'pre') {
+      const team = box.find(b => String(b.team && b.team.id) === String(t.id)) || box[side];
+      const st = team && team.statistics && team.statistics[0];
+      if (st && st.athletes && st.athletes.length) {
+        const L = st.labels || st.names || [];
+        const ix = k => L.indexOf(k);
+        const best = [...st.athletes].filter(a => a.stats && a.stats.length).sort((a, b) => (+b.stats[ix('PTS')] || 0) - (+a.stats[ix('PTS')] || 0))[0];
+        if (best) {
+          const a = best.athlete || {};
+          const stats = ['PTS','REB','AST','STL','BLK'].filter(k => ix(k) >= 0).map(k => `<dt>${k}</dt><dd>${esc(best.stats[ix(k)])}</dd>`).join('');
+          return `<div class="gm-col"><div class="gm-who">${esc(a.shortName || a.displayName)}, ${esc(t.abbr)}</div>
+            <div class="gm-card">${shot(a.headshot && a.headshot.href)}<dl class="gm-stats">${stats}</dl></div></div>`;
+        }
+      }
+    }
+    let cats = t.leaders;
+    if (sum && sum.leaders) {
+      const tl = sum.leaders.find(l => String(l.team && l.team.id) === String(t.id)) || sum.leaders[side];
+      if (tl && tl.leaders && tl.leaders.length) cats = tl.leaders;
+    }
+    const items = (cats || []).filter(c => c.leaders && c.leaders[0]).slice(0, 3).map(c => {
+      const l = c.leaders[0], a = l.athlete || {};
+      return `<div class="gm-card">${shot(a.headshot && (a.headshot.href || a.headshot), true)}<div class="gm-ln"><b>${esc(c.shortDisplayName || c.displayName || c.name)}</b><span>${esc(a.shortName || a.displayName || '')}</span><em>${esc(l.displayValue)}</em></div></div>`;
+    }).join('');
+    return items ? `<div class="gm-col"><div class="gm-who">${esc(t.short)}</div>${items}</div>` : '';
+  });
+}
+
+function gameHTML(g){
+  const [a, h] = g.teams;
+  const side = (t, cls) => {
+    const lost = g.state === 'post' && !t.winner && g.teams.some(x => x.winner);
+    const big = g.state === 'pre' ? `<b class="pre">${esc(t.abbr)}</b>` : `<b>${esc(t.score)}</b><span>${esc(t.abbr)}</span>`;
+    return `<div class="gm-side ${cls}">${logoImg(t)}<div class="gm-num${lost ? ' lost' : ''}">${t.rank ? `<small>#${t.rank}</small>` : ''}${big}${t.record ? `<small>(${esc(t.record)})</small>` : ''}</div></div>`;
+  };
+  let mid;
+  if (g.state === 'post') mid = `<div class="gm-mid">${esc(g.detail.replace(/^Final/i, 'Final'))}</div>`;
+  else if (g.state === 'in') mid = `<div class="gm-mid live">${esc(g.detail)}${g.tv ? `<small>${esc(g.tv)}</small>` : ''}</div>`;
+  else mid = `<div class="gm-mid">${esc(g.date.toLocaleDateString([], { weekday:'short' }))} ${md(g.date)}<small>${esc(hm(g.date))}${g.tv ? ' · ' + esc(g.tv) : ''}</small></div>`;
+
+  const sum = summaries[g.sport.key + ':' + g.id];
+  const perf = performers(g, sum && sum.data);
+  const perfHTML = perf.some(Boolean)
+    ? `<div class="gm-strip">${g.state === 'pre' ? 'Season Leaders' : 'Top Performers'}</div><div class="gm-perf">${perf.map(x => x || '<div class="gm-col"></div>').join('')}</div>`
+    : (sum && sum.loading ? `<div class="gm-strip">${g.state === 'pre' ? 'Season Leaders' : 'Top Performers'}</div><div class="gm-wait">Loading stats…</div>` : '');
+
+  let info = '';
+  if (g.state === 'pre') {
+    const rows = [['Venue', g.venue], ['TV', g.tv], ['Line', g.odds && g.odds[0]], ['Over/Under', g.odds && g.odds[1]]].filter(r => r[1]);
+    if (rows.length) info = `<div class="gm-strip">Game Info</div><dl class="gm-info">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
+  }
+  const footLabel = g.state === 'post' ? 'Recap' : g.state === 'in' ? 'Live Game' : 'Preview';
+  const foot = g.link && g.link !== '#' ? `<a class="gm-foot" href="${esc(g.link)}" target="_blank" rel="noopener"><div><small>Full game page</small><span>${footLabel}</span></div><i></i></a>` : '';
+
+  return `<button class="gm-x" id="gmClose" aria-label="Close">✕</button>
+    <div class="gm-in"><div class="gm-head">${side(a, 'away')}${mid}${side(h, 'home')}</div>
+    ${linescoreHTML(g)}${perfHTML}${info}${foot}</div>`;
+}
+
+function renderGame(keepScroll){
+  const g = openGid && findGame(openGid);
+  if (!g) { closeGame(); return; }
+  const prev = gm.querySelector('.gm-in'), y = keepScroll && prev ? prev.scrollTop : 0;
+  let box = gm.querySelector('.gm');
+  if (!box) { box = document.createElement('div'); box.className = 'gm'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); gm.appendChild(box); }
+  box.className = 'gm th-' + gmTheme;
+  box.setAttribute('aria-label', g.teams.map(t => t.name).join(' at '));
+  box.innerHTML = gameHTML(g);
+  box.querySelector('.gm-in').scrollTop = y;
+  document.getElementById('gmClose').onclick = closeGame;
+}
+
+async function loadSummary(g){
+  const key = g.sport.key + ':' + g.id;
+  if (!summaries[key]) summaries[key] = { loading: true };
+  if (state.sample[g.sport.key]) { summaries[key] = { data: SAMPLE_SUMMARY[g.id] || null }; return; }
+  try {
+    const r = await fetch(API + g.sport.path + '/summary?event=' + encodeURIComponent(g.id), { cache:'no-store' });
+    if (!r.ok) throw new Error(r.status);
+    summaries[key] = { data: await r.json() };
+  } catch (e) { summaries[key] = { data: (summaries[key] && summaries[key].data) || null }; }
+}
+
+async function openGame(gid, theme){
+  const g = findGame(gid);
+  if (!g) return;
+  openGid = gid; gmTheme = theme || g.sport.theme;
+  gm.hidden = false; pager.style.overflowX = 'hidden';
+  const key = gid;
+  if (!summaries[key] || !summaries[key].data) summaries[key] = { loading: true };
+  renderGame(false);
+  document.getElementById('gmClose').focus({ preventScroll: true });
+  await loadSummary(g);
+  if (openGid === gid) renderGame(true);
+  clearInterval(gmTimer);
+  if (g.state === 'in') gmTimer = setInterval(async () => { const cur = findGame(gid); if (!cur || openGid !== gid) return; await loadSummary(cur); renderGame(true); }, 30000);
+}
+function closeGame(){
+  openGid = null; clearInterval(gmTimer);
+  gm.hidden = true; gm.innerHTML = ''; pager.style.overflowX = '';
+}
+gm.addEventListener('click', e => { if (e.target === gm) closeGame(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && openGid) closeGame(); });
+pager.addEventListener('click', e => {
+  const tile = e.target.closest('.tile[data-gid]');
+  if (!tile) return;
+  e.preventDefault();
+  const pg = tile.closest('.page');
+  const th = pg && [...pg.classList].find(c => c.startsWith('th-'));
+  openGame(tile.dataset.gid, th ? th.slice(3) : null);
+});
+
 /* ===== Data ===== */
 async function loadSport(sport){
   try {
@@ -396,6 +633,7 @@ async function loadSport(sport){
 async function refresh(){
   await Promise.all(SPORTS.map(loadSport));
   renderTop();
+  if (openGid) renderGame(true);
   state.updated = new Date();
   document.getElementById('updated').textContent = 'Last updated ' + hm(state.updated) + '.';
   schedule();
