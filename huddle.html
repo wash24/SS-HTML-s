@@ -7,12 +7,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Huddle">
-<meta name="theme-color" content="#141415">
+<meta name="theme-color" content="#3c3c3f">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style>
 <title>Huddle Sports App</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Roboto+Condensed:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Oswald:wght@400;500;600;700&family=Roboto+Condensed:wght@400;700&display=swap">
 <style>
 /* Layout: 2015-era sports stream app — score ticker on top, full-bleed story cards, team-color tile rail, three-tab bar fixed at the bottom */
 :root{
@@ -24,11 +24,13 @@
   --flame:#e8542a;       /* the one accent: active tab */
   --font-display:"Oswald","Arial Narrow","Helvetica Neue Condensed",Impact,sans-serif;
   --font-body:"Roboto Condensed","Arial Narrow",Arial,sans-serif;
+  --font-script:"Kaushan Script","Brush Script MT","Segoe Script",cursive;
+  --bar:#3c3c3f;         /* header bar */
   color-scheme:dark;
 }
 html,body{height:100%}
 body{background:var(--ink);color:var(--paper);font-family:var(--font-body);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--ink)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bar)}
 *{box-sizing:border-box}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
 button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offset:2px}
@@ -40,8 +42,12 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .ticker-label{writing-mode:vertical-rl;transform:rotate(180deg);font-family:var(--font-display);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);padding:6px 4px;border-right:1px solid #2f2f31;flex:none;display:flex;align-items:center;justify-content:center}
 .ticker-rail{display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 6px 8px 6px;scrollbar-width:none;flex:1;min-width:0}
 .ticker-rail::-webkit-scrollbar{display:none}
-.gear{flex:none;width:40px;display:flex;align-items:center;justify-content:center;color:var(--paper);border-left:1px solid #2f2f31}
-.gear svg{width:20px;height:20px}
+.appbar{flex:none;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;height:50px;background:linear-gradient(180deg,#46464a,var(--bar));border-bottom:1px solid #1f1f21;padding:0 max(6px,env(safe-area-inset-right,0px)) 0 max(6px,env(safe-area-inset-left,0px))}
+.appbar .icon{width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:#fff}
+.appbar .icon svg{width:22px;height:22px}
+.wordmark{justify-self:center;display:flex;align-items:baseline;gap:3px;line-height:1;white-space:nowrap;user-select:none}
+.wordmark b{font-family:var(--font-display);font-weight:700;font-size:23px;letter-spacing:.04em;color:#fff;text-transform:uppercase}
+.wordmark i{font-family:var(--font-script);font-style:normal;font-size:24px;color:var(--flame);transform:rotate(-4deg) translateY(1px);display:inline-block;text-shadow:0 1px 0 rgba(0,0,0,.35)}
 .game{flex:none;width:132px;scroll-snap-align:start;background:#1d1d1f;display:flex;flex-direction:column;font-family:var(--font-display)}
 .game-status{font-size:12px;letter-spacing:.02em;padding:4px 7px 3px;color:#fff;display:flex;justify-content:space-between;gap:6px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .team-row{position:relative;overflow:hidden;display:flex;align-items:center;gap:6px;height:28px;padding:0 7px 0 32px;font-size:16px;line-height:1;font-variant-numeric:tabular-nums}
@@ -189,11 +195,15 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 </head><body>
 
 <div class="app" id="app">
-  <header class="ticker">
+  <header class="appbar">
+    <button class="icon search-btn" aria-label="Search teams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></button>
+    <div class="wordmark" aria-label="Huddle Live"><b>Huddle</b><i>Live</i></div>
+    <button class="icon gear" aria-label="Settings"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1L11 21h4l.4-2.9a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button>
+  </header>
+  <div class="ticker">
     <div class="ticker-label">Top Games</div>
     <div class="ticker-rail" id="ticker" aria-label="Top games"></div>
-    <button class="gear" aria-label="Settings"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1L11 21h4l.4-2.9a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button>
-  </header>
+  </div>
 
   <main class="views">
     <section class="view" id="view-teams" aria-label="My Teams"></section>
@@ -566,6 +576,7 @@ document.addEventListener('click', e => {
     if(tab.dataset.view==='alerts'){ alerts.forEach(a=>a.unread=false); $('#alertCount').hidden = true; setTimeout(renderAlerts,1200); }
     return;
   }
+  if(e.target.closest('.search-btn')){ openPicker(); setTimeout(()=>$('#teamSearch').focus(), 320); return; }
   if(e.target.closest('[data-edit]') || e.target.closest('.gear')){ openPicker(); return; }
   if(e.target.closest('#pickerDone')){ closePicker(); return; }
   const lgTab = e.target.closest('.lg-tab');
