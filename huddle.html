@@ -94,14 +94,14 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 /* team tile rail */
 .rail{display:flex;gap:4px;overflow-x:auto;padding:4px;background:var(--ink);scrollbar-width:none;scroll-snap-type:x proximity}
 .rail::-webkit-scrollbar{display:none}
-.tile{flex:none;width:86px;height:86px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#fff;scroll-snap-align:start;transition:transform .15s}
+.tile{flex:none;width:66px;height:66px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding-top:4px;color:#fff;scroll-snap-align:start;transition:transform .15s}
 .tile:active{transform:scale(.96)}
-.tile .dot{position:absolute;top:7px;left:7px;width:7px;height:7px;border-radius:50%;background:#fff}
+.tile .dot{position:absolute;top:5px;left:5px;width:5px;height:5px;border-radius:50%;background:#fff}
 .tile.seen .dot{display:none}
-.tile .t-ago{position:absolute;top:5px;right:6px;font-family:var(--font-display);font-size:12px;opacity:.85}
+.tile .t-ago{position:absolute;top:3px;right:4px;font-family:var(--font-display);font-size:10px;line-height:1;opacity:.85}
 .tile .badge{width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:13px;letter-spacing:.02em}
-.tile .t-name{font-family:var(--font-display);font-size:14px;letter-spacing:.01em}
-.tile[aria-pressed="true"]{outline:3px solid #fff;outline-offset:-3px}
+.tile .t-name{font-family:var(--font-display);font-size:11.5px;line-height:1.2;letter-spacing:.01em}
+.tile[aria-pressed="true"]{outline:2px solid #fff;outline-offset:-2px}
 
 .filterbar{display:flex;align-items:center;justify-content:space-between;padding:10px max(14px,env(safe-area-inset-right,0px)) 10px max(14px,env(safe-area-inset-left,0px));font-family:var(--font-display);text-transform:uppercase;letter-spacing:.06em;font-size:13px;color:var(--mute);background:var(--ink)}
 .filterbar button{color:var(--flame)}
@@ -144,15 +144,16 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 
 
 /* tile logos + add tile */
-.tile .t-logo{width:46px;height:46px;display:flex;align-items:center;justify-content:center}
+.tile .t-logo{width:32px;height:32px;display:flex;align-items:center;justify-content:center}
 .tile .t-logo img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
 .logo-txt{font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:.02em;color:#fff}
-.tile .t-name{max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile .t-name{max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tile.add{background:var(--chrome-2);box-shadow:inset 0 0 0 2px #5a5a5e}
-.tile.add .plus{font-family:var(--font-display);font-size:38px;line-height:.9;font-weight:400;color:var(--flame)}
+.tile.add .plus{font-family:var(--font-display);font-size:28px;line-height:.9;font-weight:400;color:var(--flame)}
 .src-chip.logo{padding:1px}
 .src-chip.logo img{width:20px;height:20px;object-fit:contain}
 .src-chip .logo-txt{font-size:10px}
+.tile .logo-txt{font-size:12px}
 .ticker-empty{font-family:var(--font-display);color:var(--mute);font-size:14px;padding:22px 10px;white-space:nowrap}
 
 /* team picker sheet */
