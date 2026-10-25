@@ -1073,8 +1073,16 @@ async function loadPlays(g){
       const seen = new Set();
       drives.forEach(d => (d.plays||[]).forEach(pl => { if(seen.has(pl.id)) return; seen.add(pl.id); raw.push({...pl, teamId: pl.team&&pl.team.id || d.team&&d.team.id}); }));
     } else raw = (j.plays||[]).map(pl => ({...pl, teamId: pl.team&&pl.team.id}));
-    const skip = /^(End Batter\/Pitcher|Start Inning|End Inning|Start Half|End Half)/i;
-    const list = raw.filter(pl => pl.text && !skip.test((pl.type&&pl.type.text)||'')).slice(-3).reverse().map(pl => ({
+    /* keep real team plays: drop period/game markers, and for baseball keep at-bat results (not every pitch) */
+    const marker = /(^|\s)(start|end)\b|end of|timeout|official|delay/i;
+    const keep = pl => {
+      const type = (pl.type&&pl.type.text)||'';
+      if(!pl.text || !pl.teamId) return false;
+      if(marker.test(type) || /^(end|start) of/i.test(pl.text)) return false;
+      if(g.lg==='mlb') return pl.scoringPlay || /play result/i.test(type);
+      return true;
+    };
+    const list = raw.filter(keep).slice(-3).reverse().map(pl => ({
       text: String(pl.text).replace(/^\(\d+:\d+\)\s*/,''),
       teamId: pl.teamId ? String(pl.teamId) : '',
       clock: pl.clock && pl.clock.displayValue,
