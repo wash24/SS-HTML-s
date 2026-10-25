@@ -525,32 +525,20 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <style>
-/* Home-screen app fit. Solid black iOS status bar (no translucency), so nothing is drawn under it and
-   iOS does not blur the header. The app is sized by screen height (100vh) rather than anchored to the
-   bottom edge, which iOS standalone mode can report short, so the tab bar reaches the bottom. */
-html,body{height:100%;margin:0;background:#4a4a4d;overscroll-behavior:none}
+/* Home-screen app fit.
+   - Solid black iOS status bar (set at install): nothing is drawn under it, so iOS can't blur the header.
+   - Older installs with the translucent bar: iOS shortens the page by exactly the status-bar height, so the
+     app extends down by env(safe-area-inset-top) (0 with the solid bar) to reach the bottom edge.
+   - The document itself never scrolls; only the views inside the app do. */
+html,body{position:fixed;top:0;left:0;right:0;bottom:0;margin:0;overflow:hidden;background:#4a4a4d;overscroll-behavior:none}
 body::before{display:none}
-html .app{position:fixed;top:0;left:0;right:0;bottom:auto;height:var(--app-h,100vh);max-width:none;margin:0;padding-top:env(safe-area-inset-top,0px);background:#4a4a4d}
+html .app{position:fixed;top:0;left:0;right:0;bottom:calc(-1 * env(safe-area-inset-top,0px));height:auto;max-width:none;margin:0;padding-top:env(safe-area-inset-top,0px);background:#4a4a4d}
 html .views{background:var(--chrome)}
 html .tpage{top:env(safe-area-inset-top,0px)}
 html .sheet{top:env(safe-area-inset-top,0px)}
 html .tabs{padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (min-width:520px){ html .app{left:50%;right:auto;width:480px;transform:translateX(-50%)} }
 </style>
-<script>
-/* In home-screen (standalone) mode iOS can report the viewport short or tall; size the app to the
-   device's physical screen height instead (portrait: screen.height, landscape: screen.width). */
-(function(){
-  var standalone = window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
-  if(!standalone) return;
-  function fit(){
-    var land = window.matchMedia && matchMedia('(orientation: landscape)').matches;
-    var h = land ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
-    document.documentElement.style.setProperty('--app-h', h + 'px');
-  }
-  fit(); window.addEventListener('orientationchange', function(){ setTimeout(fit, 250); }); window.addEventListener('resize', fit);
-})();
-</script>
 </head><body>
 
 <div class="app" id="app">
