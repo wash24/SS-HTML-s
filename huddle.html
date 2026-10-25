@@ -472,6 +472,10 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .card h2{font-weight:600;letter-spacing:-.005em}
 .mini h3{font-weight:600}
 
+/* schedule: ranking sits as a small number before the name with proper spacing */
+.sch-rk{flex:none;font-size:12px;font-weight:500;color:rgba(255,255,255,.6);margin-right:5px;line-height:1}
+.sch-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head><body>
@@ -1211,10 +1215,10 @@ function renderSchedule(p){
       res = `<span class="${w?'w':'l'}">${w?'W':'L'}</span> ${esc(me.sc)}-${esc(opp.sc)}${g.period>((LG[g.lg]||{}).periods||4) && g.lg!=='mlb' ? ' OT':''}`; }
     else if(g.live) res = `<span class="lv">${esc(statusParts(g)[0])}</span> ${esc(me.sc)}-${esc(opp.sc)}`;
     else if(g.postponed) res = 'Postponed';
-    else res = `${g.tbd?'TBD':esc(d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).replace(/\s/g,''))}${g.tv?` <small>${esc(g.tv)}</small>`:''}`;
+    else res = g.tbd ? 'TBD' : esc(d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).replace(/\s+/,' '));   /* "6:30 PM", no channel */
     const isNext = !nextMarked && !g.final && (g.live || d >= now - 6*3600e3) && (nextMarked = true);
     const inner = `<span class="sch-d">${esc(d.toLocaleDateString('en-US',{weekday:'short'}))}<b>${d.getMonth()+1}/${d.getDate()}</b></span>
-      <span class="sch-o"><em>${home?'vs':'@'}</em><span class="stl">${logoTag(teamLogoUrl(opp,g.lg), opp.ab||'', '', opp.logoDark)}</span>${opp.rank?`<small>${opp.rank}</small> `:''}${esc(opp.name||opp.ab)}</span>
+      <span class="sch-o"><em>${home?'vs':'@'}</em><span class="stl">${logoTag(teamLogoUrl(opp,g.lg), opp.ab||'', '', opp.logoDark)}</span>${opp.rank?`<span class="sch-rk">${esc(opp.rank)}</span>`:''}<span class="sch-nm">${esc(opp.name||opp.ab)}</span></span>
       <span class="sch-r">${res}</span>`;
     return head + (g.link ? `<a class="sch-row${isNext?' next':''}" href="${esc(g.link)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="sch-row${isNext?' next':''}">${inner}</div>`);
   }).join('');
