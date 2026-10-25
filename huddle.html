@@ -38,19 +38,19 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .app{max-width:480px;margin:0 auto;height:100%;display:flex;flex-direction:column;background:var(--chrome);position:relative;overflow:hidden}
 
 /* ---------- Top games ticker ---------- */
-/* Ticker sits on the header's gray, with room above and a dark gutter before the stream */
-.ticker{background:var(--bar);display:flex;align-items:stretch;gap:0;flex:none;position:relative;padding:7px 0 9px;border-bottom:5px solid var(--ink)}
+/* Ticker sits on a charcoal band darker than the header, with room above and a dark gutter before the stream */
+.ticker{background:#262628;display:flex;align-items:stretch;gap:0;flex:none;position:relative;padding:7px 0 9px;border-bottom:5px solid var(--ink)}
 .ticker-label{writing-mode:vertical-rl;transform:rotate(180deg);font-family:var(--font-display);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#c4c4c8;padding:2px 3px 2px 6px;flex:none;display:flex;align-items:center;justify-content:center}
 .ticker-rail{display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 6px 0 4px;scrollbar-width:none;flex:1;min-width:0}
 .ticker-rail::-webkit-scrollbar{display:none}
-.appbar{flex:none;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;height:50px;background:linear-gradient(180deg,#46464a,var(--bar));border-bottom:1px solid #4c4c50;padding:0 max(6px,env(safe-area-inset-right,0px)) 0 max(6px,env(safe-area-inset-left,0px))}
+.appbar{flex:none;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;height:50px;background:linear-gradient(180deg,#46464a,var(--bar));border-bottom:1px solid #1c1c1e;padding:0 max(6px,env(safe-area-inset-right,0px)) 0 max(6px,env(safe-area-inset-left,0px))}
 .appbar .icon{width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:#fff}
 .appbar .icon svg{width:22px;height:22px}
 .wordmark{justify-self:center;display:flex;align-items:baseline;gap:3px;line-height:1;white-space:nowrap;user-select:none}
 .wordmark b{font-family:var(--font-display);font-weight:700;font-size:23px;letter-spacing:.04em;color:#fff;text-transform:uppercase}
 .wordmark i{font-family:var(--font-script);font-style:normal;font-size:24px;color:var(--flame);transform:rotate(-4deg) translateY(1px);display:inline-block;text-shadow:0 1px 0 rgba(0,0,0,.35)}
 .game{flex:none;width:116px;scroll-snap-align:start;display:flex;flex-direction:column;font-family:var(--font-display);box-shadow:0 1px 3px rgba(0,0,0,.35)}
-.game-status{background:#5c5c60;font-size:11px;letter-spacing:.03em;line-height:1;padding:4px 6px 3px;color:#fff;display:flex;justify-content:space-between;gap:6px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.game-status{background:#434347;font-size:11px;letter-spacing:.03em;line-height:1;padding:4px 6px 3px;color:#fff;display:flex;justify-content:space-between;gap:6px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .team-row{position:relative;overflow:hidden;display:flex;align-items:center;gap:6px;height:23px;padding:0 6px 0 27px;font-size:13.5px;line-height:1;gap:4px;font-variant-numeric:tabular-nums}
 /* Logo is oversized and pushed off the left edge so only its right side shows, clipped top/bottom/left by the row */
 .team-row .mono{position:absolute;left:-14px;top:50%;width:38px;height:38px;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;pointer-events:none}
