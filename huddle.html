@@ -180,6 +180,8 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .opt[aria-pressed="true"] .chk{background:var(--flame);border-color:var(--flame)}
 .opt[aria-pressed="true"] .chk::after{content:"✓";color:#fff;font-size:15px}
 .league-opt{background:var(--chrome-2)}
+.opt .lg.plate{background:#1c1c1e;border-radius:50%}
+.conf-label{font-family:var(--font-display);text-transform:uppercase;letter-spacing:.1em;font-size:12px;color:var(--mute);background:var(--ink);padding:10px max(14px,env(safe-area-inset-right,0px)) 7px max(14px,env(safe-area-inset-left,0px))}
 
 .datanote{font-size:11px;color:var(--mute);text-align:center;padding:14px 16px 4px;letter-spacing:.04em}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -220,20 +222,23 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 <script>
 (function(){
 /* ================= Config ================= */
+const NCAA_LOGO = 'https://a.espncdn.com/i/espn/misc_logos/500/ncaa.png';
 const LG = {
-  nfl:{label:'NFL', name:'NFL', path:'football/nfl', sb:'scoreboard?limit=100', teams:'teams?limit=40', color:'#013369', periods:4,
+  nfl:{label:'NFL', name:'NFL', path:'football/nfl', sb:'scoreboard?limit=100', teams:'standings', color:'#013369', periods:4,
        logo:'https://a.espncdn.com/i/teamlogos/leagues/500/nfl.png', logoDir:'nfl'},
-  mlb:{label:'MLB', name:'MLB', path:'baseball/mlb', sb:'scoreboard', teams:'teams?limit=40', color:'#041E42', periods:9,
+  mlb:{label:'MLB', name:'MLB', path:'baseball/mlb', sb:'scoreboard', teams:'standings', color:'#041E42', periods:9,
        logo:'https://a.espncdn.com/i/teamlogos/leagues/500/mlb.png', logoDir:'mlb'},
-  nba:{label:'NBA', name:'NBA', path:'basketball/nba', sb:'scoreboard', teams:'teams?limit=40', color:'#C9082A', periods:4,
+  nba:{label:'NBA', name:'NBA', path:'basketball/nba', sb:'scoreboard', teams:'standings', color:'#C9082A', periods:4,
        logo:'https://a.espncdn.com/i/teamlogos/leagues/500/nba.png', logoDir:'nba'},
-  cfb:{label:'CFB', name:'College Football', path:'football/college-football', sb:'scoreboard?groups=80&limit=500', teams:'teams?groups=80&limit=1000', color:'#1f6b3a', periods:4,
-       logo:'https://a.espncdn.com/redesign/assets/img/icons/ESPN-icon-football-college.png', logoDir:'ncaa', college:true},
-  cbb:{label:'CBB', name:'College Basketball', path:'basketball/mens-college-basketball', sb:'scoreboard?groups=50&limit=500', teams:'teams?groups=50&limit=1000', color:'#2b5f9e', periods:2,
-       logo:'https://a.espncdn.com/redesign/assets/img/icons/ESPN-icon-basketball.png', logoDir:'ncaa', college:true},
+  cfb:{label:'CFB', name:'College Football', path:'football/college-football', sb:'scoreboard?groups=80&limit=500', teams:'standings?group=80', color:'#1f5f3a', periods:4,
+       logo:NCAA_LOGO, logoDir:'ncaa', college:true},
+  cbb:{label:'CBB', name:'College Basketball', path:'basketball/mens-college-basketball', sb:'scoreboard?groups=50&limit=500', teams:'standings?group=50', color:'#a9532a', periods:2,
+       logo:NCAA_LOGO, logoDir:'ncaa', college:true},
 };
 const LG_ORDER = ['nfl','mlb','nba','cfb','cbb'];
 const API = 'https://site.api.espn.com/apis/site/v2/sports/';
+const API_V2 = 'https://site.api.espn.com/apis/v2/sports/';
+const CORE = 'https://sports.core.api.espn.com/v2/sports/';
 const STORE_KEY = 'huddle.picks.v1';
 
 /* Offline fallback team lists (used only if ESPN can't be reached) */
@@ -467,14 +472,30 @@ let pickerLg = 'nfl', pickerQuery = '', pickerOffline = {};
 async function getTeams(lg){
   if(teamCache[lg]) return teamCache[lg];
   try{
-    const j = await timed(API+LG[lg].path+'/'+LG[lg].teams, 9000);
-    const raw = j.sports[0].leagues[0].teams.map(x=>x.team);
-    teamCache[lg] = raw.filter(t=>t.isActive!==false).map(t => ({lg, id:String(t.id), ab:t.abbreviation, location:t.location,
-      nick:t.name || t.shortDisplayName, full:t.displayName, color:hex(t.color||'444444'), alt:hex(t.alternateColor||'888888'),
-      logo:(t.logos&&t.logos[0]&&t.logos[0].href) || ''})).sort((a,b)=>a.full.localeCompare(b.full));
+    /* Standings list every team with logo and conference, and (unlike /teams) allow requests from other sites */
+    const j = await timed(API_V2+LG[lg].path+'/'+LG[lg].teams, 12000);
+    const out = [], ids = new Set();
+    const walk = (g, conf) => {
+      ((g.standings&&g.standings.entries)||[]).forEach(e => { const t = e.team; if(!t || ids.has(String(t.id)) || t.isActive===false) return; ids.add(String(t.id));
+        out.push({lg, id:String(t.id), ab:t.abbreviation, location:t.location, nick:t.name || t.shortDisplayName, full:t.displayName,
+          conf, logo:(t.logos&&t.logos[0]&&t.logos[0].href) || ''}); });
+      (g.children||[]).forEach(c => walk(c, c.shortName || c.abbreviation || c.name));
+    };
+    walk(j, j.shortName || j.abbreviation || LG[lg].label);
+    if(!out.length) throw new Error('empty');
+    const confs = [...new Set(out.map(t=>t.conf))].sort((a,b)=>a.localeCompare(b));
+    teamCache[lg] = out.sort((a,b)=> confs.indexOf(a.conf)-confs.indexOf(b.conf) || a.full.localeCompare(b.full));
     pickerOffline[lg] = false;
   }catch(e){ teamCache[lg] = fallbackTeams(lg); pickerOffline[lg] = true; }
   return teamCache[lg];
+}
+/* Team colors live on ESPN's core API; look them up when a team is picked */
+async function fillColors(p){
+  if(p.type!=='team' || p.colorChecked) return;
+  try{ const j = await timed(CORE+LG[p.lg].path.replace('/','/leagues/')+'/teams/'+p.id, 8000);
+    if(j.color) p.color = hex(j.color); if(j.alternateColor) p.alt = hex(j.alternateColor); p.colorChecked = true;
+    savePicks(); if($('#picker').classList.contains('open')) renderPicked(); else renderAll();
+  }catch(e){}
 }
 function renderPicked(){
   $('#picked').innerHTML = picks.length ? picks.map(p => { const v = pickView(p);
@@ -489,7 +510,7 @@ async function renderPickerBody(){
   const head = `<button class="opt league-opt" data-pick-league="${pickerLg}" aria-pressed="${lgOn}">
       <span class="lg" style="background:${L.color}">${logoImg(L.logo, L.label)}</span>
       <span class="nm">All ${esc(L.name)}<span class="sub">League scores and top headlines</span></span><span class="chk" aria-hidden="true"></span></button>
-    <div class="section-label">Teams</div>`;
+    `;
   if(!teamCache[pickerLg]) body.innerHTML = head + `<div class="datanote">Loading ${esc(L.name)} teams…</div>`;
   const lgAtStart = pickerLg;
   const teams = await getTeams(pickerLg);
@@ -497,9 +518,10 @@ async function renderPickerBody(){
   const q = pickerQuery.trim().toLowerCase();
   const shown = q ? teams.filter(t => (t.full+' '+t.ab).toLowerCase().includes(q)) : teams;
   body.innerHTML = head + (pickerOffline[pickerLg] ? `<div class="datanote">Couldn't reach ESPN, so this is a short sample list. The full list loads when you're online.</div>` : '')
-    + (shown.length ? shown.slice(0,1000).map(t => { const key = `${t.lg}:${t.id}`, on = isPicked(key);
-      return `<button class="opt" data-pick-team="${esc(key)}" aria-pressed="${on}">
-        <span class="lg" style="background:${teamBg(t.color,t.alt)}">${logoImg(t.logo, t.ab)}</span>
+    + (shown.length ? shown.map((t,i) => { const key = `${t.lg}:${t.id}`, on = isPicked(key);
+      const label = (!q && t.conf && (i===0 || shown[i-1].conf!==t.conf)) ? `<div class="conf-label">${esc(t.conf)}</div>` : '';
+      return label + `<button class="opt" data-pick-team="${esc(key)}" aria-pressed="${on}">
+        <span class="lg plate">${logoImg(t.logo, t.ab)}</span>
         <span class="nm">${esc(t.full)}<span class="sub">${esc(t.ab)}</span></span><span class="chk" aria-hidden="true"></span></button>`; }).join('')
       : `<div class="datanote">No ${esc(L.name)} teams match “${esc(pickerQuery)}”.</div>`);
 }
@@ -538,7 +560,7 @@ document.addEventListener('click', e => {
   if(pl){ togglePick({type:'league', lg:pl.dataset.pickLeague}); pl.setAttribute('aria-pressed', isPicked(pl.dataset.pickLeague)); return; }
   const pt = e.target.closest('[data-pick-team]');
   if(pt){ const key = pt.dataset.pickTeam, [lg,id] = key.split(':'); const t = (teamCache[lg]||[]).find(x=>x.id===id);
-    if(t){ togglePick({type:'team', lg, id, ab:t.ab, location:t.location, nick:t.nick, full:t.full, color:t.color, alt:t.alt, logo:t.logo}); pt.setAttribute('aria-pressed', isPicked(key)); }
+    if(t){ const p = {type:'team', lg, id, ab:t.ab, location:t.location, nick:t.nick, full:t.full, color:t.color||'#3a3a3d', alt:t.alt, logo:t.logo}; togglePick(p); pt.setAttribute('aria-pressed', isPicked(key)); if(isPicked(key)) fillColors(p); }
     return; }
   const un = e.target.closest('[data-unpick]');
   if(un){ const p = picks.find(x=>pickKey(x)===un.dataset.unpick); if(p){ togglePick(p); renderPickerBody(); } return; }
@@ -597,6 +619,7 @@ function refresh(){ return loadLive().then(renderAll).catch(()=>{}); }
 
 /* ================= Boot ================= */
 sampleMode(); renderAll();
+picks.forEach(p => { if(p.type==='team' && !p.colorChecked) fillColors(p); });
 refresh();
 setInterval(()=>{ if(liveMode) loadLive().then(()=>{ renderTicker(); renderScores(); }).catch(()=>{}); }, 60000);
 })();
