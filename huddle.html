@@ -444,6 +444,8 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .tp-head{border-bottom:0}
 .tp-tabs{border-bottom:1px solid rgba(0,0,0,.3)}
 .tp-title{color:#fff;justify-content:center;text-align:center}
+.tp-title{position:relative;overflow:visible;max-width:calc(100% - 40px)}
+.tp-title svg{position:absolute;right:-18px;top:50%;transform:translateY(-50%)}  /* arrow sits outside so the name itself is centered */
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
