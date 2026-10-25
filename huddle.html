@@ -934,6 +934,9 @@ function preLabel(g){
 function gameBox(g){
   const show = g.live || g.final;
   const mlb = g.lg==='mlb', reg = (LG[g.lg]||{}).periods || 4;
+  /* colors: scoreboard color, else a saved pick's color, else neutral */
+  const pc = t => t.color || (picks.find(x=>x.type==='team' && x.lg===g.lg && String(x.id)===String(t.id))||{}).color || '#555558';
+  g = {...g, a:{...g.a, color:pc(g.a)}, h:{...g.h, color:pc(g.h)}};
   let label, link = '';
   if(g.final){ label = `${esc(statusParts(g)[0])} ${esc(dayLabel(new Date(g.date)))}`; if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Box Score »</a>`; }
   else if(g.live){ label = esc(statusParts(g).filter(Boolean).join(' ')) + gsit(g); if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Gamecast »</a>`; }
@@ -991,6 +994,23 @@ function tickerCards(list){
     <div class="game-status">${statusParts(g).map(s=>`<span>${esc(s)}</span>`).join('')}</div>${teamRow(g.a,g)}${teamRow(g.h,g)}</div>`).join('')}</div>`;
 }
 
+/* The team-schedule feed has no team colors, line scores or upcoming records, so each game shown
+   in a box is filled in from ESPN's scoreboard for that game's date (finals cached; others refreshed each minute) */
+const fullGame = {};
+const etDate = iso => new Date(iso).toLocaleDateString('en-CA',{timeZone:'America/New_York'}).replace(/-/g,'');
+async function enrichGame(g){
+  const c = fullGame[g.id];
+  if(c && ((c.g && c.g.final) || Date.now()-c.t < 55e3)) return;   /* final cached, or fetched/in flight within the last minute */
+  fullGame[g.id] = {g: (c&&c.g) || null, t: Date.now()};
+  try{
+    const L = LG[g.lg], d = etDate(g.date);
+    const j = await timed(API+L.path+'/'+L.sb+(L.sb.includes('?')?'&':'?')+'dates='+d, 9000);
+    const ev = (j.events||[]).find(e => String(e.id)===String(g.id));
+    if(ev){ fullGame[g.id] = {g: parseEvent(ev, g.lg), t: Date.now()}; if(tpKey && tpTab==='stream') renderTeamPage(); }
+  }catch(e){}
+}
+const full = g => (g && fullGame[g.id] && fullGame[g.id].g) || g;
+
 /* ---- Stream tab ---- */
 function renderStream(p){
   const list = stories.filter(s=>s.key===tpKey), gs = gamesFor(p);
@@ -1003,7 +1023,7 @@ function renderStream(p){
     const gameday = next && (next.live || new Date(next.date).toDateString()===today);
     /* last game on top, next game below it; on gameday the game moves to the top */
     const boxes = gameday ? [[next,false],[last,true]] : [[last,true],[next,false]];
-    boxes.forEach(([g]) => { if(g) html += gameBox(g); });
+    boxes.forEach(([g]) => { if(g){ enrichGame(g); html += gameBox(full(g)); } });
     if(boxes.some(([g])=>g)) html += '<div class="gb-gap"></div>';
   } else {
     const order = g => g.live?0 : g.final?2 : 1;
