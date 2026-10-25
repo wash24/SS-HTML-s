@@ -506,6 +506,23 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .sc-st small{font-size:13px;color:rgba(255,255,255,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .sc-empty{font-family:var(--font-display);font-size:17px;color:rgba(255,255,255,.65);text-align:center;padding:30px 16px}
 
+/* Scores v2: no ticker on this tab; chips, day switcher and games share one dark underlay; taller team rows */
+.app[data-view="scores"] .ticker{display:none}
+.sc-chips,.sc-days{background:transparent}
+.sc-days{border-bottom:0;padding:2px 6px 4px}
+.sc-day,.sc-day.cur{font-size:18px}
+.sc-day.cur{font-weight:600;padding:0 10px}
+.sc-list{padding-top:0}
+.sc-t{height:38px;padding-left:48px}
+.sc-logo{width:58px;height:58px;left:-14px}
+.sc-logo.txt{font-size:42px}
+.sc-nm{font-size:19px}
+.sc-rec{font-size:15px}
+.sc-t b{font-size:22px}
+.sc-game{grid-template-columns:minmax(0,1fr) 110px;margin-bottom:8px}
+.sc-st span{font-size:18px}
+.sc-st small{font-size:14px}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head><body>
@@ -913,6 +930,7 @@ function showView(name){
   document.querySelectorAll('.view').forEach(v=>v.hidden = v.id!=='view-'+name);
   if(name==='alerts'){ alerts.forEach(a=>a.unread=false); $('#alertCount').hidden = true; setTimeout(renderAlerts,1200); }
   if(name==='scores') renderScores();
+  $('#app').dataset.view = name;   /* lets CSS hide the ticker on Scores */
 }
 
 
