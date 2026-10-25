@@ -447,6 +447,17 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .tp-title{position:relative;overflow:visible;max-width:calc(100% - 40px)}
 .tp-title svg{position:absolute;right:-18px;top:50%;transform:translateY(-50%)}  /* arrow sits outside so the name itself is centered */
 
+/* last 3 plays under a live box score */
+.gb-plays{border-top:1px solid rgba(255,255,255,.08);background:#333336}
+.gp{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:9px;padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.06)}
+.gp:last-child{border-bottom:0}
+.gp-logo{width:28px;height:28px;display:flex;align-items:center;justify-content:center}
+.gp-logo img{width:100%;height:100%;object-fit:contain}
+.gp-logo .logo-txt{font-size:10px}
+.gp-txt{font-family:var(--font-body);font-size:13px;line-height:1.25;color:#e6e6e8;min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gp.score .gp-txt{color:#fff;font-weight:700}
+.gp-when{font-family:var(--font-display);font-size:13.5px;font-weight:500;color:rgba(255,255,255,.75);text-align:right;line-height:1.15;white-space:nowrap;font-variant-numeric:tabular-nums}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head><body>
@@ -1007,7 +1018,7 @@ function gameBox(g){
       <div class="gb-line hd"><span class="gb-tn"></span><span class="gb-cells">${heads.map(h=>`<span class="c">${h}</span>`).join('')}${totH.map(h=>`<span class="c tot">${h}</span>`).join('')}</span></div>
       <div class="gb-line"><span class="gb-tn">${nameRec(g.a)}</span><span class="gb-cells">${vals(g.a, al)}</span></div>
       <div class="gb-line"><span class="gb-tn">${nameRec(g.h)}</span><span class="gb-cells">${vals(g.h, hl)}</span></div>
-    </div></div>`;
+    </div>${g.live ? playsHtml(g) : ''}</div>`;
 }
 /* live situation, shown in the label line */
 function gsit(g){
@@ -1048,6 +1059,47 @@ async function enrichGame(g){
 }
 const full = g => (g && fullGame[g.id] && fullGame[g.id].g) || g;
 
+/* ---- Last plays for live games (ESPN game summary; refreshed every ~30s while live) ---- */
+const playsCache = {};
+async function loadPlays(g){
+  const c = playsCache[g.id];
+  if(c && Date.now()-c.t < 30e3) return;
+  playsCache[g.id] = {list:(c&&c.list)||[], t:Date.now()};
+  try{
+    const j = await timed(API+LG[g.lg].path+'/summary?event='+g.id, 9000);
+    let raw = [];
+    if(j.drives){   /* football: plays live inside drives; the drive's team is the team with the ball */
+      const drives = (j.drives.previous||[]).concat(j.drives.current ? [j.drives.current] : []);
+      const seen = new Set();
+      drives.forEach(d => (d.plays||[]).forEach(pl => { if(seen.has(pl.id)) return; seen.add(pl.id); raw.push({...pl, teamId: pl.team&&pl.team.id || d.team&&d.team.id}); }));
+    } else raw = (j.plays||[]).map(pl => ({...pl, teamId: pl.team&&pl.team.id}));
+    const skip = /^(End Batter\/Pitcher|Start Inning|End Inning|Start Half|End Half)/i;
+    const list = raw.filter(pl => pl.text && !skip.test((pl.type&&pl.type.text)||'')).slice(-3).reverse().map(pl => ({
+      text: String(pl.text).replace(/^\(\d+:\d+\)\s*/,''),
+      teamId: pl.teamId ? String(pl.teamId) : '',
+      clock: pl.clock && pl.clock.displayValue,
+      period: pl.period && pl.period.number,
+      half: pl.period && pl.period.type,          /* MLB: Top / Bottom */
+      outs: pl.outs,
+      scoring: !!pl.scoringPlay
+    }));
+    playsCache[g.id] = {list, t:Date.now()};
+    if(tpKey && tpTab==='stream') renderTeamPage();
+  }catch(e){}
+}
+function playsHtml(g){
+  const c = playsCache[g.id]; if(!c || !c.list.length) return '';
+  return `<div class="gb-plays">${c.list.map(pl => {
+    const t = pl.teamId===String(g.a.id) ? g.a : pl.teamId===String(g.h.id) ? g.h : null;
+    const logo = t ? logoTag(teamLogoUrl(t,g.lg), t.ab, '', t.logoDark) : '';
+    let when;
+    if(g.lg==='mlb'){ const inn = pl.period ? `${pl.half ? (/^b/i.test(pl.half)?'Bot':'Top')+' ' : ''}${ordinal(pl.period)}` : '';
+      when = `${pl.outs!=null ? `${pl.outs} Out${pl.outs===1?'':'s'}` : ''}${pl.outs!=null && inn ? '<br>' : ''}${inn}`; }
+    else when = esc(pl.clock || '');
+    return `<div class="gp${pl.scoring?' score':''}"><span class="gp-logo">${logo}</span><span class="gp-txt">${esc(pl.text)}</span><span class="gp-when">${when}</span></div>`;
+  }).join('')}</div>`;
+}
+
 /* ---- Stream tab ---- */
 function renderStream(p){
   const list = stories.filter(s=>s.key===tpKey), gs = gamesFor(p);
@@ -1060,7 +1112,7 @@ function renderStream(p){
     const gameday = next && (next.live || new Date(next.date).toDateString()===today);
     /* last game on top, next game below it; on gameday the game moves to the top */
     const boxes = gameday ? [[next,false],[last,true]] : [[last,true],[next,false]];
-    boxes.forEach(([g]) => { if(g){ enrichGame(g); html += gameBox(full(g)); } });
+    boxes.forEach(([g]) => { if(g){ enrichGame(g); const fg = full(g); if(fg.live) loadPlays(fg); html += gameBox(fg); } });
     if(boxes.some(([g])=>g)) html += '<div class="gb-gap"></div>';
   } else {
     const order = g => g.live?0 : g.final?2 : 1;
