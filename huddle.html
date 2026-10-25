@@ -596,7 +596,10 @@ function drawerRow(p){
   let right = '';
   if(g){
     const show = g.live || g.final, me = t => String(t.id)===String(p.id) ? ' class="mine"' : '';
-    const st = statusParts(g).filter(Boolean).join(' ');
+    /* Row status: live shows only the period/half/inning (no clock); pregame shows the start time without the time zone */
+    const parts = statusParts(g);
+    let st = g.live ? parts[0] : parts.filter(Boolean).join(' ');
+    if(!g.live && !g.final) st = st.replace(/\s+[A-Z]{1,4}$/, '');
     right = `<span class="tgame${g.live?' live':''}"><span class="tg-rows">
       <span${me(g.a)}>${esc(g.a.ab)}</span><b>${show?esc(g.a.sc):''}</b>
       <span${me(g.h)}>${esc(g.h.ab)}</span><b>${show?esc(g.h.sc):''}</b></span>
