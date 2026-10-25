@@ -255,7 +255,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .drawer-bar{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:10px max(14px,env(safe-area-inset-right,0px)) 10px max(14px,env(safe-area-inset-left,0px));background:var(--chrome)}
 .drawer-bar button{position:relative;height:42px;background:#5e5e62;color:#ececee;font-family:var(--font-display);font-size:20px;box-shadow:0 1px 2px rgba(0,0,0,.35);overflow:hidden}
 .drawer-bar .flag{position:absolute;top:0;right:12px;width:24px;height:30px;background:var(--flame);color:#fff;font-size:12px;font-weight:600;display:flex;justify-content:center;padding-top:5px;clip-path:polygon(0 0,100% 0,100% 100%,50% 82%,0 100%)}
-.drawer-list{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#3a3a3d;box-shadow:inset 0 2px 4px -2px rgba(0,0,0,.5),inset 0 -2px 4px -2px rgba(0,0,0,.5);padding:6px 6px;display:flex;flex-direction:column;gap:6px}
+.drawer-list{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#3a3a3d;box-shadow:inset 0 2px 4px -2px rgba(0,0,0,.5),inset 0 -2px 4px -2px rgba(0,0,0,.5);padding:10px 8px;display:flex;flex-direction:column;gap:10px}
 .trow{position:relative;overflow:hidden;flex:none;display:flex;align-items:stretch;width:100%;min-height:60px;text-align:left;color:#fff;box-shadow:0 1px 1px rgba(0,0,0,.35)}
 .trow:active{filter:brightness(1.08)}
 /* same cropped-logo treatment as the ticker, scaled up for the taller row */
@@ -263,13 +263,12 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .trow .tlogo img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(1px 0 1px rgba(0,0,0,.35))}
 .trow .tlogo .logo-txt{font-size:44px;color:rgba(255,255,255,.3);margin-left:auto}
 .trow .tname{flex:1;min-width:0;display:flex;align-items:center;padding:0 10px 0 78px;font-family:var(--font-display);font-size:23px;font-weight:400;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 1px rgba(0,0,0,.35)}
-.trow .tname span{overflow:hidden;text-overflow:ellipsis}
+.trow .tname span{overflow:hidden;text-overflow:ellipsis;line-height:1.45}  /* tall enough that ascenders/descenders aren't clipped by the ellipsis box */
 .trow .tago{flex:none;display:flex;align-items:center;padding:0 14px 0 6px;font-family:var(--font-display);font-size:18px;color:rgba(255,255,255,.72)}
-.trow .tgame{flex:none;display:flex;align-items:center;gap:8px;padding:0 6px 0 10px;border-left:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.14);font-family:var(--font-display);font-variant-numeric:tabular-nums}
-.tgame .tg-rows{display:grid;grid-template-columns:auto auto;column-gap:12px;row-gap:3px;font-size:16px;line-height:1.05}
-.tgame .tg-rows b{font-weight:600;text-align:right;min-width:14px}
-.tgame .tg-rows .mine{font-weight:600}
-.tgame .tg-st{writing-mode:vertical-rl;font-size:12.5px;font-weight:500;letter-spacing:.02em;white-space:nowrap;max-height:56px;overflow:hidden}
+.trow .tgame{flex:none;display:flex;align-items:center;gap:8px;margin:7px 0;padding:0 6px 0 11px;border-left:1px solid rgba(255,255,255,.7);font-family:var(--font-display);font-variant-numeric:tabular-nums;text-shadow:0 1px 1px rgba(0,0,0,.3)}
+.tgame .tg-rows{display:grid;grid-template-columns:auto auto;column-gap:12px;row-gap:3px;font-size:16px;font-weight:400;line-height:1.15}
+.tgame .tg-rows b{font-weight:400;text-align:right;min-width:14px}
+.tgame .tg-st{writing-mode:vertical-rl;font-size:12.5px;font-weight:400;letter-spacing:.02em;white-space:nowrap;max-height:56px;overflow:hidden}
 .tgame.live .tg-st{color:#fff}
 .drawer-empty{color:var(--mute);font-family:var(--font-display);font-size:17px;text-align:center;padding:28px 16px}
 
