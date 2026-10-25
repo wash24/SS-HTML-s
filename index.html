@@ -55,9 +55,7 @@ body{overscroll-behavior:none}
   box-shadow:0 0 0 1px rgba(0,0,0,.6),0 6px 18px rgba(0,0,0,.6)}
 .panel-head{position:relative;flex:none;text-align:center;padding:12px 10px 10px}
 .panel-head::before{content:"";position:absolute;inset:0 0 50% 0;background:linear-gradient(rgba(255,255,255,.12),rgba(255,255,255,.03));pointer-events:none}
-.panel-head::after{content:attr(data-watermark);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font:italic 900 64px/1 var(--font);letter-spacing:-2px;color:rgba(255,255,255,.06);pointer-events:none;white-space:nowrap;overflow:hidden}
-.panel-head h1{position:relative;margin:0;font-size:33px;font-weight:700;letter-spacing:-.5px;text-shadow:0 -1px 0 rgba(0,0,0,.6),0 2px 4px rgba(0,0,0,.35)}
+.panel-head h1{position:relative;margin:0;font-size:33px;font-weight:700;letter-spacing:-.5px;text-shadow:0 -1px 0 rgba(0,0,0,.6)}
 .scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 8px 10px;overscroll-behavior:contain}
 .section{margin:8px -8px 6px;padding:5px 12px;font-size:13px;font-weight:800;letter-spacing:.6px;
   background:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.2));border-top:1px solid rgba(0,0,0,.5);border-bottom:1px solid rgba(255,255,255,.12);
@@ -697,17 +695,19 @@ function standingsHTML(g, sum){
   };
   const num = (e, re) => { const x = stat(e, y => re.test(y.name || '') || re.test(y.abbreviation || '')); if (!x) return null; const v = x.value ?? parseFloat(x.displayValue); return isNaN(v) ? null : +v; };
   const wl = e => {
+    if (college) { const m = confRec(e).match(/^(\d+)-(\d+)(?:-(\d+))?/); return m ? { w: +m[1], l: +m[2], t: +(m[3] || 0) } : { w: null, l: null, t: 0 }; }
     let w = num(e, /^wins$/i), l = num(e, /^losses$/i), t = num(e, /^ties$/i) || 0;
     if (w == null || l == null) { const m = String(overall(e)).match(/^(\d+)-(\d+)(?:-(\d+))?/); if (m) { w = +m[1]; l = +m[2]; t = +(m[3] || 0); } }
     return { w, l, t };
   };
   const pctOf = e => {
-    const p = num(e, /^(winPercent|winPct|PCT)$/i);
+    const p = college ? null : num(e, /^(winPercent|winPct|PCT)$/i);
     const { w, l, t } = wl(e);
     const v = p != null ? (p > 1 ? p / 100 : p) : (w != null ? ((w + l + t) ? (w + t / 2) / (w + l + t) : 0) : null);
     return v == null ? '' : v.toFixed(3).replace(/^0/, '');
   };
   const pro = !college;
+  const confRec = e => { const c = stat(e, x => /vsconf|conf/i.test((x.type || '') + ' ' + (x.name || '') + ' ' + (x.abbreviation || ''))); return c ? String(c.summary || c.displayValue || '') : ''; };
   const ids = g.teams.map(t => String(t.id));
   const groupOf = id => groups.find(gr => ((gr.standings && gr.standings.entries) || []).some(e => entryId(e) === id || (g.teams.find(t => String(t.id) === id) || {}).name === entryName(e)));
   const order = [];
