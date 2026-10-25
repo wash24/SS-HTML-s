@@ -301,9 +301,22 @@ const hex = c => !c ? '#444' : (c[0]==='#' ? c : '#'+c);
 function lum(c){ c = hex(c).slice(1); if(c.length!==6) return .3; const [r,g,b]=[0,2,4].map(i=>parseInt(c.substr(i,2),16)/255); return .2126*r+.7152*g+.0722*b; }
 const teamBg = (color, alt) => (lum(color) > .78 && alt) ? hex(alt) : hex(color);
 /* <img> that swaps itself for text if the logo can't load */
-const logoImg = (src, text, cls='') => src
-  ? `<img class="${cls}" src="${esc(src)}" alt="" loading="lazy" onerror="this.outerHTML='<b class=&quot;logo-txt&quot;>${esc(text)}</b>'">`
-  : `<b class="logo-txt">${esc(text)}</b>`;
+/* Dark-background ("500-dark") logo variants: ESPN publishes these for leagues and teams.
+   Each <img> tries the dark version first, falls back to the regular logo, then to text. */
+const darkUrl = u => !u ? '' : u.includes('/500-dark/') ? u : u.replace('/500/','/500-dark/');
+window.hLogoErr = function(img, mode){
+  const fb = img.getAttribute('data-fb');
+  if(fb){ img.removeAttribute('data-fb'); img.src = fb; return; }
+  const txt = img.getAttribute('data-txt') || '';
+  if(mode==='ticker'){ const p = img.parentNode; p.classList.add('txt'); p.textContent = txt; return; }
+  const b = document.createElement('b'); b.className = 'logo-txt'; b.textContent = txt; img.replaceWith(b);
+};
+function logoTag(src, text, mode, darkSrc){
+  if(!src && !darkSrc) return '';
+  const dark = darkSrc || darkUrl(src), fb = (src && src!==dark) ? src : '';
+  return `<img src="${esc(dark)}"${fb?` data-fb="${esc(fb)}"`:''} data-txt="${esc(text)}" alt="" loading="lazy" onerror="hLogoErr(this${mode?",'"+mode+"'":''})">`;
+}
+const logoImg = (src, text) => src ? logoTag(src, text) : `<b class="logo-txt">${esc(text)}</b>`;
 function timed(url, ms=7000){
   const c = new AbortController(); const t = setTimeout(()=>c.abort(), ms);
   return fetch(url,{signal:c.signal}).then(r=>{clearTimeout(t); if(!r.ok) throw new Error(r.status); return r.json();});
@@ -376,10 +389,10 @@ function teamRow(t, g){
   const loser = g.final && Number(t.sc) < Number((t===g.a?g.h:g.a).sc);
   const L = LG[g.lg] || {};
   const logo = t.logo || (t.ab ? (L.college ? (t.id?`https://a.espncdn.com/i/teamlogos/ncaa/500/${t.id}.png`:'') : `https://a.espncdn.com/i/teamlogos/${L.logoDir}/500/${t.ab.toLowerCase()}.png`) : '');
-  const fallback = esc(t.ab.slice(0,1));
-  const mono = logo
-    ? `<span class="mono"><img src="${esc(logo)}" alt="" loading="lazy" onerror="this.parentNode.classList.add('txt');this.parentNode.textContent='${fallback}'"></span>`
-    : `<span class="mono txt">${fallback}</span>`;
+  const fallback = t.ab.slice(0,1);
+  const mono = (logo || t.logoDark)
+    ? `<span class="mono">${logoTag(logo, fallback, 'ticker', t.logoDark)}</span>`
+    : `<span class="mono txt">${esc(fallback)}</span>`;
   return `<div class="team-row${loser?' loser':''}" style="background:${hex(t.color)}">
     ${mono}
     <span class="ab">${t.rank?`<span class="rk">${t.rank}</span>`:''}${esc(t.ab)}${rec}</span>${sc}</div>`;
@@ -478,7 +491,8 @@ async function getTeams(lg){
     const walk = (g, conf) => {
       ((g.standings&&g.standings.entries)||[]).forEach(e => { const t = e.team; if(!t || ids.has(String(t.id)) || t.isActive===false) return; ids.add(String(t.id));
         out.push({lg, id:String(t.id), ab:t.abbreviation, location:t.location, nick:t.name || t.shortDisplayName, full:t.displayName,
-          conf, logo:(t.logos&&t.logos[0]&&t.logos[0].href) || ''}); });
+          conf, logo:(t.logos&&t.logos[0]&&t.logos[0].href) || '',
+          logoDark:((t.logos||[]).find(l=>(l.rel||[]).includes('dark'))||{}).href || ''}); });
       (g.children||[]).forEach(c => walk(c, c.shortName || c.abbreviation || c.name));
     };
     walk(j, j.shortName || j.abbreviation || LG[lg].label);
@@ -577,7 +591,7 @@ document.addEventListener('keydown', e => { if(e.key==='Escape' && $('#picker').
 function parseEvent(ev, lg){
   const comp = ev.competitions[0]; const st = comp.status.type;
   const side = ha => { const c = comp.competitors.find(x=>x.homeAway===ha); const tm=c.team;
-    return {id:String(tm.id), ab:tm.abbreviation, name:tm.shortDisplayName||tm.displayName, color:tm.color, logo:tm.logo,
+    return {id:String(tm.id), ab:tm.abbreviation, name:tm.shortDisplayName||tm.displayName, color:tm.color, logo:tm.logo, logoDark:tm.logoDark,
       sc:c.score, rec:(c.records&&c.records[0]&&c.records[0].summary)||'', rank:(c.curatedRank&&c.curatedRank.current<=25)?c.curatedRank.current:null}; };
   return {lg, live:st.state==='in', final:st.state==='post' && st.name!=='STATUS_POSTPONED', postponed:st.name==='STATUS_POSTPONED',
     half:st.name==='STATUS_HALFTIME', endPeriod:st.name==='STATUS_END_PERIOD', detail:st.shortDetail,
