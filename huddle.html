@@ -43,8 +43,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .gear{flex:none;width:40px;display:flex;align-items:center;justify-content:center;color:var(--paper);border-left:1px solid #2f2f31}
 .gear svg{width:20px;height:20px}
 .game{flex:none;width:132px;scroll-snap-align:start;background:#1d1d1f;display:flex;flex-direction:column;font-family:var(--font-display)}
-.game-status{font-size:12px;letter-spacing:.02em;padding:4px 7px 3px;color:var(--paper);display:flex;justify-content:space-between;text-transform:uppercase}
-.game-status .live{color:#ff4b3a}
+.game-status{font-size:12px;letter-spacing:.02em;padding:4px 7px 3px;color:#fff;display:flex;justify-content:space-between;gap:6px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .team-row{position:relative;overflow:hidden;display:flex;align-items:center;gap:6px;height:28px;padding:0 7px 0 32px;font-size:16px;line-height:1;font-variant-numeric:tabular-nums}
 /* Logo is oversized and pushed off the left edge so only its right side shows, clipped top/bottom/left by the row */
 .team-row .mono{position:absolute;left:-17px;top:50%;width:46px;height:46px;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;pointer-events:none}
@@ -54,7 +53,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .team-row .ab{font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .team-row .rk{font-size:10px;opacity:.8;margin-right:2px}
 .team-row .sc{font-weight:600;min-width:20px;text-align:right}
-.team-row .rec{font-size:11px;opacity:.75}
+.team-row .rec{font-size:12px;font-weight:400;opacity:.8;margin-left:4px}
 .team-row.loser{opacity:.62}
 
 /* ---------- Views ---------- */
@@ -179,14 +178,39 @@ const MY_TEAMS = [
 ];
 
 /* ---------------- Sample data (shown when live feeds are unreachable) ---------------- */
+const at = (days,h,m) => { const x = new Date(); x.setDate(x.getDate()+days); x.setHours(h,m,0,0); return x.toISOString(); };
 const SAMPLE_GAMES = [
-  {lg:'nba',status:'7:30 PM',live:false,a:{ab:'NYK',rec:'3-1',color:'#006BB6'},h:{ab:'BOS',rec:'2-1',color:'#007A33'}},
-  {lg:'nba',status:'10:00 PM',live:false,a:{ab:'GSW',rec:'2-4',color:'#1D428A'},h:{ab:'LAL',rec:'2-4',color:'#552583'}},
-  {lg:'cfb',status:'Q3 4:12',live:true,a:{ab:'TEM',rank:22,sc:24,color:'#9D2235'},h:{ab:'ECU',sc:17,color:'#592A8A'}},
-  {lg:'nfl',status:'Sun 3:25 PM',live:false,a:{ab:'SEA',rec:'2-4',color:'#69BE28'},h:{ab:'SF',rec:'2-4',color:'#AA0000'}},
-  {lg:'cfb',status:'Final',live:false,final:true,a:{ab:'ARK',sc:31,color:'#9D2235'},h:{ab:'MSST',sc:20,color:'#5D1725'}},
-  {lg:'nfl',status:'Sun 12:00 PM',live:false,a:{ab:'CHI',rec:'4-2',color:'#0B162A'},h:{ab:'DET',rec:'5-1',color:'#0076B6'}},
+  {lg:'cfb',live:true,period:3,clock:'2:50',date:at(0,14,30),a:{ab:'TEM',rank:22,sc:24,color:'#9D2235'},h:{ab:'ECU',sc:17,color:'#592A8A'}},
+  {lg:'nba',date:at(0,19,0),a:{ab:'NYK',rec:'3-1',color:'#006BB6'},h:{ab:'BOS',rec:'2-1',color:'#007A33'}},
+  {lg:'nba',date:at(0,21,30),a:{ab:'GSW',rec:'2-4',color:'#1D428A'},h:{ab:'LAL',rec:'2-4',color:'#552583'}},
+  {lg:'nfl',date:at(1,12,0),a:{ab:'PIT',rec:'4-2',color:'#FFB612'},h:{ab:'CLE',rec:'1-5',color:'#311D00'}},
+  {lg:'nfl',date:at(1,15,25),a:{ab:'SEA',rec:'2-4',color:'#69BE28'},h:{ab:'SF',rec:'2-4',color:'#AA0000'}},
+  {lg:'cfb',final:true,period:4,date:at(0,11,0),a:{ab:'ARK',sc:31,color:'#9D2235'},h:{ab:'MSST',sc:20,color:'#5D1725'}},
 ];
+
+/* ---- Status strip: pregame "10/26 7:00PM CT" (date dropped on game day), live "3rd ... 2:50", "Final" ---- */
+function ordinal(n){ const s=['th','st','nd','rd'], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
+function periodLabel(g){ const reg = 4; if(g.period>reg){ const k=g.period-reg; return (k>1?k:'')+'OT'; } return ordinal(g.period||1); }
+function tzLabel(d){
+  try{ const p = new Intl.DateTimeFormat('en-US',{timeZoneName:'shortGeneric'}).formatToParts(d).find(x=>x.type==='timeZoneName');
+       if(p && p.value.length<=4) return p.value; }catch(e){}
+  try{ const p = new Intl.DateTimeFormat('en-US',{timeZoneName:'short'}).formatToParts(d).find(x=>x.type==='timeZoneName');
+       if(p) return p.value.replace(/^([A-Z])[SD]T$/,'$1T'); }catch(e){}
+  return '';
+}
+function statusParts(g){
+  if(g.postponed) return ['Postponed',''];
+  if(g.final) return [g.period>4 ? 'Final/'+periodLabel(g) : 'Final',''];
+  if(g.live){
+    if(g.half) return ['Half',''];
+    if(g.endPeriod) return ['End '+periodLabel(g),''];
+    return [periodLabel(g), g.clock||''];
+  }
+  const d = new Date(g.date), now = new Date();
+  const time = d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).replace(/\s/g,'') + ' ' + tzLabel(d);
+  const sameDay = d.toDateString()===now.toDateString();
+  return [sameDay ? time : `${d.getMonth()+1}/${d.getDate()} ${time}`, ''];
+}
 const SAMPLE_STORIES = [
   {team:'featured',src:'Featured',chip:'H',chipColor:'#58585c',title:'NBA × NFL Jersey Mashups',ago:'56m',art:'mashup',over:['NBA × NFL','Jersey Mashups']},
   {team:'cfb',src:'College Football',chip:'CFB',chipColor:'#1f6b3a',title:'Upset Watch: Five Ranked Teams on Upset Alert This Saturday',ago:'4m',art:'field'},
@@ -242,7 +266,9 @@ const LOGO_PATH = {nba:'nba', nfl:'nfl'};
 
 /* ---------------- Rendering ---------------- */
 function teamRow(t, g){
-  const sc = (g.live||g.final) ? `<span class="sc">${esc(t.sc)}</span>` : `<span class="rec">${t.rec?'('+esc(t.rec)+')':''}</span>`;
+  const showScore = g.live||g.final;
+  const sc = showScore ? `<span class="sc">${esc(t.sc)}</span>` : '';
+  const rec = (!showScore && t.rec) ? `<span class="rec">(${esc(t.rec)})</span>` : '';
   const loser = g.final && Number(t.sc) < Number((t===g.a?g.h:g.a).sc);
   const logo = t.logo || (LOGO_PATH[g.lg] && t.ab ? `https://a.espncdn.com/i/teamlogos/${LOGO_PATH[g.lg]}/500/${t.ab.toLowerCase()}.png` : '');
   const fallback = esc(t.ab.slice(0,1));
@@ -251,11 +277,11 @@ function teamRow(t, g){
     : `<span class="mono txt">${fallback}</span>`;
   return `<div class="team-row${loser?' loser':''}" style="background:${hex(t.color)}">
     ${mono}
-    <span class="ab">${t.rank?`<span class="rk">${t.rank}</span>`:''}${esc(t.ab)}</span>${sc}</div>`;
+    <span class="ab">${t.rank?`<span class="rk">${t.rank}</span>`:''}${esc(t.ab)}${rec}</span>${sc}</div>`;
 }
 function renderTicker(){
   $('#ticker').innerHTML = games.slice(0,12).map(g => `<div class="game">
-    <div class="game-status"><span class="${g.live?'live':''}">${esc(g.status)}</span><span>${esc(g.lg.toUpperCase())}</span></div>
+    <div class="game-status">${statusParts(g).map(s=>`<span>${esc(s)}</span>`).join('')}</div>
     ${teamRow(g.a,g)}${teamRow(g.h,g)}</div>`).join('');
 }
 function bigCard(st){
@@ -312,7 +338,7 @@ function renderScores(){
     html += `<div class="league-head">${L.label}</div>` + gs.map(g => {
       const show = g.live||g.final;
       const tl = t => `<div class="tl"><span class="sw" style="background:${hex(t.color)}"></span><span class="nm">${t.rank?`<small style="opacity:.7">${t.rank}</small> `:''}${esc(t.name||t.ab)}</span><b>${show?esc(t.sc):''}</b></div>`;
-      return `<div class="score-row"><div class="teams">${tl(g.a)}${tl(g.h)}</div><div class="st${g.live?' live':''}">${esc(g.status)}</div></div>`;
+      return `<div class="score-row"><div class="teams">${tl(g.a)}${tl(g.h)}</div><div class="st${g.live?' live':''}">${esc(statusParts(g).filter(Boolean).join(' '))}</div></div>`;
     }).join('');
   }
   $('#view-scores').innerHTML = html + `<div class="datanote">${liveMode?'Live from ESPN · refreshes every 60s':'Sample data'}</div>`;
@@ -354,7 +380,9 @@ function parseEvent(ev, lg){
   const side = ha => { const c = comp.competitors.find(x=>x.homeAway===ha); const tm=c.team;
     return {ab:tm.abbreviation, name:tm.shortDisplayName||tm.displayName, color:tm.color, logo:tm.logo,
       sc:c.score, rec:(c.records&&c.records[0]&&c.records[0].summary)||'', rank:(c.curatedRank&&c.curatedRank.current<=25)?c.curatedRank.current:null}; };
-  return {lg, live:st.state==='in', final:st.state==='post', status:st.shortDetail.replace(' - ',' ').replace(/ (EDT|EST|CDT|CST)$/,''),
+  return {lg, live:st.state==='in', final:st.state==='post' && st.name!=='STATUS_POSTPONED', postponed:st.name==='STATUS_POSTPONED',
+    half:st.name==='STATUS_HALFTIME', endPeriod:st.name==='STATUS_END_PERIOD',
+    period:comp.status.period, clock:comp.status.displayClock,
     a:side('away'), h:side('home'), date:ev.date};
 }
 const leagueColor = {nfl:'#013369', cfb:'#1f6b3a', nba:'#C9082A'};
