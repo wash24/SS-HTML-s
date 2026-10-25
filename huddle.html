@@ -365,50 +365,51 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .sch-r .l{color:#ff8a7a;font-weight:600}
 .sch-r .lv{color:#fff;font-weight:600}
 
-/* ===== Game box v2 (matches the 2015 stream-app team page) ===== */
+
+
+/* ===== Game box v3: short, wide rows in team colors ===== */
 .tp-head{background:linear-gradient(180deg,var(--tp-bar),var(--tp-bar2,var(--tp-bar)))}
 .tp-tabs{background:var(--tp-bar2,var(--tp-bar))}
-.gb{position:relative;overflow:hidden;background:#3d3d40;margin-top:6px;font-family:var(--font-display);color:#fff}
-.gb:first-child{margin-top:0}
-.gb-top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 12px 5px 12px;font-size:14px;font-weight:600;line-height:1.2;position:relative;z-index:2}
-.gb-top .st{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap}
+.gb{position:relative;overflow:hidden;background:#38383b;border-bottom:3px solid #2a2a2c;font-family:var(--font-display);color:#fff}
+.gb-top{display:flex;justify-content:space-between;align-items:center;gap:10px;height:24px;padding:0 10px;font-size:13.5px;font-weight:600;line-height:1}
+.gb-top .st{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap;overflow:hidden}
 .gb-top a,.gb-top .linkish{font-size:13px;font-weight:600;color:#fff;text-decoration:none;white-space:nowrap}
-.gb-main{position:relative;display:grid;grid-template-columns:1fr;column-gap:12px;padding:0 54px 9px 60px;min-height:62px}
-.gb-main.with-ls{grid-template-columns:minmax(0,1fr) auto}
-/* big logos in opposite corners, cropped by the panel */
-.gb-logo{position:absolute;z-index:1;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.gb-logo img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
-.gb-logo .logo-txt{font-size:34px;color:rgba(255,255,255,.3)}
-.gb-logo.a{left:-12px;bottom:-14px;width:76px;height:76px}
-.gb-logo.h{right:-12px;top:-30px;width:70px;height:70px}
-.gb-left{min-width:0;position:relative;z-index:2}
-.gb-bar{display:grid;grid-template-columns:1.35fr 1fr;height:34px}
-.gb.pre .gb-bar{grid-template-columns:1fr 1fr;height:40px}
-.gb-blk{display:flex;align-items:center;min-width:0;padding:0 9px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.18)}
-.gb-blk.a{justify-content:flex-end}
-.gb-blk.h{justify-content:flex-start}
-.gb-blk b{font-size:26px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.35)}
-.gb-blk.lost b{opacity:.65}
-.gb-nm{display:flex;flex-direction:column;font-size:16px;font-weight:600;line-height:1.05;min-width:0;white-space:nowrap;text-shadow:0 1px 1px rgba(0,0,0,.35)}
-.gb-blk.a .gb-nm{align-items:flex-end}
-.gb-nm small{font-size:12px;font-weight:500;opacity:.85}
-.gb-names{display:flex;flex-direction:column;gap:1px;padding:5px 0 0;font-size:13px;font-weight:600;line-height:1.15}
-.gb-names span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gb-names small{font-size:12px;font-weight:500;color:rgba(255,255,255,.6)}
-.gb-ls{border-collapse:collapse;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;position:relative;z-index:2;align-self:start;margin-top:-2px}
-.gb-ls th{font-weight:500;font-size:12px;color:rgba(255,255,255,.7);padding:0 4px 2px;text-align:center}
-.gb-ls td{padding:1px 4px;text-align:center;line-height:1.25}
-.gb-ls th.tot{color:var(--flame)}
-.gb-ls td.tot{color:#fff;font-weight:700}
-.gb-ls td.nm{text-align:left;padding-left:0;color:rgba(255,255,255,.8)}
-.gb-below{padding:0 12px 10px;overflow-x:auto;position:relative;z-index:2}
-.gb-below .gb-ls{width:100%;margin-top:0}
+.gb-row{display:flex;height:36px}
+.gb-a,.gb-h{position:relative;overflow:hidden;display:flex;align-items:center;min-width:0}
+.gb-a{flex:0 0 50%;background:var(--ca);justify-content:flex-end;padding:0 10px}
+.gb-h{flex:1 1 auto;background:var(--ch);padding:0 0 0 10px}
+.gb-row b{font-size:25px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.gb-row b.lost{opacity:.7}
+/* logos: cropped by the row/box edges */
+.gb-logo{position:absolute;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.gb-logo img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
+.gb-logo .logo-txt{font-size:26px;color:rgba(255,255,255,.3)}
+.gb-logo.a{left:-8px;top:50%;width:54px;height:54px;transform:translateY(-50%)}
+.gb-logo.h{right:-8px;top:50%;width:54px;height:54px;transform:translateY(-50%)}
+.gb-logo.a2{left:-10px;top:50%;width:56px;height:56px;transform:translateY(-50%)}
+/* pregame: name + record stacked where the score goes */
+.gb.pre .gb-a{padding-left:46px}
+.gb.pre .gb-h{padding-right:46px}
+.gb-nm{display:flex;flex-direction:column;font-size:16px;font-weight:600;line-height:1.05;white-space:nowrap;min-width:0;text-shadow:0 1px 1px rgba(0,0,0,.35)}
+.gb-a .gb-nm{align-items:flex-end;text-align:right}
+.gb-nm small{font-size:12.5px;font-weight:500;opacity:.85}
+/* live/final: period headers ride in the home color, values line up below */
+.gb-cells{display:flex;flex:none;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.gb-cells .c{width:var(--cw);text-align:center}
+.gb-h .gb-cells{margin-left:auto;margin-right:44px;font-size:12px;font-weight:500;color:rgba(255,255,255,.85)}
+.gb-h .gb-cells .tot{color:var(--flame);font-weight:600}
+.gb-sub{position:relative;overflow:hidden;padding:3px 0 5px 50px}
+.gb-line{display:flex;align-items:center;height:18px}
+.gb-tn{flex:1;min-width:0;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gb-tn small{font-size:12px;font-weight:500;color:rgba(255,255,255,.6)}
+.gb-line .gb-cells{margin-right:44px}
+.gb-line .gb-cells .tot{font-weight:700}
 .gb-sit{display:inline-flex;align-items:center;gap:4px;font-weight:500}
-.gb-sit svg.bases{width:26px;height:20px}
+.gb-sit svg.bases{width:24px;height:18px}
 .gb-sit .outs{display:flex;flex-direction:column;gap:2px}
 .gb-sit .outs i{display:block;width:4px;height:4px;border:1px solid rgba(255,255,255,.7)}
 .gb-sit .outs i.on{background:#fff}
-.gb-gap{height:4px}
+.gb-gap{height:6px}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -920,51 +921,53 @@ function gside(t, g, which){
   return `<div class="gside ${which}${lost?' lost':''}${show?'':' pre'}" style="background:${hex(t.color)}">
     <span class="glogo">${logoTag(teamLogoUrl(t,g.lg), t.ab, '', t.logoDark)}</span>${val}</div>`;
 }
-function lineScore(g){
-  const a = g.a.line||[], h = g.h.line||[]; const n = Math.max(a.length, h.length);
-  if(!n) return '';
-  const mlb = g.lg==='mlb', reg = (LG[g.lg]||{}).periods || 4;
-  const heads = Array.from({length:n}, (_,i) => (i<reg || mlb) ? String(i+1) : (i-reg ? (i-reg+1)+'OT' : 'OT'));
-  const cell = (arr,i) => `<td>${arr[i]!=null && arr[i]!=='' ? esc(arr[i]) : '–'}</td>`;
-  const tot = t => mlb ? `<td class="tot">${esc(t.sc)}</td><td class="tot">${esc(t.hits??'')}</td><td class="tot">${esc(t.errors??'')}</td>` : `<td class="tot">${esc(t.sc)}</td>`;
-  const totH = mlb ? '<th class="tot">R</th><th class="tot">H</th><th class="tot">E</th>' : '<th class="tot">TOT</th>';
-  const lab = t => mlb ? `<td class="nm">${esc(t.ab)}</td>` : '';
-  return `<table class="gb-ls"><thead><tr>${mlb?'<th></th>':''}${heads.map(x=>`<th>${x}</th>`).join('')}${totH}</tr></thead>
-    <tbody><tr>${lab(g.a)}${heads.map((_,i)=>cell(a,i)).join('')}${tot(g.a)}</tr><tr>${lab(g.h)}${heads.map((_,i)=>cell(h,i)).join('')}${tot(g.h)}</tr></tbody></table>`;
-}
 function preLabel(g){
   const d = new Date(g.date), now = new Date(), tm = new Date(); tm.setDate(now.getDate()+1);
   const day = d.toDateString()===now.toDateString() ? 'Today' : d.toDateString()===tm.toDateString() ? 'Tomorrow' : dayLabel(d);
   const time = g.tbd ? 'TBD' : d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).replace(/\s/g,'')+' '+tzLabel(d);
   return `${day} ${time}${g.tv?' · '+g.tv:''}`;
 }
-/* Game box (2015 stream-app style): gray panel, big cropped logos in opposite corners,
-   team-color score bar, names + records under it, line score beside it (or below for baseball) */
+/* ---- Game box: short, wide rows ----
+   label line  : status/date ............................ link
+   color row   : [away color | score or name+record][home color | score or name+record ... period headers | logo]
+   detail rows : (live/final only) away / home name + record ........ period scores + TOT          */
 function gameBox(g){
   const show = g.live || g.final;
+  const mlb = g.lg==='mlb', reg = (LG[g.lg]||{}).periods || 4;
   let label, link = '';
   if(g.final){ label = `${esc(statusParts(g)[0])} ${esc(dayLabel(new Date(g.date)))}`; if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Box Score »</a>`; }
-  else if(g.live){ label = esc(statusParts(g).filter(Boolean).join(' ')); if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Gamecast »</a>`; }
+  else if(g.live){ label = esc(statusParts(g).filter(Boolean).join(' ')) + gsit(g); if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Gamecast »</a>`; }
   else { label = esc(preLabel(g)); link = `<button class="linkish" data-tptab="schedule">Schedule »</button>`; }
-  const sitBits = g.live ? gsit(g) : '';
   const logo = (t, cls) => `<span class="gb-logo ${cls}">${logoTag(teamLogoUrl(t,g.lg), t.ab, '', t.logoDark)}</span>`;
+  const nameRec = t => `${esc(t.name||t.ab)}<small>${t.rec?' ('+esc(t.rec)+')':''}</small>`;
+  const top = `<div class="gb-top"><span class="st">${label}</span>${link}</div>`;
+
+  if(!show){
+    return `<div class="gb pre">${top}
+      <div class="gb-row" style="--ca:${hex(g.a.color)};--ch:${hex(g.h.color)}">
+        <div class="gb-a">${logo(g.a,'a')}<span class="gb-nm">${nameRec(g.a).replace('<small>','<small class="br">')}</span></div>
+        <div class="gb-h"><span class="gb-nm">${nameRec(g.h).replace('<small>','<small class="br">')}</span>${logo(g.h,'h')}</div>
+      </div></div>`;
+  }
+  const al = g.a.line||[], hl = g.h.line||[], n = Math.max(al.length, hl.length);
+  const heads = Array.from({length:n}, (_,i) => (i<reg || mlb) ? String(i+1) : (i-reg ? (i-reg+1)+'OT' : 'OT'));
+  const totH = mlb ? ['R','H','E'] : ['TOT'];
+  const cw = mlb ? 17 : 23;                              /* period column width */
+  const cols = heads.length + totH.length;
+  const cellsW = cols*cw;
   const lost = t => g.final && Number(t.sc) < Number((t===g.a?g.h:g.a).sc);
-  const blk = (t, side) => show
-    ? `<div class="gb-blk ${side}${lost(t)?' lost':''}" style="background:${hex(t.color)}"><b>${esc(t.sc)}</b></div>`
-    : `<div class="gb-blk ${side}" style="background:${hex(t.color)}"><span class="gb-nm">${esc(t.name||t.ab)}<small>${t.rec?'('+esc(t.rec)+')':''}</small></span></div>`;
-  const names = show ? `<div class="gb-names"><span>${esc(g.a.name||g.a.ab)} <small>${g.a.rec?'('+esc(g.a.rec)+')':''}</small></span><span>${esc(g.h.name||g.h.ab)} <small>${g.h.rec?'('+esc(g.h.rec)+')':''}</small></span></div>` : '';
-  const n = Math.max((g.a.line||[]).length, (g.h.line||[]).length);
-  const side = show && n && g.lg!=='mlb' && n<=7;
-  const ls = show && n ? lineScore(g) : '';
-  return `<div class="gb${show?' post':' pre'}">
-    <div class="gb-top"><span class="st">${label}${sitBits}</span>${link}</div>
-    <div class="gb-main${side?' with-ls':''}">
-      ${logo(g.a,'a')}${logo(g.h,'h')}
-      <div class="gb-left"><div class="gb-bar">${blk(g.a,'a')}${blk(g.h,'h')}</div>${names}</div>
-      ${side ? ls : ''}
+  const cell = v => `<span class="c">${v==null||v===''?'–':esc(v)}</span>`;
+  const tots = t => mlb ? [t.sc, t.hits??'', t.errors??''] : [t.sc];
+  const vals = (t, arr) => heads.map((_,i)=>cell(arr[i])).join('') + tots(t).map(v=>`<span class="c tot">${esc(v)}</span>`).join('');
+  return `<div class="gb post" style="--cw:${cw}px">${top}
+    <div class="gb-row" style="--ca:${hex(g.a.color)};--ch:${hex(g.h.color)}">
+      <div class="gb-a" style="flex-basis:min(46%, calc(100% - ${cellsW + 92}px))"><b class="${lost(g.a)?'lost':''}">${esc(g.a.sc)}</b></div>
+      <div class="gb-h"><b class="${lost(g.h)?'lost':''}">${esc(g.h.sc)}</b><span class="gb-cells hd">${heads.map(h=>`<span class="c">${h}</span>`).join('')}${totH.map(h=>`<span class="c tot">${h}</span>`).join('')}</span>${logo(g.h,'h')}</div>
     </div>
-    ${!side && ls ? `<div class="gb-below">${ls}</div>` : ''}
-  </div>`;
+    <div class="gb-sub">${logo(g.a,'a2')}
+      <div class="gb-line"><span class="gb-tn">${nameRec(g.a)}</span><span class="gb-cells">${vals(g.a, al)}</span></div>
+      <div class="gb-line"><span class="gb-tn">${nameRec(g.h)}</span><span class="gb-cells">${vals(g.h, hl)}</span></div>
+    </div></div>`;
 }
 /* live situation, shown in the label line */
 function gsit(g){
