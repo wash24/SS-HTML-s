@@ -1238,7 +1238,7 @@ function renderTeamPage(){
   if(!tabs.includes(tpTab)) tpTab = 'stream';
   $('#tpTabs').innerHTML = tabs.map(t => `<button class="tp-tab" data-tptab="${t}" aria-selected="${t===tpTab}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('');
   $('#tpBody').innerHTML = tpTab==='standings' ? renderStandings(p) : tpTab==='schedule' ? renderSchedule(p) : renderStream(p);
-  if(tpTab==='schedule'){ const n = $('#tpBody .sch-row.next'); if(n && !renderTeamPage._scrolled){ renderTeamPage._scrolled = true; n.scrollIntoView({block:'center'}); } }
+  if(tpTab==='schedule'){ const n = $('#tpBody .sch-row.next'); if(n && !renderTeamPage._scrolled){ renderTeamPage._scrolled = true; const body = $('#tpBody'); body.scrollTop = Math.max(0, n.offsetTop - body.offsetTop - body.clientHeight/2 + n.offsetHeight/2);  /* scroll only the schedule list, never the whole app */ } }
 }
 function openTeamPage(key){
   const p = picks.find(x=>pickKey(x)===key); if(!p) return;
