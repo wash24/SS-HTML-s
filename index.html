@@ -578,10 +578,16 @@ function card(label, a, stat){
   return `<div class="gm-card">${shot(typeof img === 'string' ? img : '', true)}<div class="gm-ln"><b>${esc(label)}</b><span>${esc(a.shortName || a.displayName || '')}</span><em>${esc(stat)}</em></div></div>`;
 }
 // Football stat lines. Passing reads "2 TD/1 INT, 245 YDS"; rushing and receiving always end in YDS.
-function fbStat(label, l){
+function fbStat(label, l, live){
   const dv = String(l.displayValue || '').replace(/(\d),(?=\d{3}\b)/g, '$1');
   const num = typeof l.value === 'number' ? String(l.value) : (dv.match(/^[\d,]+/) || [''])[0];
   const yds = (dv.match(/([\d,]+)\s*YDS/i) || [])[1] || num;
+  if (label === 'PASS' && live) {
+    // Live and final games: "14/21, 202 YDS, 2 TD"
+    const ca = dv.match(/(\d+)\/(\d+)/), td = (dv.match(/(\d+)\s*TD/i) || [])[1];
+    if (ca || yds) return [ca && `${ca[1]}/${ca[2]}`, yds && `${yds} YDS`, `${td || 0} TD`].filter(Boolean).join(', ');
+    return dv;
+  }
   if (label === 'PASS') {
     const td = (dv.match(/(\d+)\s*TD/i) || [])[1], int = (dv.match(/(\d+)\s*INT/i) || [])[1];
     const lead = td != null || int != null ? `${td || 0} TD, ${int || 0} INT, ` : '';
@@ -619,7 +625,7 @@ function performers(g, sum){
     const items = picks.map(([label, c]) => {
       const l = c.leaders[0];
       if (fam === 'baseball' && (/^hits$/i.test(c.name || '') || label === 'BA')) label = 'HITS';
-      const stat = fam === 'football' ? fbStat(label, l) : fam === 'basketball' ? bbLine(label, l, box, t, side) : l.displayValue;
+      const stat = fam === 'football' ? fbStat(label, l, true) : fam === 'basketball' ? bbLine(label, l, box, t, side) : l.displayValue;
       return card(label, l.athlete, stat);
     }).join('');
     return items ? `<div class="gm-col"><div class="gm-who">${esc(t.short)}</div>${items}</div>` : '';
