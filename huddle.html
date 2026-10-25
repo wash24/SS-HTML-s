@@ -365,6 +365,51 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .sch-r .l{color:#ff8a7a;font-weight:600}
 .sch-r .lv{color:#fff;font-weight:600}
 
+/* ===== Game box v2 (matches the 2015 stream-app team page) ===== */
+.tp-head{background:linear-gradient(180deg,var(--tp-bar),var(--tp-bar2,var(--tp-bar)))}
+.tp-tabs{background:var(--tp-bar2,var(--tp-bar))}
+.gb{position:relative;overflow:hidden;background:#3d3d40;margin-top:6px;font-family:var(--font-display);color:#fff}
+.gb:first-child{margin-top:0}
+.gb-top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 12px 5px 12px;font-size:14px;font-weight:600;line-height:1.2;position:relative;z-index:2}
+.gb-top .st{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap}
+.gb-top a,.gb-top .linkish{font-size:13px;font-weight:600;color:#fff;text-decoration:none;white-space:nowrap}
+.gb-main{position:relative;display:grid;grid-template-columns:1fr;column-gap:12px;padding:0 54px 9px 60px;min-height:62px}
+.gb-main.with-ls{grid-template-columns:minmax(0,1fr) auto}
+/* big logos in opposite corners, cropped by the panel */
+.gb-logo{position:absolute;z-index:1;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.gb-logo img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
+.gb-logo .logo-txt{font-size:34px;color:rgba(255,255,255,.3)}
+.gb-logo.a{left:-12px;bottom:-14px;width:76px;height:76px}
+.gb-logo.h{right:-12px;top:-30px;width:70px;height:70px}
+.gb-left{min-width:0;position:relative;z-index:2}
+.gb-bar{display:grid;grid-template-columns:1.35fr 1fr;height:34px}
+.gb.pre .gb-bar{grid-template-columns:1fr 1fr;height:40px}
+.gb-blk{display:flex;align-items:center;min-width:0;padding:0 9px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.18)}
+.gb-blk.a{justify-content:flex-end}
+.gb-blk.h{justify-content:flex-start}
+.gb-blk b{font-size:26px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.gb-blk.lost b{opacity:.65}
+.gb-nm{display:flex;flex-direction:column;font-size:16px;font-weight:600;line-height:1.05;min-width:0;white-space:nowrap;text-shadow:0 1px 1px rgba(0,0,0,.35)}
+.gb-blk.a .gb-nm{align-items:flex-end}
+.gb-nm small{font-size:12px;font-weight:500;opacity:.85}
+.gb-names{display:flex;flex-direction:column;gap:1px;padding:5px 0 0;font-size:13px;font-weight:600;line-height:1.15}
+.gb-names span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gb-names small{font-size:12px;font-weight:500;color:rgba(255,255,255,.6)}
+.gb-ls{border-collapse:collapse;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;position:relative;z-index:2;align-self:start;margin-top:-2px}
+.gb-ls th{font-weight:500;font-size:12px;color:rgba(255,255,255,.7);padding:0 4px 2px;text-align:center}
+.gb-ls td{padding:1px 4px;text-align:center;line-height:1.25}
+.gb-ls th.tot{color:var(--flame)}
+.gb-ls td.tot{color:#fff;font-weight:700}
+.gb-ls td.nm{text-align:left;padding-left:0;color:rgba(255,255,255,.8)}
+.gb-below{padding:0 12px 10px;overflow-x:auto;position:relative;z-index:2}
+.gb-below .gb-ls{width:100%;margin-top:0}
+.gb-sit{display:inline-flex;align-items:center;gap:4px;font-weight:500}
+.gb-sit svg.bases{width:26px;height:20px}
+.gb-sit .outs{display:flex;flex-direction:column;gap:2px}
+.gb-sit .outs i{display:block;width:4px;height:4px;border:1px solid rgba(255,255,255,.7)}
+.gb-sit .outs i.on{background:#fff}
+.gb-gap{height:4px}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head><body>
@@ -880,11 +925,12 @@ function lineScore(g){
   if(!n) return '';
   const mlb = g.lg==='mlb', reg = (LG[g.lg]||{}).periods || 4;
   const heads = Array.from({length:n}, (_,i) => (i<reg || mlb) ? String(i+1) : (i-reg ? (i-reg+1)+'OT' : 'OT'));
-  const cell = (arr,i) => `<td>${arr[i]!=null ? esc(arr[i]) : ''}</td>`;
-  const tail = t => mlb ? `<td class="tot rhe">${esc(t.sc)}</td><td class="tot rhe">${esc(t.hits??'')}</td><td class="tot rhe">${esc(t.errors??'')}</td>` : `<td class="tot">${esc(t.sc)}</td>`;
-  const tailH = mlb ? '<th class="tot rhe">R</th><th class="tot rhe">H</th><th class="tot rhe">E</th>' : '<th class="tot rhe">TOT</th>';
-  const row = (t,arr) => `<tr><td>${esc(t.name||t.ab)} ${t.rec?`<span style="opacity:.6">(${esc(t.rec)})</span>`:''}</td>${heads.map((_,i)=>cell(arr,i)).join('')}${tail(t)}</tr>`;
-  return `<div class="lscore"><table><thead><tr><th></th>${heads.map(h=>`<th>${h}</th>`).join('')}${tailH}</tr></thead><tbody>${row(g.a,a)}${row(g.h,h)}</tbody></table></div>`;
+  const cell = (arr,i) => `<td>${arr[i]!=null && arr[i]!=='' ? esc(arr[i]) : '–'}</td>`;
+  const tot = t => mlb ? `<td class="tot">${esc(t.sc)}</td><td class="tot">${esc(t.hits??'')}</td><td class="tot">${esc(t.errors??'')}</td>` : `<td class="tot">${esc(t.sc)}</td>`;
+  const totH = mlb ? '<th class="tot">R</th><th class="tot">H</th><th class="tot">E</th>' : '<th class="tot">TOT</th>';
+  const lab = t => mlb ? `<td class="nm">${esc(t.ab)}</td>` : '';
+  return `<table class="gb-ls"><thead><tr>${mlb?'<th></th>':''}${heads.map(x=>`<th>${x}</th>`).join('')}${totH}</tr></thead>
+    <tbody><tr>${lab(g.a)}${heads.map((_,i)=>cell(a,i)).join('')}${tot(g.a)}</tr><tr>${lab(g.h)}${heads.map((_,i)=>cell(h,i)).join('')}${tot(g.h)}</tr></tbody></table>`;
 }
 function preLabel(g){
   const d = new Date(g.date), now = new Date(), tm = new Date(); tm.setDate(now.getDate()+1);
@@ -892,13 +938,40 @@ function preLabel(g){
   const time = g.tbd ? 'TBD' : d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).replace(/\s/g,'')+' '+tzLabel(d);
   return `${day} ${time}${g.tv?' · '+g.tv:''}`;
 }
-function gameBox(g, withLine){
+/* Game box (2015 stream-app style): gray panel, big cropped logos in opposite corners,
+   team-color score bar, names + records under it, line score beside it (or below for baseball) */
+function gameBox(g){
+  const show = g.live || g.final;
   let label, link = '';
-  if(g.final){ label = `${esc(statusParts(g)[0])}&nbsp; <span>${esc(dayLabel(new Date(g.date)))}</span>`; if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Box Score »</a>`; }
+  if(g.final){ label = `${esc(statusParts(g)[0])} ${esc(dayLabel(new Date(g.date)))}`; if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Box Score »</a>`; }
   else if(g.live){ label = esc(statusParts(g).filter(Boolean).join(' ')); if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Gamecast »</a>`; }
   else { label = esc(preLabel(g)); link = `<button class="linkish" data-tptab="schedule">Schedule »</button>`; }
-  return `<div class="tp-sec"><div class="gbox-top"><span class="st">${label}</span>${link}</div>
-    <div class="gbar">${gside(g.a,g,'away')}${gmid(g)}${gside(g.h,g,'home')}</div>${withLine ? lineScore(g) : ''}</div>`;
+  const sitBits = g.live ? gsit(g) : '';
+  const logo = (t, cls) => `<span class="gb-logo ${cls}">${logoTag(teamLogoUrl(t,g.lg), t.ab, '', t.logoDark)}</span>`;
+  const lost = t => g.final && Number(t.sc) < Number((t===g.a?g.h:g.a).sc);
+  const blk = (t, side) => show
+    ? `<div class="gb-blk ${side}${lost(t)?' lost':''}" style="background:${hex(t.color)}"><b>${esc(t.sc)}</b></div>`
+    : `<div class="gb-blk ${side}" style="background:${hex(t.color)}"><span class="gb-nm">${esc(t.name||t.ab)}<small>${t.rec?'('+esc(t.rec)+')':''}</small></span></div>`;
+  const names = show ? `<div class="gb-names"><span>${esc(g.a.name||g.a.ab)} <small>${g.a.rec?'('+esc(g.a.rec)+')':''}</small></span><span>${esc(g.h.name||g.h.ab)} <small>${g.h.rec?'('+esc(g.h.rec)+')':''}</small></span></div>` : '';
+  const n = Math.max((g.a.line||[]).length, (g.h.line||[]).length);
+  const side = show && n && g.lg!=='mlb' && n<=7;
+  const ls = show && n ? lineScore(g) : '';
+  return `<div class="gb${show?' post':' pre'}">
+    <div class="gb-top"><span class="st">${label}${sitBits}</span>${link}</div>
+    <div class="gb-main${side?' with-ls':''}">
+      ${logo(g.a,'a')}${logo(g.h,'h')}
+      <div class="gb-left"><div class="gb-bar">${blk(g.a,'a')}${blk(g.h,'h')}</div>${names}</div>
+      ${side ? ls : ''}
+    </div>
+    ${!side && ls ? `<div class="gb-below">${ls}</div>` : ''}
+  </div>`;
+}
+/* live situation, shown in the label line */
+function gsit(g){
+  const s = g.sit; if(!s) return '';
+  if(g.lg==='mlb'){ const outs = [0,1,2].map(i=>`<i class="${i<(s.outs||0)?'on':''}"></i>`).join(''); return ` <span class="gb-sit">${basesSvg(s)}<span class="outs">${outs}</span></span>`; }
+  if((g.lg==='nfl'||g.lg==='cfb') && (s.shortDownDistanceText||s.downDistanceText)) return ` <span class="gb-sit">· ${esc(s.shortDownDistanceText||s.downDistanceText)}</span>`;
+  return '';
 }
 function tStoryLead(st){
   const media = st.img ? `<img src="${esc(st.img)}" alt="" loading="lazy">` : art(st.art, st.title);
@@ -927,7 +1000,8 @@ function renderStream(p){
     const gameday = next && (next.live || new Date(next.date).toDateString()===today);
     /* last game on top, next game below it; on gameday the game moves to the top */
     const boxes = gameday ? [[next,false],[last,true]] : [[last,true],[next,false]];
-    boxes.forEach(([g,line]) => { if(g) html += gameBox(g, line); });
+    boxes.forEach(([g]) => { if(g) html += gameBox(g); });
+    if(boxes.some(([g])=>g)) html += '<div class="gb-gap"></div>';
   } else {
     const order = g => g.live?0 : g.final?2 : 1;
     const lg = gs.slice().sort((x,y)=>order(x)-order(y) || new Date(x.date)-new Date(y.date)).slice(0,24);
@@ -1017,8 +1091,9 @@ function renderTeamPage(){
   const p = picks.find(x=>pickKey(x)===tpKey); if(!p) return closeTeamPage();
   const v = pickView(p), page = $('#tpage');
   const base = p.type==='league' ? '#3a3a3d' : v.bg;
-  page.style.setProperty('--tp-bg', p.type==='league' ? '#3c3c3f' : shade(base, .42));
-  page.style.setProperty('--tp-bar', p.type==='league' ? '#4a4a4d' : shade(base, .62));
+  page.style.setProperty('--tp-bg', '#2f2f31');
+  page.style.setProperty('--tp-bar', p.type==='league' ? '#4a4a4d' : shade(base, .8));
+  page.style.setProperty('--tp-bar2', p.type==='league' ? '#444447' : shade(base, .62));
   $('#tpName').textContent = p.type==='league' ? LG[p.lg].name : p.full;
   const tabs = p.type==='team' ? ['stream','standings','schedule'] : ['stream','standings'];
   if(!tabs.includes(tpTab)) tpTab = 'stream';
