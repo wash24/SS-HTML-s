@@ -32,6 +32,7 @@ html,body{height:100%}
 body{background:var(--ink);color:var(--paper);font-family:var(--font-body);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bar)}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
 button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offset:2px}
 
@@ -248,6 +249,30 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .tab-teams .lbl{display:flex;align-items:flex-start;line-height:1}
 .tab-teams .pip{margin:2px 0 0 4px;width:6px;height:6px}
 
+/* ===== My Teams drawer: one row per pick, pulled up from the My Teams tab ===== */
+.drawer{position:absolute;left:0;right:0;top:0;bottom:calc(56px + env(safe-area-inset-bottom,0px));z-index:4;background:var(--chrome);display:flex;flex-direction:column;transform:translateY(100%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s}
+.drawer.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s}
+.drawer-bar{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:10px max(14px,env(safe-area-inset-right,0px)) 10px max(14px,env(safe-area-inset-left,0px));background:var(--chrome)}
+.drawer-bar button{position:relative;height:42px;background:#5e5e62;color:#ececee;font-family:var(--font-display);font-size:20px;box-shadow:0 1px 2px rgba(0,0,0,.35);overflow:hidden}
+.drawer-bar .flag{position:absolute;top:0;right:12px;width:24px;height:30px;background:var(--flame);color:#fff;font-size:12px;font-weight:600;display:flex;justify-content:center;padding-top:5px;clip-path:polygon(0 0,100% 0,100% 100%,50% 82%,0 100%)}
+.drawer-list{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#3a3a3d;box-shadow:inset 0 2px 4px -2px rgba(0,0,0,.5),inset 0 -2px 4px -2px rgba(0,0,0,.5);padding:6px 6px;display:flex;flex-direction:column;gap:6px}
+.trow{position:relative;overflow:hidden;flex:none;display:flex;align-items:stretch;width:100%;min-height:60px;text-align:left;color:#fff;box-shadow:0 1px 1px rgba(0,0,0,.35)}
+.trow:active{filter:brightness(1.08)}
+/* same cropped-logo treatment as the ticker, scaled up for the taller row */
+.trow .tlogo{position:absolute;left:-16px;top:50%;width:84px;height:84px;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;pointer-events:none}
+.trow .tlogo img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(1px 0 1px rgba(0,0,0,.35))}
+.trow .tlogo .logo-txt{font-size:44px;color:rgba(255,255,255,.3);margin-left:auto}
+.trow .tname{flex:1;min-width:0;display:flex;align-items:center;padding:0 10px 0 78px;font-family:var(--font-display);font-size:23px;font-weight:400;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 1px rgba(0,0,0,.35)}
+.trow .tname span{overflow:hidden;text-overflow:ellipsis}
+.trow .tago{flex:none;display:flex;align-items:center;padding:0 14px 0 6px;font-family:var(--font-display);font-size:18px;color:rgba(255,255,255,.72)}
+.trow .tgame{flex:none;display:flex;align-items:center;gap:8px;padding:0 6px 0 10px;border-left:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.14);font-family:var(--font-display);font-variant-numeric:tabular-nums}
+.tgame .tg-rows{display:grid;grid-template-columns:auto auto;column-gap:12px;row-gap:3px;font-size:16px;line-height:1.05}
+.tgame .tg-rows b{font-weight:600;text-align:right;min-width:14px}
+.tgame .tg-rows .mine{font-weight:600}
+.tgame .tg-st{writing-mode:vertical-rl;font-size:12.5px;font-weight:500;letter-spacing:.02em;white-space:nowrap;max-height:56px;overflow:hidden}
+.tgame.live .tg-st{color:#fff}
+.drawer-empty{color:var(--mute);font-family:var(--font-display);font-size:17px;text-align:center;padding:28px 16px}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head><body>
@@ -267,6 +292,11 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
     <section class="view" id="view-teams" aria-label="My Teams"></section>
     <section class="view" id="view-scores" aria-label="Scores" hidden></section>
     <section class="view" id="view-alerts" aria-label="Alerts" hidden></section>
+    <section class="drawer" id="drawer" aria-label="My Teams" aria-hidden="true">
+      <div class="drawer-bar"><button data-go="scores">Scores</button><button data-go="alerts">Alerts<span class="flag" id="drawerFlag"></span></button></div>
+      <div class="drawer-list" id="drawerList"></div>
+      <div class="drawer-bar"><button data-add>Add Teams</button><button data-edit>Edit Teams</button></div>
+    </section>
   </main>
 
   <nav class="tabs" role="tablist">
@@ -546,7 +576,56 @@ function renderAlerts(){
     <span class="src-chip" style="background:${a.color}">${esc(a.chip)}</span>
     <div><p>${esc(a.text)}</p><div class="meta">${esc(a.ago)} ago</div></div></div>`).join('') + `<div class="datanote">Example alerts</div>`;
 }
-function renderAll(){ renderTicker(); renderTeams(); renderScores(); renderAlerts(); }
+function renderAll(){ renderTicker(); renderTeams(); renderScores(); renderAlerts(); if(drawerOpen()) renderDrawer(); }
+
+/* ================= My Teams drawer ================= */
+/* The game worth showing for a team: live now, else today's game, else one that finished in the last day */
+function teamGame(p){
+  if(p.type!=='team') return null;
+  const mine = games.filter(g => g.lg===p.lg && (String(g.a.id)===String(p.id) || String(g.h.id)===String(p.id)));
+  if(!mine.length) return null;
+  const now = Date.now(), today = new Date().toDateString();
+  return mine.find(g=>g.live)
+    || mine.find(g=>!g.final && !g.postponed && new Date(g.date).toDateString()===today)
+    || mine.filter(g=>g.final && now - new Date(g.date) < 30*3600e3).sort((a,b)=>new Date(b.date)-new Date(a.date))[0]
+    || null;
+}
+function drawerRow(p){
+  const v = pickView(p), m = tileMeta[v.key] || {};
+  const name = p.type==='league' ? LG[p.lg].name : p.full;
+  const g = teamGame(p);
+  let right = '';
+  if(g){
+    const show = g.live || g.final, me = t => String(t.id)===String(p.id) ? ' class="mine"' : '';
+    const st = statusParts(g).filter(Boolean).join(' ');
+    right = `<span class="tgame${g.live?' live':''}"><span class="tg-rows">
+      <span${me(g.a)}>${esc(g.a.ab)}</span><b>${show?esc(g.a.sc):''}</b>
+      <span${me(g.h)}>${esc(g.h.ab)}</span><b>${show?esc(g.h.sc):''}</b></span>
+      <span class="tg-st">${esc(st)}</span></span>`;
+  } else if(m.ago){
+    right = `<span class="tago">${esc(m.ago)} ago</span>`;
+  }
+  const logo = v.logo ? logoTag(v.logo, v.text) : `<b class="logo-txt">${esc(v.text)}</b>`;
+  return `<button class="trow" style="background:${v.bg}" data-row="${esc(v.key)}" aria-label="${esc(name)} stories">
+    <span class="tlogo">${logo}</span><span class="tname"><span>${esc(name)}</span></span>${right}</button>`;
+}
+function renderDrawer(){
+  const unread = alerts.filter(a=>a.unread).length;
+  const flag = $('#drawerFlag'); flag.textContent = unread>9 ? '9+' : unread; flag.hidden = !unread;
+  $('#drawerList').innerHTML = picks.length ? picks.map(drawerRow).join('')
+    : `<div class="drawer-empty">No teams yet. Tap Add Teams to pick your teams and leagues.</div>`;
+}
+const drawerOpen = () => $('#drawer').classList.contains('open');
+function setDrawer(open){
+  if(open) renderDrawer();
+  $('#drawer').classList.toggle('open', open); $('#drawer').setAttribute('aria-hidden', String(!open));
+}
+function showView(name){
+  document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected', t.dataset.view===name));
+  document.querySelectorAll('.view').forEach(v=>v.hidden = v.id!=='view-'+name);
+  if(name==='alerts'){ alerts.forEach(a=>a.unread=false); $('#alertCount').hidden = true; setTimeout(renderAlerts,1200); }
+}
+
 
 /* ================= Team picker ================= */
 const teamCache = {};          /* lg -> [{...team}] */
@@ -630,11 +709,16 @@ function closePicker(){
 document.addEventListener('click', e => {
   const tab = e.target.closest('.tab');
   if(tab){
-    document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected', t===tab));
-    document.querySelectorAll('.view').forEach(v=>v.hidden = v.id!=='view-'+tab.dataset.view);
-    if(tab.dataset.view==='alerts'){ alerts.forEach(a=>a.unread=false); $('#alertCount').hidden = true; setTimeout(renderAlerts,1200); }
+    /* My Teams pulls the drawer up (tap again to put it away); the other tabs switch views */
+    if(tab.dataset.view==='teams'){ showView('teams'); setDrawer(!drawerOpen()); }
+    else { setDrawer(false); showView(tab.dataset.view); }
     return;
   }
+  const go = e.target.closest('[data-go]');
+  if(go){ setDrawer(false); showView(go.dataset.go); return; }
+  const row = e.target.closest('[data-row]');
+  if(row){ const id = row.dataset.row; seen.add(id); filter = id; setDrawer(false); showView('teams'); renderTeams(); $('#view-teams').scrollTop = 0; return; }
+  if(e.target.closest('[data-add]')){ openPicker(); setTimeout(()=>$('#teamSearch').focus(), 320); return; }
   if(e.target.closest('.search-btn')){ openPicker(); setTimeout(()=>$('#teamSearch').focus(), 320); return; }
   if(e.target.closest('[data-edit]') || e.target.closest('.gear')){ openPicker(); return; }
   if(e.target.closest('#pickerDone')){ closePicker(); return; }
