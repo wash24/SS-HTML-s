@@ -58,7 +58,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .team-row .mono img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(1px 0 1px rgba(0,0,0,.35))}
 .team-row .mono.txt{justify-content:flex-end;font-family:var(--font-display);font-weight:700;font-size:32px;letter-spacing:-.02em;color:rgba(255,255,255,.3);padding-right:0}
 .team-row .ab,.team-row .sc,.team-row .rec{position:relative;text-shadow:0 1px 1px rgba(0,0,0,.35)}
-.team-row .ab{font-weight:400;letter-spacing:.01em;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team-row .ab{font-weight:400;letter-spacing:.01em;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5}
 .team-row .rk{font-size:8.5px;opacity:.8;margin-right:2px}
 .team-row .sc{font-weight:500;min-width:16px;font-size:13px;text-align:right}
 .team-row .rec{font-size:10px;font-weight:300;opacity:.85;margin-left:2px}
@@ -235,16 +235,17 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 (function(){
 /* ================= Config ================= */
 const NCAA_LOGO = 'https://a.espncdn.com/i/espn/misc_logos/500/ncaa.png';
+const LEAGUE_BG = '#333337';   /* neutral plate behind league logos on tiles, chips and picker */
 const LG = {
-  nfl:{label:'NFL', name:'NFL', path:'football/nfl', sb:'scoreboard?limit=100', teams:'standings', color:'#013369', periods:4,
+  nfl:{label:'NFL', name:'NFL', path:'football/nfl', sb:'scoreboard?limit=100', teams:'standings', color:LEAGUE_BG, periods:4,
        logo:'https://a.espncdn.com/i/teamlogos/leagues/500/nfl.png', logoDir:'nfl'},
-  mlb:{label:'MLB', name:'MLB', path:'baseball/mlb', sb:'scoreboard', teams:'standings', color:'#041E42', periods:9,
+  mlb:{label:'MLB', name:'MLB', path:'baseball/mlb', sb:'scoreboard', teams:'standings', color:LEAGUE_BG, periods:9,
        logo:'https://a.espncdn.com/i/teamlogos/leagues/500/mlb.png', logoDir:'mlb'},
-  nba:{label:'NBA', name:'NBA', path:'basketball/nba', sb:'scoreboard', teams:'standings', color:'#C9082A', periods:4,
+  nba:{label:'NBA', name:'NBA', path:'basketball/nba', sb:'scoreboard', teams:'standings', color:LEAGUE_BG, periods:4,
        logo:'https://a.espncdn.com/i/teamlogos/leagues/500/nba.png', logoDir:'nba'},
-  cfb:{label:'CFB', name:'College Football', path:'football/college-football', sb:'scoreboard?groups=80&limit=500', teams:'standings?group=80', color:'#1f5f3a', periods:4,
+  cfb:{label:'CFB', name:'College Football', path:'football/college-football', sb:'scoreboard?groups=80&limit=500', teams:'standings?group=80', color:LEAGUE_BG, periods:4,
        logo:NCAA_LOGO, logoDir:'ncaa', college:true},
-  cbb:{label:'CBB', name:'College Basketball', path:'basketball/mens-college-basketball', sb:'scoreboard?groups=50&limit=500', teams:'standings?group=50', color:'#a9532a', periods:2,
+  cbb:{label:'CBB', name:'College Basketball', path:'basketball/mens-college-basketball', sb:'scoreboard?groups=50&limit=500', teams:'standings?group=50', color:LEAGUE_BG, periods:2,
        logo:NCAA_LOGO, logoDir:'ncaa', college:true},
 };
 const LG_ORDER = ['nfl','mlb','nba','cfb','cbb'];
@@ -288,13 +289,13 @@ const SAMPLE_GAMES = [
 ];
 const SAMPLE_STORIES = [
   {key:'featured',src:'Featured',chip:'H',chipColor:'#58585c',title:'NBA × NFL Jersey Mashups',ago:'56m',art:'mashup',over:['NBA × NFL','Jersey Mashups']},
-  {key:'cfb',src:'College Football',chip:'CFB',chipColor:'#1f6b3a',title:'Upset Watch: Five Ranked Teams on Upset Alert This Saturday',ago:'4m',art:'field'},
-  {key:'nba',src:'NBA',chip:'NBA',chipColor:'#C9082A',title:'Three Takeaways From Opening Week Around the League',ago:'1h',art:'court'},
-  {key:'nfl',src:'NFL',chip:'NFL',chipColor:'#013369',title:'Midseason Grades for Every Division Leader',ago:'34m',art:'field'},
-  {key:'mlb',src:'MLB',chip:'MLB',chipColor:'#041E42',title:'World Series Preview: Where the Series Will Be Won',ago:'22m',art:'lights'},
-  {key:'cbb',src:'College Basketball',chip:'CBB',chipColor:'#2b5f9e',title:'Preseason Top 25: Who Opens the Season on Top',ago:'3h',art:'court'},
-  {key:'nfl',src:'NFL',chip:'NFL',chipColor:'#013369',title:'Film Room: How Defenses Are Flipping Fourth Quarters',ago:'2h',art:'field'},
-  {key:'nba',src:'NBA',chip:'NBA',chipColor:'#C9082A',title:'Bench Units Quietly Leading the League in Net Rating',ago:'12m',art:'court'},
+  {key:'cfb',src:'College Football',chip:'CFB',chipColor:LEAGUE_BG,title:'Upset Watch: Five Ranked Teams on Upset Alert This Saturday',ago:'4m',art:'field'},
+  {key:'nba',src:'NBA',chip:'NBA',chipColor:LEAGUE_BG,title:'Three Takeaways From Opening Week Around the League',ago:'1h',art:'court'},
+  {key:'nfl',src:'NFL',chip:'NFL',chipColor:LEAGUE_BG,title:'Midseason Grades for Every Division Leader',ago:'34m',art:'field'},
+  {key:'mlb',src:'MLB',chip:'MLB',chipColor:LEAGUE_BG,title:'World Series Preview: Where the Series Will Be Won',ago:'22m',art:'lights'},
+  {key:'cbb',src:'College Basketball',chip:'CBB',chipColor:LEAGUE_BG,title:'Preseason Top 25: Who Opens the Season on Top',ago:'3h',art:'court'},
+  {key:'nfl',src:'NFL',chip:'NFL',chipColor:LEAGUE_BG,title:'Film Room: How Defenses Are Flipping Fourth Quarters',ago:'2h',art:'field'},
+  {key:'nba',src:'NBA',chip:'NBA',chipColor:LEAGUE_BG,title:'Bench Units Quietly Leading the League in Net Rating',ago:'12m',art:'court'},
 ];
 const SAMPLE_ALERTS = [
   {chip:'TEM',color:'#9D2235',text:'Temple leads ECU 24–17 heading to the 4th quarter',ago:'2m',unread:true},
