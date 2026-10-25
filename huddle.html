@@ -8,7 +8,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Huddle">
 <meta name="theme-color" content="#4a4a4d">
-<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style>
 <title>Huddle Sports App</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -524,6 +523,18 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .sc-st small{font-size:14px}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<style>
+/* Home-screen app fit: the app fills the whole screen; the header color runs up behind the status bar,
+   the tab bar sits at the very bottom with room for the home indicator. */
+html,body{height:100%;margin:0;background:#4a4a4d;overscroll-behavior:none}
+body::before{display:none}
+html .app{position:fixed;top:0;right:0;bottom:0;left:0;height:auto;max-width:none;margin:0;padding-top:env(safe-area-inset-top,0px);background:#4a4a4d}
+html .views{background:var(--chrome)}
+html .tpage{top:env(safe-area-inset-top,0px)}
+html .sheet{top:env(safe-area-inset-top,0px)}
+html .tabs{padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (min-width:520px){ html .app{left:50%;right:auto;width:480px;transform:translateX(-50%)} }
 </style>
 </head><body>
 
