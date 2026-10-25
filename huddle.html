@@ -7,12 +7,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Huddle">
-<meta name="theme-color" content="#3c3c3f">
+<meta name="theme-color" content="#4a4a4d">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style>
 <title>Huddle Sports App</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Oswald:wght@300;400;500;600;700&family=Roboto+Condensed:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&family=Kaushan+Script&family=Roboto+Condensed:wght@400;700&display=swap">
 <style>
 /* Layout: 2015-era sports stream app — score ticker on top, full-bleed story cards, team-color tile rail, three-tab bar fixed at the bottom */
 :root{
@@ -22,7 +22,7 @@
   --paper:#f2f2f0;       /* primary text */
   --mute:#a3a3a6;        /* timestamps, labels */
   --flame:#e8542a;       /* the one accent: active tab */
-  --font-display:"Oswald","Arial Narrow","Helvetica Neue Condensed",Impact,sans-serif;
+  --font-display:"Barlow Condensed","Arial Narrow","Helvetica Neue Condensed",sans-serif;
   --font-body:"Roboto Condensed","Arial Narrow",Arial,sans-serif;
   --font-script:"Kaushan Script","Brush Script MT","Segoe Script",cursive;
   --bar:#3c3c3f;         /* header bar */
@@ -194,6 +194,59 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .conf-label{font-family:var(--font-display);text-transform:uppercase;letter-spacing:.1em;font-size:12px;color:var(--mute);background:var(--ink);padding:10px max(14px,env(safe-area-inset-right,0px)) 7px max(14px,env(safe-area-inset-left,0px))}
 
 .datanote{font-size:11px;color:var(--mute);text-align:center;padding:14px 16px 4px;letter-spacing:.04em}
+
+/* ===== Reference pass: medium-gray app, condensed type, tight seams (matches the 2015 stream-app screenshots) ===== */
+:root{
+  --chrome:#4a4a4d;      /* card body + header */
+  --chrome-2:#58585b;    /* action bar */
+  --ink:#38383b;         /* seams between sections */
+  --bar:#4a4a4d;         /* header bar = card gray */
+  --mute:#b9b9bc;        /* source labels, timestamps */
+}
+.appbar{background:var(--bar);height:48px}
+.wordmark b{font-weight:700;font-size:27px;letter-spacing:.02em}
+.wordmark i{font-size:23px}
+/* ticker: slightly darker band than the header, dark status strip, cards on top */
+.ticker{background:#3a3a3d;padding:6px 0 7px;border-bottom:0;box-shadow:inset 0 2px 4px -2px rgba(0,0,0,.5)}
+.ticker-label{font-family:var(--font-display);font-weight:400;font-size:12px;letter-spacing:.02em;text-transform:none;color:#c9c9cc}
+.game{border-radius:0;box-shadow:0 1px 1px rgba(0,0,0,.35)}
+.game-status{background:#2c2c2e;font-size:12px;font-weight:500;letter-spacing:.01em;padding:4px 5px 3px}
+.team-row{font-size:14px}
+.team-row .ab{font-weight:500;letter-spacing:0}
+.team-row .sc{font-size:14.5px;font-weight:600}
+.team-row .rec{font-size:11.5px;font-weight:400;top:-.6px}
+.team-row .rk{font-size:10px}
+/* story cards: gray body, light-gray source line, big condensed headline */
+.card{border-bottom:0}
+.card + .card,.rail + .card,.card + .mini,.rail + .mini{border-top:3px solid var(--ink)}
+.card-head{padding:10px max(14px,env(safe-area-inset-right,0px)) 2px max(14px,env(safe-area-inset-left,0px))}
+.card-head .src{font-family:var(--font-display);font-size:19px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--mute);gap:7px}
+.src-chip{border-radius:2px}
+.card h2{font-weight:500;font-size:29px;line-height:1.02;letter-spacing:0}
+.card .ago{font-size:21px;font-weight:400;padding-top:4px}
+.headline-wrap{padding-bottom:9px}
+.actions{background:var(--chrome-2);font-size:18px;font-weight:400;color:#c6c6c9}
+.actions button{padding:9px 0}
+/* team rail sits on the card gray right under the action bar */
+.rail{background:var(--chrome);padding:3px;gap:3px}
+.tile .t-name{font-size:13.5px;font-weight:500;letter-spacing:0}
+.tile .t-ago{font-size:12px;font-weight:500;top:4px;right:5px}
+.tile .dot{width:6px;height:6px;top:6px;left:6px}
+.mini{border-bottom:1px solid var(--ink)}
+.mini h3{font-weight:500;font-size:20px;line-height:1.05}
+.mini .meta{font-family:var(--font-display);font-size:14px;letter-spacing:0;text-transform:none}
+.filterbar,.league-head{background:var(--ink)}
+.score-row,.alert{border-bottom:1px solid var(--ink)}
+/* tab bar: lighter gray, condensed labels, My Teams icon stacked over its label */
+.tabs{background:#5a5a5d;box-shadow:0 -1px 0 #444447}
+.tab{font-size:24px;font-weight:400;color:#f0f0f2;height:56px}
+.tab .count{top:7px;right:calc(50% - 40px)}
+.tab-teams{flex-direction:column;gap:3px}
+.tab-teams .bars{width:22px;gap:2px;opacity:.6}
+.tab-teams .bars i{height:1.5px}
+.tab-teams .lbl{display:flex;align-items:flex-start;line-height:1}
+.tab-teams .pip{margin:2px 0 0 4px;width:6px;height:6px}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head><body>
@@ -217,7 +270,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 
   <nav class="tabs" role="tablist">
     <button class="tab" role="tab" data-view="alerts" id="tab-alerts" aria-selected="false">Alerts<span class="count" id="alertCount">9+</span></button>
-    <button class="tab" role="tab" data-view="teams" id="tab-teams" aria-selected="true"><span class="bars"><i></i><i></i><i></i></span>My Teams<span class="pip"></span></button>
+    <button class="tab tab-teams" role="tab" data-view="teams" id="tab-teams" aria-selected="true"><span class="bars"><i></i><i></i><i></i></span><span class="lbl">My Teams<span class="pip"></span></span></button>
     <button class="tab" role="tab" data-view="scores" id="tab-scores" aria-selected="false">Scores</button>
   </nav>
 
