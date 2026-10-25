@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Huddle">
 <meta name="theme-color" content="#4a4a4d">
 <title>Huddle Sports App</title>
@@ -525,11 +525,12 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <style>
-/* Home-screen app fit: the app fills the whole screen; the header color runs up behind the status bar,
-   the tab bar sits at the very bottom with room for the home indicator. */
+/* Home-screen app fit. Solid black iOS status bar (no translucency), so nothing is drawn under it and
+   iOS does not blur the header. The app is sized by screen height (100vh) rather than anchored to the
+   bottom edge, which iOS standalone mode can report short, so the tab bar reaches the bottom. */
 html,body{height:100%;margin:0;background:#4a4a4d;overscroll-behavior:none}
 body::before{display:none}
-html .app{position:fixed;top:0;right:0;bottom:0;left:0;height:auto;max-width:none;margin:0;padding-top:env(safe-area-inset-top,0px);background:#4a4a4d}
+html .app{position:fixed;top:0;left:0;right:0;bottom:auto;height:100vh;max-width:none;margin:0;padding-top:env(safe-area-inset-top,0px);background:#4a4a4d}
 html .views{background:var(--chrome)}
 html .tpage{top:env(safe-area-inset-top,0px)}
 html .sheet{top:env(safe-area-inset-top,0px)}
