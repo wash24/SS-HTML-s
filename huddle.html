@@ -522,6 +522,9 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .sc-st span{font-size:18px}
 .sc-st small{font-size:14px}
 
+/* Alerts is display-only */
+#tab-alerts,[data-go="alerts"]{cursor:default}
+#tab-alerts:active{transform:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <style>
@@ -538,27 +541,6 @@ html .sheet{top:env(safe-area-inset-top,0px)}
 html .tabs{padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (min-width:520px){ html .app{left:50%;right:auto;width:480px;transform:translateX(-50%)} }
 </style>
-<script>
-/* TEMPORARY sizing readout, only when launched from the home screen: shows what iOS reports so the
-   layout can be matched exactly. Remove once the bottom edge is confirmed. */
-window.addEventListener('load', function(){
-  var standalone = window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
-  if(!standalone) return;
-  var probe = document.createElement('div');
-  probe.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;visibility:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)';
-  document.body.appendChild(probe);
-  setTimeout(function(){
-    var cs = getComputedStyle(probe), app = document.getElementById('app').getBoundingClientRect(), tabs = document.querySelector('.tabs').getBoundingClientRect();
-    var d = document.createElement('div');
-    d.style.cssText = 'position:fixed;left:6px;top:50%;z-index:99;background:rgba(0,0,0,.8);color:#7fff7f;font:11px/1.35 monospace;padding:6px 8px;pointer-events:none;white-space:pre';
-    d.textContent = 'innerH ' + innerHeight + '  vv ' + Math.round((window.visualViewport||{}).height||0) +
-      '\nclientH ' + document.documentElement.clientHeight + '  screen ' + screen.width + 'x' + screen.height +
-      '\ninsetTop ' + cs.paddingTop + '  insetBot ' + cs.paddingBottom +
-      '\napp ' + Math.round(app.top) + '..' + Math.round(app.bottom) + '  tabs ' + Math.round(tabs.top) + '..' + Math.round(tabs.bottom);
-    document.body.appendChild(d);
-  }, 1200);
-});
-</script>
 </head><body>
 
 <div class="app" id="app">
@@ -594,7 +576,7 @@ window.addEventListener('load', function(){
   </section>
 
   <nav class="tabs" role="tablist">
-    <button class="tab" role="tab" data-view="alerts" id="tab-alerts" aria-selected="false">Alerts<span class="count" id="alertCount">9+</span></button>
+    <button class="tab" role="tab" data-view="alerts" id="tab-alerts" aria-selected="false" aria-disabled="true">Alerts<span class="count" id="alertCount">9+</span></button>
     <button class="tab tab-teams" role="tab" data-view="teams" id="tab-teams" aria-selected="true"><span class="bars"><i></i><i></i><i></i></span><span class="lbl">My Teams<span class="pip"></span></span></button>
     <button class="tab" role="tab" data-view="scores" id="tab-scores" aria-selected="false">Scores</button>
   </nav>
@@ -815,7 +797,7 @@ function bigCard(st){
     </div></article>`;
 }
 function mini(st){
-  const media = st.img ? `<img src="${esc(st.img)}" alt="" loading="lazy">` : art(st.art, st.title);
+  const media = (st.thumb||st.img) ? `<img src="${esc(st.thumb||st.img)}" alt="" loading="lazy">` : art(st.art, st.title);
   const inner = `<div class="thumb">${media}</div><div class="txt"><h3>${esc(st.title)}</h3><span class="meta">${esc(st.src)} · ${esc(st.ago)}</span></div>`;
   return st.link ? `<a class="mini" href="${esc(st.link)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${inner}</a>` : `<div class="mini">${inner}</div>`;
 }
@@ -1176,7 +1158,7 @@ function tStoryLead(st){
   return st.link ? `<a class="tlead" href="${esc(st.link)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="tlead">${inner}</div>`;
 }
 function tStoryCard(st){
-  const media = st.img ? `<img src="${esc(st.img)}" alt="" loading="lazy">` : art(st.art, st.title);
+  const media = (st.thumb||st.img) ? `<img src="${esc(st.thumb||st.img)}" alt="" loading="lazy">` : art(st.art, st.title);
   const inner = `<span class="th">${media}</span><span class="tx"><h4>${esc(st.title)}</h4><span class="via">via ${esc(st.byline||'ESPN')} · ${esc(st.ago)}</span></span>`;
   return st.link ? `<a class="tcard" href="${esc(st.link)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="tcard">${inner}</div>`;
 }
@@ -1379,6 +1361,7 @@ const teamPageOpen = () => $('#tpage').classList.contains('open');
 document.addEventListener('click', e => {
   const tab = e.target.closest('.tab');
   if(tab){
+    if(tab.dataset.view==='alerts') return;   /* Alerts is display-only: no alerts page */
     /* My Teams pulls the drawer up (tap again to put it away); the other tabs switch views */
     if(tab.dataset.view==='teams'){ if(teamPageOpen()) closeTeamPage(); showView('teams'); setDrawer(!drawerOpen()); }
     else { if(teamPageOpen()) closeTeamPage(); setDrawer(false); showView(tab.dataset.view); }
@@ -1389,7 +1372,7 @@ document.addEventListener('click', e => {
   const scd = e.target.closest('[data-scday]');
   if(scd){ scDay += Number(scd.dataset.scday); renderScores(); return; }
   const go = e.target.closest('[data-go]');
-  if(go){ setDrawer(false); showView(go.dataset.go); return; }
+  if(go){ if(go.dataset.go==='alerts') return; setDrawer(false); showView(go.dataset.go); return; }
   const row = e.target.closest('[data-row]');
   if(row){ openTeamPage(row.dataset.row); return; }
   if(e.target.closest('#tpBack')){ closeTeamPage(); return; }
@@ -1437,27 +1420,72 @@ function parseEvent(ev, lg){
 }
 const toStory = (a, key, src, chip, chipColor, chipLogo) => ({key, src, chip, chipColor, chipLogo, title:a.headline, published:a.published, byline:a.byline||'',
   ago:ago(a.published), img:a.images&&a.images[0]&&a.images[0].url, link:a.links&&a.links.web&&a.links.web.href});
-async function loadLive(){
+/* ---- Bleacher Report stories ----
+   B/R has no public feed, but its league/team pages (which allow cross-site reads) embed each story's
+   data: full headline, slug, publish time and thumbnail. Only B/R's own articles are kept. */
+const BR = 'https://bleacherreport.com/';
+const BR_LEAGUE = {nfl:'nfl', mlb:'mlb', nba:'nba', cfb:'college-football', cbb:'college-basketball'};
+const brSlugOk = {};                      /* pickKey -> slug that worked */
+const slugify = x => String(x||'').toLowerCase().replace(/&/g,'and').replace(/['’.]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+function brSlugs(p){
+  if(p.type==='league') return [BR_LEAGUE[p.lg]];
+  if(LG[p.lg].college){ const sfx = p.lg==='cfb' ? '-football' : '-basketball';
+    return [slugify(p.location)+sfx, slugify(p.location+' '+p.nick)+sfx]; }
+  return [slugify(p.full)];
+}
+const unesc = x => { try{ return JSON.parse('"'+x+'"'); }catch(e){ return x; } };
+function brParse(html){
+  const t = html.replace(/\\"/g,'"').replace(/\\\\/g,'\\');
+  const re = /"__typename":"StandaloneContentModule","id":"[^"]+","content":\{"__typename":"Article".*?"slug":"([^"]+)","articleTitle":"((?:[^"\\]|\\.)*)".*?"publishedDate":"([^"]+)".*?\},"contentID":"[^"]+","thumbnail":"([^"]*)","title":"((?:[^"\\]|\\.)*)"/g;
+  const out = [], seen = new Set(); let m;
+  while((m = re.exec(t))){ if(seen.has(m[1])) continue; seen.add(m[1]);
+    out.push({slug:m[1], title:unesc(m[2]) || unesc(m[5]), published:m[3], img:m[4]}); }
+  return out.sort((a,b)=> b.published.localeCompare(a.published));
+}
+async function brStories(p, key, src, chip, chipColor, chipLogo){
+  const slugs = brSlugOk[key] ? [brSlugOk[key]] : brSlugs(p);
+  for(const slug of slugs){
+    try{
+      const r = await fetchWithTimeout(BR+slug, 15000); if(!r.ok) continue;
+      const list = brParse(await r.text()); if(!list.length) continue;
+      brSlugOk[key] = slug;
+      return list.slice(0, 8).map(a => ({key, src, chip, chipColor, chipLogo, title:a.title, published:a.published, ago:ago(a.published),
+        byline:'Bleacher Report', img: a.img ? a.img.split('?')[0]+'?w=800' : '', thumb: a.img ? a.img.split('?')[0]+'?w=360' : '', link: BR + a.slug.replace(/^\//,'')}));
+    }catch(e){}
+  }
+  return null;
+}
+function fetchWithTimeout(url, ms){ const c = new AbortController(); const t = setTimeout(()=>c.abort(), ms); return fetch(url,{signal:c.signal}).finally(()=>clearTimeout(t)); }
+async function storiesFor(p){
+  const L = LG[p.lg];
+  if(p.type==='league'){
+    return (await brStories(p, p.lg, L.name, L.label, L.color, L.logo))
+      || timed(API+L.path+'/news?limit=8').then(j => j.articles.map(a=>toStory(a, p.lg, L.name, L.label, L.color, L.logo)));
+  }
+  const v = pickView(p), key = pickKey(p);
+  return (await brStories(p, key, p.full, p.ab, v.bg, p.logo))
+    || timed(API+L.path+'/news?team='+p.id+'&limit=6').then(j => j.articles.map(a=>toStory(a, key, p.full, p.ab, v.bg, p.logo)));
+}
+let lastNewsAt = 0;
+async function loadLive(force){
   const lgs = activeLeagues();
   const sb = await Promise.allSettled(lgs.map(k => timed(API+LG[k].path+'/'+LG[k].sb).then(j => j.events.map(e=>parseEvent(e,k)))));
   const got = sb.filter(r=>r.status==='fulfilled').flatMap(r=>r.value);
   if(!got.length && sb.every(r=>r.status==='rejected')) throw new Error('no live data');
   games = got;
 
-  /* One news feed per pick: league feeds for league tiles, team feeds for team tiles */
-  const feeds = await Promise.allSettled(picks.map(p => {
-    const L = LG[p.lg];
-    if(p.type==='league') return timed(API+L.path+'/news?limit=8').then(j => j.articles.map(a=>toStory(a, p.lg, L.name, L.label, L.color, L.logo)));
-    const v = pickView(p);
-    return timed(API+L.path+'/news?team='+p.id+'&limit=6').then(j => j.articles.map(a=>toStory(a, pickKey(p), p.full, p.ab, v.bg, p.logo)));
-  }));
-  const groups = feeds.map(r => r.status==='fulfilled' ? r.value : []);
-  tileMeta = {};
-  picks.forEach((p,i) => { const g = groups[i]; if(g.length){ const newest = g.reduce((m,s)=> new Date(s.published)>new Date(m.published)?s:m); tileMeta[pickKey(p)] = {ago:newest.ago, count:g.length}; } });
-  /* Round-robin across picks so every team gets a turn near the top, no duplicate headlines */
-  const out = [], seenTitles = new Set();
-  for(let i=0; i<8; i++) groups.forEach(g => { const s = g[i]; if(s && !seenTitles.has(s.title)){ seenTitles.add(s.title); out.push(s); } });
-  if(out.length) stories = out;
+  /* Stories come from Bleacher Report (league and team pages), refreshed every 10 minutes; ESPN is the fallback */
+  if(force || !lastNewsAt || Date.now()-lastNewsAt > 10*60e3){
+    lastNewsAt = Date.now();
+    const feeds = await Promise.allSettled(picks.map(p => storiesFor(p)));
+    const groups = feeds.map(r => r.status==='fulfilled' ? r.value : []);
+    tileMeta = {};
+    picks.forEach((p,i) => { const g = groups[i]; if(g.length){ const newest = g.reduce((m,s)=> new Date(s.published)>new Date(m.published)?s:m); tileMeta[pickKey(p)] = {ago:newest.ago, count:g.length}; } });
+    /* Round-robin across picks so every team gets a turn near the top, no duplicate headlines */
+    const out = [], seenTitles = new Set();
+    for(let i=0; i<8; i++) groups.forEach(g => { const s = g[i]; if(s && !seenTitles.has(s.link||s.title)){ seenTitles.add(s.link||s.title); out.push(s); } });
+    if(out.length) stories = out;
+  }
   liveMode = true;
 }
 function sampleMode(){
@@ -1466,7 +1494,7 @@ function sampleMode(){
   stories = SAMPLE_STORIES.filter(s => s.key==='featured' || keys.has(s.key));
   tileMeta = {}; stories.forEach(s => { if(!tileMeta[s.key]) tileMeta[s.key] = {ago:s.ago, count:1}; });
 }
-function refresh(){ return loadLive().then(renderAll).catch(()=>{}); }
+function refresh(){ return loadLive(true).then(renderAll).catch(()=>{}); }
 
 /* ================= Boot ================= */
 sampleMode(); renderAll();
