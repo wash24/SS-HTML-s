@@ -134,6 +134,53 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .tab .bars i{display:block;height:2px;background:currentColor}
 .tab .pip{width:7px;height:7px;border-radius:50%;background:#fff;margin-left:2px;align-self:flex-start;margin-top:17px}
 
+
+/* tile logos + add tile */
+.tile .t-logo{width:46px;height:46px;display:flex;align-items:center;justify-content:center}
+.tile .t-logo img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
+.logo-txt{font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:.02em;color:#fff}
+.tile .t-name{max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile.add{background:var(--chrome-2);box-shadow:inset 0 0 0 2px #5a5a5e}
+.tile.add .plus{font-family:var(--font-display);font-size:38px;line-height:.9;font-weight:400;color:var(--flame)}
+.src-chip.logo{padding:1px}
+.src-chip.logo img{width:20px;height:20px;object-fit:contain}
+.src-chip .logo-txt{font-size:10px}
+.ticker-empty{font-family:var(--font-display);color:var(--mute);font-size:14px;padding:22px 10px;white-space:nowrap}
+
+/* team picker sheet */
+.sheet{position:absolute;inset:0;z-index:20;background:var(--chrome);display:flex;flex-direction:column;transform:translateY(100%);visibility:hidden;transition:transform .3s cubic-bezier(.2,.8,.2,1),visibility 0s .3s}
+.sheet.open{transform:none;visibility:visible;transition:transform .3s cubic-bezier(.2,.8,.2,1),visibility 0s}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--ink);padding:12px max(14px,env(safe-area-inset-right,0px)) 10px max(14px,env(safe-area-inset-left,0px))}
+.sheet-head h2{margin:0;font-family:var(--font-display);font-weight:600;font-size:22px;letter-spacing:.03em;text-transform:uppercase}
+.done{background:var(--flame);color:#fff;font-family:var(--font-display);font-size:17px;padding:7px 18px}
+.picked-label,.section-label{font-family:var(--font-display);text-transform:uppercase;letter-spacing:.1em;font-size:12px;color:var(--mute)}
+.picked-label{background:var(--ink);padding:0 max(14px,env(safe-area-inset-right,0px)) 0 max(14px,env(safe-area-inset-left,0px))}
+.section-label{background:var(--ink);padding:10px 14px 7px}
+.picked{display:flex;gap:4px;overflow-x:auto;padding:6px 8px 10px;background:var(--ink);min-height:82px;scrollbar-width:none;flex:none}
+.picked::-webkit-scrollbar{display:none}
+.pchip{flex:none;width:66px;height:66px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#fff;font-family:var(--font-display);font-size:11px}
+.pchip img{width:32px;height:32px;object-fit:contain;filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
+.pchip>span:last-child{max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pchip .x{position:absolute;top:1px;right:4px;font-size:15px;line-height:1;opacity:.9}
+.picked-empty{color:var(--mute);font-size:14px;padding:22px 6px}
+.lg-tabs{display:grid;grid-template-columns:repeat(5,1fr);background:var(--chrome-2);flex:none}
+.lg-tab{padding:11px 0 9px;font-family:var(--font-display);font-size:17px;color:#cfcfd2;border-bottom:3px solid transparent}
+.lg-tab[aria-selected="true"]{color:#fff;border-bottom-color:var(--flame)}
+.search{padding:10px max(14px,env(safe-area-inset-right,0px)) 10px max(14px,env(safe-area-inset-left,0px));background:var(--chrome-2);border-top:1px solid #2a2a2c;flex:none}
+.search input{width:100%;font:16px var(--font-body);color:var(--paper);background:var(--ink);border:1px solid #4a4a4e;padding:9px 12px;border-radius:0}
+.search input:focus{outline:2px solid var(--flame);outline-offset:-1px}
+.sheet-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:env(safe-area-inset-bottom,0px)}
+.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--chrome);border-bottom:1px solid #222224;padding:9px max(14px,env(safe-area-inset-right,0px)) 9px max(14px,env(safe-area-inset-left,0px))}
+.opt .lg{width:40px;height:40px;flex:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.opt .lg img{width:32px;height:32px;object-fit:contain}
+.opt .nm{flex:1;min-width:0;font-size:17px;display:flex;flex-direction:column;gap:1px}
+.opt .sub{font-size:12px;color:var(--mute);letter-spacing:.04em}
+.opt .chk{width:28px;height:28px;flex:none;border:2px solid #6a6a6e;border-radius:50%;position:relative}
+.opt .chk::after{content:"+";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;color:#bdbdc0}
+.opt[aria-pressed="true"] .chk{background:var(--flame);border-color:var(--flame)}
+.opt[aria-pressed="true"] .chk::after{content:"✓";color:#fff;font-size:15px}
+.league-opt{background:var(--chrome-2)}
+
 .datanote{font-size:11px;color:var(--mute);text-align:center;padding:14px 16px 4px;letter-spacing:.04em}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -157,40 +204,110 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
     <button class="tab" role="tab" data-view="teams" id="tab-teams" aria-selected="true"><span class="bars"><i></i><i></i><i></i></span>My Teams<span class="pip"></span></button>
     <button class="tab" role="tab" data-view="scores" id="tab-scores" aria-selected="false">Scores</button>
   </nav>
+
+  <section class="sheet" id="picker" aria-hidden="true" aria-label="Edit my teams">
+    <div class="sheet-head"><h2>My Teams</h2><button class="done" id="pickerDone">Done</button></div>
+    <div class="picked-label">Selected · tap to remove</div>
+    <div class="picked" id="picked"></div>
+    <div class="lg-tabs" role="tablist">
+      <button class="lg-tab" role="tab" data-lg="nfl">NFL</button><button class="lg-tab" role="tab" data-lg="mlb">MLB</button><button class="lg-tab" role="tab" data-lg="nba">NBA</button><button class="lg-tab" role="tab" data-lg="cfb">CFB</button><button class="lg-tab" role="tab" data-lg="cbb">CBB</button>
+    </div>
+    <div class="search"><input id="teamSearch" type="search" placeholder="Search teams" autocomplete="off" aria-label="Search teams"></div>
+    <div class="sheet-body" id="pickerList"></div>
+  </section>
 </div>
 
 <script>
 (function(){
-/* ---------------- Config ---------------- */
-const LEAGUES = [
-  {key:'nfl',  label:'NFL',             path:'football/nfl'},
-  {key:'cfb',  label:'College Football',path:'football/college-football'},
-  {key:'nba',  label:'NBA',             path:'basketball/nba'},
-];
-const MY_TEAMS = [
-  {id:'bulls',   name:'Bulls',    ab:'CHI', color:'#CE1141', ago:'1h',  league:'nba'},
-  {id:'lakers',  name:'Lakers',   ab:'LAL', color:'#552583', ago:'19m', league:'nba'},
-  {id:'bears',   name:'Bears',    ab:'CHI', color:'#0B162A', ago:'2h',  league:'nfl'},
-  {id:'cowboys', name:'Cowboys',  ab:'DAL', color:'#003594', ago:'34m', league:'nfl'},
-  {id:'featured',name:'Featured', ab:'H',   color:'#58585c', ago:'6m',  league:'all'},
-  {id:'warriors',name:'Warriors', ab:'GSW', color:'#1D428A', ago:'12m', league:'nba'},
-  {id:'cfb',     name:'CFB',      ab:'NCAA',color:'#1f6b3a', ago:'8m',  league:'cfb'},
-];
+/* ================= Config ================= */
+const LG = {
+  nfl:{label:'NFL', name:'NFL', path:'football/nfl', sb:'scoreboard?limit=100', teams:'teams?limit=40', color:'#013369', periods:4,
+       logo:'https://a.espncdn.com/i/teamlogos/leagues/500/nfl.png', logoDir:'nfl'},
+  mlb:{label:'MLB', name:'MLB', path:'baseball/mlb', sb:'scoreboard', teams:'teams?limit=40', color:'#041E42', periods:9,
+       logo:'https://a.espncdn.com/i/teamlogos/leagues/500/mlb.png', logoDir:'mlb'},
+  nba:{label:'NBA', name:'NBA', path:'basketball/nba', sb:'scoreboard', teams:'teams?limit=40', color:'#C9082A', periods:4,
+       logo:'https://a.espncdn.com/i/teamlogos/leagues/500/nba.png', logoDir:'nba'},
+  cfb:{label:'CFB', name:'College Football', path:'football/college-football', sb:'scoreboard?groups=80&limit=500', teams:'teams?groups=80&limit=1000', color:'#1f6b3a', periods:4,
+       logo:'https://a.espncdn.com/redesign/assets/img/icons/ESPN-icon-football-college.png', logoDir:'ncaa', college:true},
+  cbb:{label:'CBB', name:'College Basketball', path:'basketball/mens-college-basketball', sb:'scoreboard?groups=50&limit=500', teams:'teams?groups=50&limit=1000', color:'#2b5f9e', periods:2,
+       logo:'https://a.espncdn.com/redesign/assets/img/icons/ESPN-icon-basketball.png', logoDir:'ncaa', college:true},
+};
+const LG_ORDER = ['nfl','mlb','nba','cfb','cbb'];
+const API = 'https://site.api.espn.com/apis/site/v2/sports/';
+const STORE_KEY = 'huddle.picks.v1';
 
-/* ---------------- Sample data (shown when live feeds are unreachable) ---------------- */
+/* Offline fallback team lists (used only if ESPN can't be reached) */
+const FALLBACK_TEAMS = {
+  nfl:[['3','CHI','Chicago','Bears','#0B162A'],['6','DAL','Dallas','Cowboys','#003594'],['9','GB','Green Bay','Packers','#204E32'],['12','KC','Kansas City','Chiefs','#E31837'],['21','PHI','Philadelphia','Eagles','#06424D'],['23','PIT','Pittsburgh','Steelers','#000000'],['34','HOU','Houston','Texans','#03202F']],
+  mlb:[['13','TEX','Texas','Rangers','#003278'],['16','CHC','Chicago','Cubs','#0E3386'],['10','NYY','New York','Yankees','#132448'],['19','LAD','Los Angeles','Dodgers','#005A9C'],['24','STL','St. Louis','Cardinals','#C41E3A'],['18','HOU','Houston','Astros','#002D62']],
+  nba:[['4','CHI','Chicago','Bulls','#CE1141'],['13','LAL','Los Angeles','Lakers','#552583'],['9','GS','Golden State','Warriors','#1D428A'],['2','BOS','Boston','Celtics','#007A33'],['6','DAL','Dallas','Mavericks','#0053BC'],['24','SA','San Antonio','Spurs','#000000']],
+  cfb:[['8','ARK','Arkansas','Razorbacks','#9D2235'],['333','ALA','Alabama','Crimson Tide','#9E1B32'],['251','TEX','Texas','Longhorns','#BF5700'],['194','OSU','Ohio State','Buckeyes','#BB0000'],['61','UGA','Georgia','Bulldogs','#BA0C2F'],['130','MICH','Michigan','Wolverines','#00274C']],
+  cbb:[['8','ARK','Arkansas','Razorbacks','#9D2235'],['96','UK','Kentucky','Wildcats','#0033A0'],['150','DUKE','Duke','Blue Devils','#003087'],['2305','KU','Kansas','Jayhawks','#0051BA'],['153','UNC','North Carolina','Tar Heels','#7BAFD4'],['248','HOU','Houston','Cougars','#C8102E']],
+};
+function fallbackTeams(lg){
+  const L = LG[lg];
+  return FALLBACK_TEAMS[lg].map(([id,ab,loc,nick,color]) => ({lg, id, ab, location:loc, nick, full:loc+' '+nick, color,
+    logo: L.college ? `https://a.espncdn.com/i/teamlogos/ncaa/500/${id}.png` : `https://a.espncdn.com/i/teamlogos/${L.logoDir}/500/${ab.toLowerCase()}.png`}));
+}
+
+/* ================= Picks (saved on this device) ================= */
+const DEFAULT_PICKS = [{type:'league',lg:'nfl'},{type:'league',lg:'cfb'},{type:'league',lg:'nba'}];
+function loadPicks(){ try{ const v = JSON.parse(localStorage.getItem(STORE_KEY)); if(Array.isArray(v)) return v; }catch(e){} return DEFAULT_PICKS.slice(); }
+function savePicks(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(picks)); }catch(e){} }
+let picks = loadPicks();
+const pickKey = p => p.type==='league' ? p.lg : `${p.lg}:${p.id}`;
+const isPicked = key => picks.some(p => pickKey(p)===key);
+function activeLeagues(){ const s = new Set(picks.map(p=>p.lg)); const out = LG_ORDER.filter(k=>s.has(k)); return out.length ? out : ['nfl','nba','cfb']; }
+
+/* ================= Sample data (shown when live feeds are unreachable) ================= */
 const at = (days,h,m) => { const x = new Date(); x.setDate(x.getDate()+days); x.setHours(h,m,0,0); return x.toISOString(); };
 const SAMPLE_GAMES = [
-  {lg:'cfb',live:true,period:3,clock:'2:50',date:at(0,14,30),a:{ab:'TEM',rank:22,sc:24,color:'#9D2235'},h:{ab:'ECU',sc:17,color:'#592A8A'}},
-  {lg:'nba',date:at(0,19,0),a:{ab:'NYK',rec:'3-1',color:'#006BB6'},h:{ab:'BOS',rec:'2-1',color:'#007A33'}},
-  {lg:'nba',date:at(0,21,30),a:{ab:'GSW',rec:'2-4',color:'#1D428A'},h:{ab:'LAL',rec:'2-4',color:'#552583'}},
-  {lg:'nfl',date:at(1,12,0),a:{ab:'PIT',rec:'4-2',color:'#FFB612'},h:{ab:'CLE',rec:'1-5',color:'#311D00'}},
-  {lg:'nfl',date:at(1,15,25),a:{ab:'SEA',rec:'2-4',color:'#69BE28'},h:{ab:'SF',rec:'2-4',color:'#AA0000'}},
-  {lg:'cfb',final:true,period:4,date:at(0,11,0),a:{ab:'ARK',sc:31,color:'#9D2235'},h:{ab:'MSST',sc:20,color:'#5D1725'}},
+  {lg:'cfb',live:true,period:3,clock:'2:50',date:at(0,14,30),a:{id:'218',ab:'TEM',rank:22,sc:24,color:'#9D2235'},h:{id:'151',ab:'ECU',sc:17,color:'#592A8A'}},
+  {lg:'nba',date:at(0,19,0),a:{id:'18',ab:'NYK',rec:'3-1',color:'#006BB6'},h:{id:'2',ab:'BOS',rec:'2-1',color:'#007A33'}},
+  {lg:'nba',date:at(0,21,30),a:{id:'9',ab:'GSW',rec:'2-4',color:'#1D428A'},h:{id:'13',ab:'LAL',rec:'2-4',color:'#552583'}},
+  {lg:'nfl',date:at(1,12,0),a:{id:'23',ab:'PIT',rec:'4-2',color:'#FFB612'},h:{id:'5',ab:'CLE',rec:'1-5',color:'#311D00'}},
+  {lg:'nfl',date:at(1,15,25),a:{id:'26',ab:'SEA',rec:'2-4',color:'#69BE28'},h:{id:'25',ab:'SF',rec:'2-4',color:'#AA0000'}},
+  {lg:'cfb',final:true,period:4,date:at(0,11,0),a:{id:'8',ab:'ARK',sc:31,color:'#9D2235'},h:{id:'344',ab:'MSST',sc:20,color:'#5D1725'}},
 ];
+const SAMPLE_STORIES = [
+  {key:'featured',src:'Featured',chip:'H',chipColor:'#58585c',title:'NBA × NFL Jersey Mashups',ago:'56m',art:'mashup',over:['NBA × NFL','Jersey Mashups']},
+  {key:'cfb',src:'College Football',chip:'CFB',chipColor:'#1f6b3a',title:'Upset Watch: Five Ranked Teams on Upset Alert This Saturday',ago:'4m',art:'field'},
+  {key:'nba',src:'NBA',chip:'NBA',chipColor:'#C9082A',title:'Three Takeaways From Opening Week Around the League',ago:'1h',art:'court'},
+  {key:'nfl',src:'NFL',chip:'NFL',chipColor:'#013369',title:'Midseason Grades for Every Division Leader',ago:'34m',art:'field'},
+  {key:'mlb',src:'MLB',chip:'MLB',chipColor:'#041E42',title:'World Series Preview: Where the Series Will Be Won',ago:'22m',art:'lights'},
+  {key:'cbb',src:'College Basketball',chip:'CBB',chipColor:'#2b5f9e',title:'Preseason Top 25: Who Opens the Season on Top',ago:'3h',art:'court'},
+  {key:'nfl',src:'NFL',chip:'NFL',chipColor:'#013369',title:'Film Room: How Defenses Are Flipping Fourth Quarters',ago:'2h',art:'field'},
+  {key:'nba',src:'NBA',chip:'NBA',chipColor:'#C9082A',title:'Bench Units Quietly Leading the League in Net Rating',ago:'12m',art:'court'},
+];
+const SAMPLE_ALERTS = [
+  {chip:'TEM',color:'#9D2235',text:'Temple leads ECU 24–17 heading to the 4th quarter',ago:'2m',unread:true},
+  {chip:'LAL',color:'#552583',text:'Lakers starting lineup announced for tonight vs. Warriors',ago:'19m',unread:true},
+  {chip:'ARK',color:'#9D2235',text:'FINAL: Arkansas 31, Mississippi State 20',ago:'41m',unread:true},
+  {chip:'CHI',color:'#CE1141',text:'Bulls guard listed as questionable for Monday (ankle)',ago:'1h',unread:false},
+  {chip:'DAL',color:'#003594',text:'Cowboys open as 3.5-point favorites for Sunday',ago:'3h',unread:false},
+];
+
+/* ================= Helpers ================= */
+let games = [], stories = [], alerts = SAMPLE_ALERTS.slice(), liveMode = false;
+let filter = null, starred = new Set(), tileMeta = {}, seen = new Set();
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hex = c => !c ? '#444' : (c[0]==='#' ? c : '#'+c);
+function lum(c){ c = hex(c).slice(1); if(c.length!==6) return .3; const [r,g,b]=[0,2,4].map(i=>parseInt(c.substr(i,2),16)/255); return .2126*r+.7152*g+.0722*b; }
+const teamBg = (color, alt) => (lum(color) > .78 && alt) ? hex(alt) : hex(color);
+/* <img> that swaps itself for text if the logo can't load */
+const logoImg = (src, text, cls='') => src
+  ? `<img class="${cls}" src="${esc(src)}" alt="" loading="lazy" onerror="this.outerHTML='<b class=&quot;logo-txt&quot;>${esc(text)}</b>'">`
+  : `<b class="logo-txt">${esc(text)}</b>`;
+function timed(url, ms=7000){
+  const c = new AbortController(); const t = setTimeout(()=>c.abort(), ms);
+  return fetch(url,{signal:c.signal}).then(r=>{clearTimeout(t); if(!r.ok) throw new Error(r.status); return r.json();});
+}
+function ago(iso){ const m = Math.max(1, Math.round((Date.now()-new Date(iso))/60000)); return m<60?m+'m':m<1440?Math.round(m/60)+'h':Math.round(m/1440)+'d'; }
 
 /* ---- Status strip: pregame "10/26 7:00PM CT" (date dropped on game day), live "3rd ... 2:50", "Final" ---- */
 function ordinal(n){ const s=['th','st','nd','rd'], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
-function periodLabel(g){ const reg = 4; if(g.period>reg){ const k=g.period-reg; return (k>1?k:'')+'OT'; } return ordinal(g.period||1); }
+function periodLabel(g){ const reg = (LG[g.lg]||{}).periods || 4; if(g.period>reg){ const k=g.period-reg; return (k>1?k:'')+'OT'; } return ordinal(g.period||1); }
 function tzLabel(d){
   try{ const p = new Intl.DateTimeFormat('en-US',{timeZoneName:'shortGeneric'}).formatToParts(d).find(x=>x.type==='timeZoneName');
        if(p && p.value.length<=4) return p.value; }catch(e){}
@@ -200,7 +317,8 @@ function tzLabel(d){
 }
 function statusParts(g){
   if(g.postponed) return ['Postponed',''];
-  if(g.final) return [g.period>4 ? 'Final/'+periodLabel(g) : 'Final',''];
+  if(g.lg==='mlb' && (g.live||g.final)) return [g.detail || (g.final?'Final':''), ''];
+  if(g.final) return [g.period>((LG[g.lg]||{}).periods||4) ? 'Final/'+periodLabel(g) : 'Final',''];
   if(g.live){
     if(g.half) return ['Half',''];
     if(g.endPeriod) return ['End '+periodLabel(g),''];
@@ -211,32 +329,16 @@ function statusParts(g){
   const sameDay = d.toDateString()===now.toDateString();
   return [sameDay ? time : `${d.getMonth()+1}/${d.getDate()} ${time}`, ''];
 }
-const SAMPLE_STORIES = [
-  {team:'featured',src:'Featured',chip:'H',chipColor:'#58585c',title:'NBA × NFL Jersey Mashups',ago:'56m',art:'mashup',over:['NBA × NFL','Jersey Mashups']},
-  {team:'cfb',src:'College Football',chip:'CFB',chipColor:'#1f6b3a',title:'Upset Watch: Five Ranked Teams on Upset Alert This Saturday',ago:'4m',art:'field'},
-  {team:'bulls',src:'Bulls',chip:'CHI',chipColor:'#CE1141',title:'Three Takeaways From the Bulls’ Home Opener',ago:'1h',art:'court'},
-  {team:'cowboys',src:'Cowboys',chip:'DAL',chipColor:'#003594',title:'Midseason Grades for Every Position Group',ago:'34m',art:'field'},
-  {team:'lakers',src:'Lakers',chip:'LAL',chipColor:'#552583',title:'Ranking the Lakers’ Rotation After Week One',ago:'19m',art:'court'},
-  {team:'bears',src:'Bears',chip:'CHI',chipColor:'#0B162A',title:'Film Room: How the Defense Flipped the Fourth Quarter',ago:'2h',art:'field'},
-  {team:'warriors',src:'Warriors',chip:'GSW',chipColor:'#1D428A',title:'Bench Unit Is Quietly Leading the League in Net Rating',ago:'12m',art:'court'},
-  {team:'featured',src:'Featured',chip:'H',chipColor:'#58585c',title:'Power Rankings: Who Climbed After a Chaotic Week',ago:'1h',art:'lights'},
-];
-const SAMPLE_ALERTS = [
-  {chip:'TEM',color:'#9D2235',text:'Temple leads ECU 24–17 heading to the 4th quarter',ago:'2m',unread:true},
-  {chip:'LAL',color:'#552583',text:'Lakers starting lineup announced for tonight vs. Warriors',ago:'19m',unread:true},
-  {chip:'ARK',color:'#9D2235',text:'FINAL: Arkansas 31, Mississippi State 20',ago:'41m',unread:true},
-  {chip:'CHI',color:'#CE1141',text:'Bulls guard listed as questionable for Monday (ankle)',ago:'1h',unread:false},
-  {chip:'DAL',color:'#003594',text:'Cowboys open as 3.5-point favorites for Sunday',ago:'3h',unread:false},
-];
+const myTeamKeys = () => new Set(picks.filter(p=>p.type==='team').map(pickKey));
+const gameHasMine = (g, mine) => mine.has(`${g.lg}:${g.a.id}`) || mine.has(`${g.lg}:${g.h.id}`);
+function orderGames(list){
+  const mine = myTeamKeys(), act = activeLeagues();
+  const rank = g => g.live?0 : g.final?2 : 1;
+  return list.filter(g => act.includes(g.lg))
+    .sort((x,y)=> (gameHasMine(y,mine)-gameHasMine(x,mine)) || rank(x)-rank(y) || new Date(x.date)-new Date(y.date));
+}
 
-/* ---------------- State ---------------- */
-let games = [], stories = [], alerts = SAMPLE_ALERTS.slice(), liveMode = false;
-let filter = null, starred = new Set();
-const $ = s => document.querySelector(s);
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const hex = c => !c ? '#444' : (c[0]==='#' ? c : '#'+c);
-
-/* ---------------- Generative hero art (no stock photos) ---------------- */
+/* ================= Generative hero art (no stock photos) ================= */
 function art(kind, seed){
   const s = (seed||'').length;
   if(kind==='mashup') return `<div class="art" style="background:
@@ -261,16 +363,14 @@ function art(kind, seed){
     linear-gradient(180deg,#1b2433,#0c0f16)"></div>`;
 }
 
-/* ESPN logo CDN folders, used for sample games that don't carry a logo URL */
-const LOGO_PATH = {nba:'nba', nfl:'nfl'};
-
-/* ---------------- Rendering ---------------- */
+/* ================= Rendering ================= */
 function teamRow(t, g){
   const showScore = g.live||g.final;
   const sc = showScore ? `<span class="sc">${esc(t.sc)}</span>` : '';
   const rec = (!showScore && t.rec) ? `<span class="rec">(${esc(t.rec)})</span>` : '';
   const loser = g.final && Number(t.sc) < Number((t===g.a?g.h:g.a).sc);
-  const logo = t.logo || (LOGO_PATH[g.lg] && t.ab ? `https://a.espncdn.com/i/teamlogos/${LOGO_PATH[g.lg]}/500/${t.ab.toLowerCase()}.png` : '');
+  const L = LG[g.lg] || {};
+  const logo = t.logo || (t.ab ? (L.college ? (t.id?`https://a.espncdn.com/i/teamlogos/ncaa/500/${t.id}.png`:'') : `https://a.espncdn.com/i/teamlogos/${L.logoDir}/500/${t.ab.toLowerCase()}.png`) : '');
   const fallback = esc(t.ab.slice(0,1));
   const mono = logo
     ? `<span class="mono"><img src="${esc(logo)}" alt="" loading="lazy" onerror="this.parentNode.classList.add('txt');this.parentNode.textContent='${fallback}'"></span>`
@@ -280,16 +380,19 @@ function teamRow(t, g){
     <span class="ab">${t.rank?`<span class="rk">${t.rank}</span>`:''}${esc(t.ab)}${rec}</span>${sc}</div>`;
 }
 function renderTicker(){
-  $('#ticker').innerHTML = games.slice(0,12).map(g => `<div class="game">
+  const list = orderGames(games).slice(0,15);
+  $('#ticker').innerHTML = list.length ? list.map(g => `<div class="game">
     <div class="game-status">${statusParts(g).map(s=>`<span>${esc(s)}</span>`).join('')}</div>
-    ${teamRow(g.a,g)}${teamRow(g.h,g)}</div>`).join('');
+    ${teamRow(g.a,g)}${teamRow(g.h,g)}</div>`).join('')
+    : `<div class="ticker-empty">No games today for your teams</div>`;
 }
 function bigCard(st){
   const pressed = starred.has(st.title);
   const media = st.img ? `<img src="${esc(st.img)}" alt="" loading="lazy">` : art(st.art, st.title);
   const over = st.over ? `<div class="over"><b>${esc(st.over[0])}</b><span>${esc(st.over[1])}</span></div>` : '';
+  const chip = st.chipLogo ? `<span class="src-chip logo" style="background:${st.chipColor}">${logoImg(st.chipLogo, st.chip)}</span>` : `<span class="src-chip" style="background:${st.chipColor}">${esc(st.chip)}</span>`;
   return `<article class="card">
-    <div class="card-head"><div class="src"><span class="src-chip" style="background:${st.chipColor}">${esc(st.chip)}</span>${esc(st.src)}</div></div>
+    <div class="card-head"><div class="src">${chip}${esc(st.src)}</div></div>
     <div class="headline-wrap"><h2>${esc(st.title)}</h2><span class="ago">${esc(st.ago)}</span></div>
     ${st.link?`<a href="${esc(st.link)}" target="_blank" rel="noopener" style="display:block">`:''}<div class="hero">${media}<div class="shade"></div>${over}</div>${st.link?'</a>':''}
     <div class="actions">
@@ -305,43 +408,51 @@ function mini(st){
   const inner = `<div class="thumb">${media}</div><div class="txt"><h3>${esc(st.title)}</h3><span class="meta">${esc(st.src)} · ${esc(st.ago)}</span></div>`;
   return st.link ? `<a class="mini" href="${esc(st.link)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${inner}</a>` : `<div class="mini">${inner}</div>`;
 }
-function rail(){
-  return `<div class="rail" aria-label="My teams">${MY_TEAMS.map(t => `
-    <button class="tile${t.seen?' seen':''}" style="background:${t.color}" data-team="${t.id}" aria-pressed="${filter===t.id}">
-      <span class="dot"></span><span class="t-ago">${t.ago}</span>
-      <span class="badge">${esc(t.ab)}</span><span class="t-name">${esc(t.name)}</span></button>`).join('')}</div>`;
+/* A pick as it appears on a tile: league tiles use the league mark, team tiles the team logo */
+function pickView(p){
+  if(p.type==='league'){ const L = LG[p.lg]; return {key:p.lg, name:L.label, bg:L.color, logo:L.logo, text:L.label}; }
+  return {key:pickKey(p), name: LG[p.lg].college ? p.location : p.nick, bg:teamBg(p.color,p.alt), logo:p.logo, text:p.ab};
 }
-function matches(st){
-  if(!filter) return true;
-  const t = MY_TEAMS.find(x=>x.id===filter);
-  return st.team===filter || (t && t.league!=='all' && st.league===t.league && st.team===undefined);
+function rail(){
+  const tiles = picks.map(p => {
+    const v = pickView(p), m = tileMeta[v.key] || {};
+    const fresh = m.count && !seen.has(v.key);
+    return `<button class="tile${fresh?'':' seen'}" style="background:${v.bg}" data-team="${esc(v.key)}" aria-pressed="${filter===v.key}" aria-label="${esc(v.name)} stories">
+      <span class="dot"></span>${m.ago?`<span class="t-ago">${esc(m.ago)}</span>`:''}
+      <span class="t-logo">${logoImg(v.logo, v.text)}</span><span class="t-name">${esc(v.name)}</span></button>`;
+  }).join('');
+  return `<div class="rail" aria-label="My teams">${tiles}
+    <button class="tile add" data-edit aria-label="Add teams and leagues"><span class="plus">+</span><span class="t-name">${picks.length?'Edit':'Add Teams'}</span></button></div>`;
 }
 function renderTeams(){
-  const list = stories.filter(matches);
+  const list = filter ? stories.filter(s=>s.key===filter) : stories;
   let html = '';
   if(filter){
-    const t = MY_TEAMS.find(x=>x.id===filter);
-    html += rail() + `<div class="filterbar"><span>${esc(t.name)} stream · ${list.length} stories</span><button data-clear>All teams</button></div>`;
-    html += list.length ? list.map((s,i)=> i===0?bigCard(s):mini(s)).join('') : `<div class="datanote">No new stories for ${esc(t.name)} yet.</div>`;
+    const p = picks.find(x=>pickKey(x)===filter); const v = p ? pickView(p) : {name:'Team'};
+    html += rail() + `<div class="filterbar"><span>${esc(v.name)} stream · ${list.length} stories</span><button data-clear>All teams</button></div>`;
+    html += list.length ? list.map((s,i)=> i===0?bigCard(s):mini(s)).join('') : `<div class="datanote">No new stories for ${esc(v.name)} yet.</div>`;
   } else {
-    const [lead, second, ...rest] = list;
-    html += (lead?bigCard(lead):'') + rail() + (second?bigCard(second):'') + rest.map(mini).join('');
+    const leadIdx = Math.max(0, list.findIndex(s=>s.img||s.art));
+    const lead = list[leadIdx]; const rest = list.filter((_,i)=>i!==leadIdx);
+    const [second, ...more] = rest;
+    html += (lead?bigCard(lead):'') + rail() + (second?bigCard(second):'') + more.map(mini).join('');
   }
   html += `<div class="datanote">${liveMode?'Live scores and headlines from ESPN':'Sample scores and stories · live ESPN data loads when hosted'}</div>`;
   $('#view-teams').innerHTML = html;
 }
 function renderScores(){
   let html = '';
-  for(const L of LEAGUES){
-    const gs = games.filter(g=>g.lg===L.key);
+  const ordered = orderGames(games);
+  for(const k of activeLeagues()){
+    const gs = ordered.filter(g=>g.lg===k);
     if(!gs.length) continue;
-    html += `<div class="league-head">${L.label}</div>` + gs.map(g => {
+    html += `<div class="league-head">${LG[k].name}</div>` + gs.map(g => {
       const show = g.live||g.final;
       const tl = t => `<div class="tl"><span class="sw" style="background:${hex(t.color)}"></span><span class="nm">${t.rank?`<small style="opacity:.7">${t.rank}</small> `:''}${esc(t.name||t.ab)}</span><b>${show?esc(t.sc):''}</b></div>`;
       return `<div class="score-row"><div class="teams">${tl(g.a)}${tl(g.h)}</div><div class="st${g.live?' live':''}">${esc(statusParts(g).filter(Boolean).join(' '))}</div></div>`;
     }).join('');
   }
-  $('#view-scores').innerHTML = html + `<div class="datanote">${liveMode?'Live from ESPN · refreshes every 60s':'Sample data'}</div>`;
+  $('#view-scores').innerHTML = (html || `<div class="datanote">No games scheduled today for your leagues.</div>`) + `<div class="datanote">${liveMode?'Live from ESPN · refreshes every 60s':'Sample data'}</div>`;
 }
 function renderAlerts(){
   $('#view-alerts').innerHTML = alerts.map(a => `<div class="alert${a.unread?' unread':''}">
@@ -350,7 +461,67 @@ function renderAlerts(){
 }
 function renderAll(){ renderTicker(); renderTeams(); renderScores(); renderAlerts(); }
 
-/* ---------------- Events ---------------- */
+/* ================= Team picker ================= */
+const teamCache = {};          /* lg -> [{...team}] */
+let pickerLg = 'nfl', pickerQuery = '', pickerOffline = {};
+async function getTeams(lg){
+  if(teamCache[lg]) return teamCache[lg];
+  try{
+    const j = await timed(API+LG[lg].path+'/'+LG[lg].teams, 9000);
+    const raw = j.sports[0].leagues[0].teams.map(x=>x.team);
+    teamCache[lg] = raw.filter(t=>t.isActive!==false).map(t => ({lg, id:String(t.id), ab:t.abbreviation, location:t.location,
+      nick:t.name || t.shortDisplayName, full:t.displayName, color:hex(t.color||'444444'), alt:hex(t.alternateColor||'888888'),
+      logo:(t.logos&&t.logos[0]&&t.logos[0].href) || ''})).sort((a,b)=>a.full.localeCompare(b.full));
+    pickerOffline[lg] = false;
+  }catch(e){ teamCache[lg] = fallbackTeams(lg); pickerOffline[lg] = true; }
+  return teamCache[lg];
+}
+function renderPicked(){
+  $('#picked').innerHTML = picks.length ? picks.map(p => { const v = pickView(p);
+    return `<button class="pchip" style="background:${v.bg}" data-unpick="${esc(v.key)}" aria-label="Remove ${esc(v.name)}">
+      <span class="x" aria-hidden="true">×</span>${logoImg(v.logo, v.text)}<span>${esc(v.name)}</span></button>`; }).join('')
+    : `<div class="picked-empty">Nothing selected yet. Pick a league or team below.</div>`;
+}
+async function renderPickerBody(){
+  document.querySelectorAll('.lg-tab').forEach(b=>b.setAttribute('aria-selected', b.dataset.lg===pickerLg));
+  const L = LG[pickerLg], body = $('#pickerList');
+  const lgOn = isPicked(pickerLg);
+  const head = `<button class="opt league-opt" data-pick-league="${pickerLg}" aria-pressed="${lgOn}">
+      <span class="lg" style="background:${L.color}">${logoImg(L.logo, L.label)}</span>
+      <span class="nm">All ${esc(L.name)}<span class="sub">League scores and top headlines</span></span><span class="chk" aria-hidden="true"></span></button>
+    <div class="section-label">Teams</div>`;
+  if(!teamCache[pickerLg]) body.innerHTML = head + `<div class="datanote">Loading ${esc(L.name)} teams…</div>`;
+  const lgAtStart = pickerLg;
+  const teams = await getTeams(pickerLg);
+  if(lgAtStart!==pickerLg) return;
+  const q = pickerQuery.trim().toLowerCase();
+  const shown = q ? teams.filter(t => (t.full+' '+t.ab).toLowerCase().includes(q)) : teams;
+  body.innerHTML = head + (pickerOffline[pickerLg] ? `<div class="datanote">Couldn't reach ESPN, so this is a short sample list. The full list loads when you're online.</div>` : '')
+    + (shown.length ? shown.slice(0,1000).map(t => { const key = `${t.lg}:${t.id}`, on = isPicked(key);
+      return `<button class="opt" data-pick-team="${esc(key)}" aria-pressed="${on}">
+        <span class="lg" style="background:${teamBg(t.color,t.alt)}">${logoImg(t.logo, t.ab)}</span>
+        <span class="nm">${esc(t.full)}<span class="sub">${esc(t.ab)}</span></span><span class="chk" aria-hidden="true"></span></button>`; }).join('')
+      : `<div class="datanote">No ${esc(L.name)} teams match “${esc(pickerQuery)}”.</div>`);
+}
+function togglePick(p){
+  const key = pickKey(p), i = picks.findIndex(x=>pickKey(x)===key);
+  if(i>=0) picks.splice(i,1); else picks.push(p);
+  if(filter===key) filter = null;
+  savePicks(); renderPicked();
+}
+let picksAtOpen = '';
+function openPicker(){
+  picksAtOpen = JSON.stringify(picks);
+  $('#picker').classList.add('open'); $('#picker').setAttribute('aria-hidden','false');
+  renderPicked(); renderPickerBody();
+}
+function closePicker(){
+  $('#picker').classList.remove('open'); $('#picker').setAttribute('aria-hidden','true');
+  renderAll();
+  if(JSON.stringify(picks)!==picksAtOpen) refresh();
+}
+
+/* ================= Events ================= */
 document.addEventListener('click', e => {
   const tab = e.target.closest('.tab');
   if(tab){
@@ -359,56 +530,75 @@ document.addEventListener('click', e => {
     if(tab.dataset.view==='alerts'){ alerts.forEach(a=>a.unread=false); $('#alertCount').hidden = true; setTimeout(renderAlerts,1200); }
     return;
   }
+  if(e.target.closest('[data-edit]') || e.target.closest('.gear')){ openPicker(); return; }
+  if(e.target.closest('#pickerDone')){ closePicker(); return; }
+  const lgTab = e.target.closest('.lg-tab');
+  if(lgTab){ pickerLg = lgTab.dataset.lg; pickerQuery=''; $('#teamSearch').value=''; $('#pickerList').scrollTop=0; renderPickerBody(); return; }
+  const pl = e.target.closest('[data-pick-league]');
+  if(pl){ togglePick({type:'league', lg:pl.dataset.pickLeague}); pl.setAttribute('aria-pressed', isPicked(pl.dataset.pickLeague)); return; }
+  const pt = e.target.closest('[data-pick-team]');
+  if(pt){ const key = pt.dataset.pickTeam, [lg,id] = key.split(':'); const t = (teamCache[lg]||[]).find(x=>x.id===id);
+    if(t){ togglePick({type:'team', lg, id, ab:t.ab, location:t.location, nick:t.nick, full:t.full, color:t.color, alt:t.alt, logo:t.logo}); pt.setAttribute('aria-pressed', isPicked(key)); }
+    return; }
+  const un = e.target.closest('[data-unpick]');
+  if(un){ const p = picks.find(x=>pickKey(x)===un.dataset.unpick); if(p){ togglePick(p); renderPickerBody(); } return; }
   const tile = e.target.closest('[data-team]');
-  if(tile){
-    const id = tile.dataset.team; const t = MY_TEAMS.find(x=>x.id===id); t.seen = true;
-    filter = (filter===id) ? null : id; renderTeams(); $('#view-teams').scrollTop = 0; return;
-  }
+  if(tile){ const id = tile.dataset.team; seen.add(id); filter = (filter===id) ? null : id; renderTeams(); $('#view-teams').scrollTop = 0; return; }
   if(e.target.closest('[data-clear]')){ filter=null; renderTeams(); return; }
   const star = e.target.closest('[data-star]');
   if(star){ const k=star.dataset.star; starred.has(k)?starred.delete(k):starred.add(k); star.setAttribute('aria-pressed', starred.has(k)); }
 });
+$('#teamSearch').addEventListener('input', e => { pickerQuery = e.target.value; renderPickerBody(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape' && $('#picker').classList.contains('open')) closePicker(); });
 
-/* ---------------- Live data (ESPN public site API) ---------------- */
-const API = 'https://site.api.espn.com/apis/site/v2/sports/';
-function timed(url, ms=6000){
-  const c = new AbortController(); const t = setTimeout(()=>c.abort(), ms);
-  return fetch(url,{signal:c.signal}).then(r=>{clearTimeout(t); if(!r.ok) throw 0; return r.json();});
-}
+/* ================= Live data (ESPN public site API) ================= */
 function parseEvent(ev, lg){
   const comp = ev.competitions[0]; const st = comp.status.type;
   const side = ha => { const c = comp.competitors.find(x=>x.homeAway===ha); const tm=c.team;
-    return {ab:tm.abbreviation, name:tm.shortDisplayName||tm.displayName, color:tm.color, logo:tm.logo,
+    return {id:String(tm.id), ab:tm.abbreviation, name:tm.shortDisplayName||tm.displayName, color:tm.color, logo:tm.logo,
       sc:c.score, rec:(c.records&&c.records[0]&&c.records[0].summary)||'', rank:(c.curatedRank&&c.curatedRank.current<=25)?c.curatedRank.current:null}; };
   return {lg, live:st.state==='in', final:st.state==='post' && st.name!=='STATUS_POSTPONED', postponed:st.name==='STATUS_POSTPONED',
-    half:st.name==='STATUS_HALFTIME', endPeriod:st.name==='STATUS_END_PERIOD',
+    half:st.name==='STATUS_HALFTIME', endPeriod:st.name==='STATUS_END_PERIOD', detail:st.shortDetail,
     period:comp.status.period, clock:comp.status.displayClock,
     a:side('away'), h:side('home'), date:ev.date};
 }
-const leagueColor = {nfl:'#013369', cfb:'#1f6b3a', nba:'#C9082A'};
-function ago(iso){ const m = Math.max(1, Math.round((Date.now()-new Date(iso))/60000)); return m<60?m+'m':m<1440?Math.round(m/60)+'h':Math.round(m/1440)+'d'; }
+const toStory = (a, key, src, chip, chipColor, chipLogo) => ({key, src, chip, chipColor, chipLogo, title:a.headline, published:a.published,
+  ago:ago(a.published), img:a.images&&a.images[0]&&a.images[0].url, link:a.links&&a.links.web&&a.links.web.href});
 async function loadLive(){
-  const sb = await Promise.allSettled(LEAGUES.map(L => timed(API+L.path+'/scoreboard').then(j => j.events.map(e=>parseEvent(e,L.key)))));
+  const lgs = activeLeagues();
+  const sb = await Promise.allSettled(lgs.map(k => timed(API+LG[k].path+'/'+LG[k].sb).then(j => j.events.map(e=>parseEvent(e,k)))));
   const got = sb.filter(r=>r.status==='fulfilled').flatMap(r=>r.value);
-  if(!got.length) throw new Error('no live data');
-  const rank = g => g.live?0 : g.final?2 : 1;
-  games = got.sort((x,y)=> rank(x)-rank(y) || new Date(x.date)-new Date(y.date));
-  const nw = await Promise.allSettled(LEAGUES.map(L => timed(API+L.path+'/news?limit=6').then(j => j.articles.map(a=>({
-    league:L.key, src:L.label, chip:L.key.toUpperCase(), chipColor:leagueColor[L.key], title:a.headline,
-    ago:ago(a.published), img:a.images&&a.images[0]&&a.images[0].url, link:a.links&&a.links.web&&a.links.web.href})))));
-  const news = nw.filter(r=>r.status==='fulfilled').flatMap(r=>r.value);
-  if(news.length){
-    const mix=[]; const byL = LEAGUES.map(L=>news.filter(n=>n.league===L.key));
-    for(let i=0;i<6;i++) byL.forEach(arr=>arr[i]&&mix.push(arr[i]));
-    stories = [SAMPLE_STORIES[0], ...mix];
-  }
+  if(!got.length && sb.every(r=>r.status==='rejected')) throw new Error('no live data');
+  games = got;
+
+  /* One news feed per pick: league feeds for league tiles, team feeds for team tiles */
+  const feeds = await Promise.allSettled(picks.map(p => {
+    const L = LG[p.lg];
+    if(p.type==='league') return timed(API+L.path+'/news?limit=8').then(j => j.articles.map(a=>toStory(a, p.lg, L.name, L.label, L.color, L.logo)));
+    const v = pickView(p);
+    return timed(API+L.path+'/news?team='+p.id+'&limit=6').then(j => j.articles.map(a=>toStory(a, pickKey(p), p.full, p.ab, v.bg, p.logo)));
+  }));
+  const groups = feeds.map(r => r.status==='fulfilled' ? r.value : []);
+  tileMeta = {};
+  picks.forEach((p,i) => { const g = groups[i]; if(g.length){ const newest = g.reduce((m,s)=> new Date(s.published)>new Date(m.published)?s:m); tileMeta[pickKey(p)] = {ago:newest.ago, count:g.length}; } });
+  /* Round-robin across picks so every team gets a turn near the top, no duplicate headlines */
+  const out = [], seenTitles = new Set();
+  for(let i=0; i<8; i++) groups.forEach(g => { const s = g[i]; if(s && !seenTitles.has(s.title)){ seenTitles.add(s.title); out.push(s); } });
+  if(out.length) stories = out;
   liveMode = true;
 }
+function sampleMode(){
+  games = SAMPLE_GAMES;
+  const keys = new Set(picks.map(pickKey));
+  stories = SAMPLE_STORIES.filter(s => s.key==='featured' || keys.has(s.key));
+  tileMeta = {}; stories.forEach(s => { if(!tileMeta[s.key]) tileMeta[s.key] = {ago:s.ago, count:1}; });
+}
+function refresh(){ return loadLive().then(renderAll).catch(()=>{}); }
 
-/* ---------------- Boot ---------------- */
-games = SAMPLE_GAMES; stories = SAMPLE_STORIES; renderAll();
-loadLive().then(renderAll).catch(()=>{});
-setInterval(()=>{ if(liveMode) loadLive().then(()=>{renderTicker(); renderScores();}).catch(()=>{}); }, 60000);
+/* ================= Boot ================= */
+sampleMode(); renderAll();
+refresh();
+setInterval(()=>{ if(liveMode) loadLive().then(()=>{ renderTicker(); renderScores(); }).catch(()=>{}); }, 60000);
 })();
 </script>
 </body></html>
