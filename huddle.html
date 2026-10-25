@@ -937,6 +937,18 @@ function gameBox(g){
   /* colors: scoreboard color, else a saved pick's color, else neutral */
   const pc = t => t.color || (picks.find(x=>x.type==='team' && x.lg===g.lg && String(x.id)===String(t.id))||{}).color || '#555558';
   g = {...g, a:{...g.a, color:pc(g.a)}, h:{...g.h, color:pc(g.h)}};
+  /* keep the two halves distinguishable: if the colors are close, the opponent switches to its
+     alternate color (or a darker shade of its own); the followed team always keeps its color */
+  const rgb = c => { c = hex(c).slice(1); return [0,2,4].map(i=>parseInt(c.substr(i,2),16)); };
+  const dist = (x,y) => { const a=rgb(x), b=rgb(y); return Math.hypot(a[0]-b[0], a[1]-b[1], a[2]-b[2]); };
+  if(dist(g.a.color, g.h.color) < 110){
+    const mineA = tpKey && tpKey.endsWith(':'+g.a.id);
+    const opp = mineA ? 'h' : 'a', keep = mineA ? 'a' : 'h', t = g[opp];
+    const alt = t.alt && hex(t.alt);
+    const okAlt = alt && lum(alt) < .72 && dist(alt, g[keep].color) >= 110;
+    g = {...g, [opp]:{...t, color: okAlt ? alt : shade(t.color, .5)}};
+    if(dist(g[opp].color, g[keep].color) < 70) g = {...g, [opp]:{...g[opp], color:'#3c3c40'}};
+  }
   let label, link = '';
   if(g.final){ label = `${esc(statusParts(g)[0])} ${esc(dayLabel(new Date(g.date)))}`; if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Box Score »</a>`; }
   else if(g.live){ label = esc(statusParts(g).filter(Boolean).join(' ')) + gsit(g); if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Gamecast »</a>`; }
@@ -1039,7 +1051,8 @@ function renderStream(p){
 /* ---- Standings tab ---- */
 async function loadStandings(lg){
   if(standingsCache[lg]) return standingsCache[lg];
-  const q = LG[lg].college ? (lg==='cfb' ? '?group=80' : '?group=50') : '';
+  /* college: by conference; NFL & MLB: by division (level=3); NBA: by conference */
+  const q = LG[lg].college ? (lg==='cfb' ? '?group=80' : '?group=50') : (lg==='nfl'||lg==='mlb') ? '?level=3' : '';
   try{ standingsCache[lg] = await timed(API_V2+LG[lg].path+'/standings'+q, 12000); }catch(e){ standingsCache[lg] = {error:true}; }
   return standingsCache[lg];
 }
@@ -1180,7 +1193,7 @@ function parseEvent(ev, lg){
   const val = x => x==null ? '' : (typeof x==='object' ? (x.displayValue ?? x.value ?? '') : x);
   const side = ha => { const c = comp.competitors.find(x=>x.homeAway===ha) || {}; const tm = c.team || {};
     const rec = (c.records&&c.records[0]&&(c.records[0].summary||c.records[0].displayValue)) || (c.record&&c.record[0]&&c.record[0].displayValue) || '';
-    return {id:String(tm.id), ab:tm.abbreviation, name:tm.shortDisplayName||tm.displayName, color:tm.color, logo:tm.logo || (tm.logos&&tm.logos[0]&&tm.logos[0].href) || '', logoDark:tm.logoDark || ((tm.logos||[]).find(l=>(l.rel||[]).includes('dark'))||{}).href || '',
+    return {id:String(tm.id), ab:tm.abbreviation, name:tm.shortDisplayName||tm.displayName, color:tm.color, alt:tm.alternateColor, logo:tm.logo || (tm.logos&&tm.logos[0]&&tm.logos[0].href) || '', logoDark:tm.logoDark || ((tm.logos||[]).find(l=>(l.rel||[]).includes('dark'))||{}).href || '',
       sc:val(c.score), rec, rank:(c.curatedRank&&c.curatedRank.current<=25)?c.curatedRank.current:null,
       line:(c.linescores||[]).map(l=>l.value ?? l.displayValue), hits:c.hits, errors:c.errors, winner:c.winner}; };
   const bc = (comp.broadcasts||[]).map(b => (b.names&&b.names[0]) || (b.media&&b.media.shortName) || '').filter(Boolean)[0] || '';
