@@ -411,6 +411,17 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .gb-sit .outs i.on{background:#fff}
 .gb-gap{height:6px}
 
+/* ===== Game box v4 fixes: even split, logos inside their own team block, line score fully in the gray area ===== */
+.gb-a{flex:0 0 50%;padding:0 12px 0 48px}
+.gb-h{flex:0 0 50%;padding:0 48px 0 12px}
+.gb.post .gb-a{justify-content:flex-end}
+.gb.post .gb-h{justify-content:flex-start}
+.gb-sub{padding:4px 10px 6px 10px}
+.gb-line .gb-cells{margin-right:0}
+.gb-line.hd{height:16px}
+.gb-line.hd .gb-cells{font-size:12px;font-weight:500;color:rgba(255,255,255,.65)}
+.gb-line.hd .gb-cells .tot{color:var(--flame);font-weight:600}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head><body>
@@ -929,26 +940,14 @@ function preLabel(g){
 }
 /* ---- Game box: short, wide rows ----
    label line  : status/date ............................ link
-   color row   : [away color | score or name+record][home color | score or name+record ... period headers | logo]
-   detail rows : (live/final only) away / home name + record ........ period scores + TOT          */
+   color row   : [away color: logo ... score or name+record][home color: score or name+record ... logo]  (50/50, each team's primary color)
+   detail rows : (live/final only) period headers, then away / home name + record ..... period scores + TOT */
 function gameBox(g){
   const show = g.live || g.final;
   const mlb = g.lg==='mlb', reg = (LG[g.lg]||{}).periods || 4;
   /* colors: scoreboard color, else a saved pick's color, else neutral */
   const pc = t => t.color || (picks.find(x=>x.type==='team' && x.lg===g.lg && String(x.id)===String(t.id))||{}).color || '#555558';
   g = {...g, a:{...g.a, color:pc(g.a)}, h:{...g.h, color:pc(g.h)}};
-  /* keep the two halves distinguishable: if the colors are close, the opponent switches to its
-     alternate color (or a darker shade of its own); the followed team always keeps its color */
-  const rgb = c => { c = hex(c).slice(1); return [0,2,4].map(i=>parseInt(c.substr(i,2),16)); };
-  const dist = (x,y) => { const a=rgb(x), b=rgb(y); return Math.hypot(a[0]-b[0], a[1]-b[1], a[2]-b[2]); };
-  if(dist(g.a.color, g.h.color) < 110){
-    const mineA = tpKey && tpKey.endsWith(':'+g.a.id);
-    const opp = mineA ? 'h' : 'a', keep = mineA ? 'a' : 'h', t = g[opp];
-    const alt = t.alt && hex(t.alt);
-    const okAlt = alt && lum(alt) < .72 && dist(alt, g[keep].color) >= 110;
-    g = {...g, [opp]:{...t, color: okAlt ? alt : shade(t.color, .5)}};
-    if(dist(g[opp].color, g[keep].color) < 70) g = {...g, [opp]:{...g[opp], color:'#3c3c40'}};
-  }
   let label, link = '';
   if(g.final){ label = `${esc(statusParts(g)[0])} ${esc(dayLabel(new Date(g.date)))}`; if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Box Score »</a>`; }
   else if(g.live){ label = esc(statusParts(g).filter(Boolean).join(' ')) + gsit(g); if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Gamecast »</a>`; }
@@ -976,10 +975,11 @@ function gameBox(g){
   const vals = (t, arr) => heads.map((_,i)=>cell(arr[i])).join('') + tots(t).map(v=>`<span class="c tot">${esc(v)}</span>`).join('');
   return `<div class="gb post" style="--cw:${cw}px">${top}
     <div class="gb-row" style="--ca:${hex(g.a.color)};--ch:${hex(g.h.color)}">
-      <div class="gb-a" style="flex-basis:min(46%, calc(100% - ${cellsW + 92}px))"><b class="${lost(g.a)?'lost':''}">${esc(g.a.sc)}</b></div>
-      <div class="gb-h"><b class="${lost(g.h)?'lost':''}">${esc(g.h.sc)}</b><span class="gb-cells hd">${heads.map(h=>`<span class="c">${h}</span>`).join('')}${totH.map(h=>`<span class="c tot">${h}</span>`).join('')}</span>${logo(g.h,'h')}</div>
+      <div class="gb-a">${logo(g.a,'a')}<b class="${lost(g.a)?'lost':''}">${esc(g.a.sc)}</b></div>
+      <div class="gb-h"><b class="${lost(g.h)?'lost':''}">${esc(g.h.sc)}</b>${logo(g.h,'h')}</div>
     </div>
-    <div class="gb-sub">${logo(g.a,'a2')}
+    <div class="gb-sub">
+      <div class="gb-line hd"><span class="gb-tn"></span><span class="gb-cells">${heads.map(h=>`<span class="c">${h}</span>`).join('')}${totH.map(h=>`<span class="c tot">${h}</span>`).join('')}</span></div>
       <div class="gb-line"><span class="gb-tn">${nameRec(g.a)}</span><span class="gb-cells">${vals(g.a, al)}</span></div>
       <div class="gb-line"><span class="gb-tn">${nameRec(g.h)}</span><span class="gb-cells">${vals(g.h, hl)}</span></div>
     </div></div>`;
