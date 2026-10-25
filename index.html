@@ -147,7 +147,7 @@ body{overscroll-behavior:none}
 .gm-ls td{padding:5px 6px;font-size:19px;font-weight:700;text-align:center}
 .gm-ls td.tm{text-align:left;padding-left:12px;white-space:nowrap;max-width:9em;overflow:hidden;text-overflow:ellipsis}
 .gm-ls tr:last-child td{padding-bottom:9px}
-.gm-ls td.tot{font-weight:800;border-left:1px solid rgba(255,255,255,.15)}
+.gm-ls td.tot{font-weight:800}
 .gm-ls .lost td{color:var(--t-sub)}
 .gm-ls .arw{width:12px;padding:0 6px 0 0}
 .gm-ls.dense td{font-size:15px;padding:5px 3px}
@@ -185,14 +185,15 @@ body{overscroll-behavior:none}
 .gl-v{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
 .gl-v b{font-weight:800;font-variant-numeric:tabular-nums}
 .gl-v .none{color:var(--t-sub)}
-.gm-stw{display:flex;flex-direction:column;gap:10px;padding:10px 10px 12px}
-.gm-st{border-radius:0;background:rgba(0,0,0,.2);box-shadow:inset 0 1px 3px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.12);overflow:hidden}
+.gm-stw{display:flex;flex-direction:column;gap:14px;padding:10px 12px 14px}
+.gm-st{}
 .gm-st table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;text-shadow:0 -1px 0 rgba(0,0,0,.55)}
-.gm-st th{padding:7px 10px 4px;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--t-sub);text-align:right;white-space:nowrap}
-.gm-st th.tm{text-align:left;color:#fff;font-size:12px}
-.gm-st td{padding:3px 10px;text-align:right;font-weight:500;color:var(--t-sub);white-space:nowrap}
-.gm-st td.tm{text-align:left;max-width:12em;overflow:hidden;text-overflow:ellipsis}
-.gm-st tr:last-child td{padding-bottom:8px}
+.gm-st th{padding:2px 6px 4px;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--t-sub);text-align:right;white-space:nowrap}
+.gm-st th.tm{text-align:left;color:#fff;font-size:12px;padding-left:2px;border-bottom:0}
+.gm-st thead tr{border-bottom:1px solid rgba(255,255,255,.18)}
+.gm-st td{padding:3px 6px;text-align:right;font-weight:500;color:var(--t-sub);white-space:nowrap}
+.gm-st td.tm{padding-left:2px;text-align:left;width:100%;max-width:12em;overflow:hidden;text-overflow:ellipsis}
+.gm-st tbody tr:first-child td{padding-top:5px}
 .gm-st tr.me td{color:#fff;font-weight:800}
 .gm-wait{padding:14px 12px;color:var(--t-sub);font-size:13px}
 .gm-foot{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;color:#fff;text-decoration:none;
@@ -694,7 +695,19 @@ function standingsHTML(g, sum){
     const w = v('wins'), l = v('losses'), t = v('ties');
     return w == null ? '' : `${w}-${l}${t && +t > 0 ? '-' + t : ''}`;
   };
-  const conf = e => { const c = stat(e, x => /vsconf|conf/i.test((x.type || '') + ' ' + (x.name || '') + ' ' + (x.abbreviation || ''))); return c ? (c.summary || c.displayValue || '') : ''; };
+  const num = (e, re) => { const x = stat(e, y => re.test(y.name || '') || re.test(y.abbreviation || '')); if (!x) return null; const v = x.value ?? parseFloat(x.displayValue); return isNaN(v) ? null : +v; };
+  const wl = e => {
+    let w = num(e, /^wins$/i), l = num(e, /^losses$/i), t = num(e, /^ties$/i) || 0;
+    if (w == null || l == null) { const m = String(overall(e)).match(/^(\d+)-(\d+)(?:-(\d+))?/); if (m) { w = +m[1]; l = +m[2]; t = +(m[3] || 0); } }
+    return { w, l, t };
+  };
+  const pctOf = e => {
+    const p = num(e, /^(winPercent|winPct|PCT)$/i);
+    const { w, l, t } = wl(e);
+    const v = p != null ? (p > 1 ? p / 100 : p) : (w != null ? ((w + l + t) ? (w + t / 2) / (w + l + t) : 0) : null);
+    return v == null ? '' : v.toFixed(3).replace(/^0/, '');
+  };
+  const pro = !college;
   const ids = g.teams.map(t => String(t.id));
   const groupOf = id => groups.find(gr => ((gr.standings && gr.standings.entries) || []).some(e => entryId(e) === id || (g.teams.find(t => String(t.id) === id) || {}).name === entryName(e)));
   const order = [];
@@ -703,11 +716,21 @@ function standingsHTML(g, sum){
   const names = g.teams.map(t => t.name);
   const tables = order.map(gr => {
     const title = String(gr.header || gr.name || '').replace(/^\d{4}(-\d{2})?\s+/, '').replace(/\s+Standings$/i, '');
-    const rows = ((gr.standings && gr.standings.entries) || []).map(e => {
+    const entries = (gr.standings && gr.standings.entries) || [];
+    const lead = entries.length ? entries.map(wl).reduce((a, b) => ((b.w - b.l) > (a.w - a.l) ? b : a)) : null;
+    const rows = entries.map(e => {
       const me = ids.includes(entryId(e)) || names.includes(entryName(e));
-      return `<tr class="${me ? 'me' : ''}"><td class="tm">${esc(entryName(e))}</td>${college ? `<td>${esc(conf(e))}</td>` : ''}<td>${esc(overall(e))}</td></tr>`;
+      const { w, l } = wl(e);
+      let gb = '';
+      if (pro) {
+        const g0 = num(e, /^(gamesBehind|GB)$/i);
+        let v = g0;
+        if (v == null && lead && lead.w != null && w != null) v = ((lead.w - w) + (l - lead.l)) / 2;
+        gb = v == null ? '' : v <= 0 ? '-' : v.toFixed(1);
+      }
+      return `<tr class="${me ? 'me' : ''}"><td class="tm">${esc(entryName(e))}</td><td>${w ?? ''}</td><td>${l ?? ''}</td><td>${esc(pctOf(e))}</td>${pro ? `<td>${esc(gb)}</td>` : ''}</tr>`;
     }).join('');
-    return `<div class="gm-st"><table><thead><tr><th class="tm">${esc(title)}</th>${college ? '<th>CONF</th><th>OVR</th>' : '<th>W-L</th>'}</tr></thead><tbody>${rows}</tbody></table></div>`;
+    return `<div class="gm-st"><table><thead><tr><th class="tm">${esc(title)}</th><th>W</th><th>L</th><th>PCT</th>${pro ? '<th>GB</th>' : ''}</tr></thead><tbody>${rows}</tbody></table></div>`;
   }).join('');
   return `<div class="gm-strip">Standings</div><div class="gm-stw">${tables}</div>`;
 }
