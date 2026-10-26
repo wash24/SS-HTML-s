@@ -476,56 +476,37 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .sch-rk{flex:none;font-size:12px;font-weight:500;color:rgba(255,255,255,.6);margin-right:5px;line-height:1}
 .sch-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* ===== Scores tab ===== */
-#view-scores{background:#2f2f31}
-.sc-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:10px max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));background:var(--chrome)}
-.sc-chips::-webkit-scrollbar{display:none}
-.sc-chip{flex:none;font-family:var(--font-display);font-size:17px;font-weight:500;color:#e2e2e4;background:#3a3a3d;padding:6px 14px;box-shadow:0 1px 2px rgba(0,0,0,.35)}
-.sc-chip[aria-pressed="true"]{background:var(--flame);color:#fff}
-.sc-days{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;background:var(--chrome);border-bottom:3px solid var(--flame);padding:4px 6px 8px;font-family:var(--font-display)}
-.sc-day{font-size:16px;color:rgba(255,255,255,.55);white-space:nowrap;padding:4px 6px}
-.sc-day.side:first-child{justify-self:start}
-.sc-day.side:last-child{justify-self:end}
-.sc-day.cur{font-size:22px;font-weight:500;color:#fff;padding:0 10px}
-.sc-day .chev{font-size:20px;margin:0 6px;position:relative;top:1px}
-.sc-list{padding:4px 0 12px}
-.sc-league{font-family:var(--font-display);font-size:16px;color:rgba(255,255,255,.6);padding:12px max(12px,env(safe-area-inset-left,0px)) 5px}
-.sc-game{display:grid;grid-template-columns:minmax(0,1fr) 104px;gap:0;margin:0 max(8px,env(safe-area-inset-right,0px)) 6px max(8px,env(safe-area-inset-left,0px));text-decoration:none;color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.4)}
-.sc-teams{display:flex;flex-direction:column;min-width:0}
-.sc-t{position:relative;overflow:hidden;display:flex;align-items:center;gap:6px;height:30px;padding:0 10px 0 40px;font-family:var(--font-display)}
-.sc-logo{position:absolute;left:-12px;top:50%;width:46px;height:46px;transform:translateY(-50%);display:flex;align-items:center;justify-content:flex-end;pointer-events:none}
-.sc-logo img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(1px 0 1px rgba(0,0,0,.35))}
-.sc-logo.txt{font-weight:700;font-size:34px;color:rgba(255,255,255,.3)}
-.sc-nm{flex:1;min-width:0;font-size:17px;font-weight:500;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 1px rgba(0,0,0,.35)}
-.sc-nm small{font-size:11px;opacity:.8;margin-right:4px}
-.sc-rec{font-size:14px;opacity:.85}
-.sc-t b{font-size:19px;font-weight:600;text-shadow:0 1px 1px rgba(0,0,0,.35)}
-.sc-t.lost b,.sc-t.lost .sc-nm{opacity:.7}
-.sc-st{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#454548;font-family:var(--font-display);text-align:center;padding:0 6px}
-.sc-st span{font-size:17px;font-weight:500;line-height:1.1}
-.sc-st small{font-size:13px;color:rgba(255,255,255,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.sc-empty{font-family:var(--font-display);font-size:17px;color:rgba(255,255,255,.65);text-align:center;padding:30px 16px}
 
-/* Scores v2: no ticker on this tab; chips, day switcher and games share one dark underlay; taller team rows */
-.app[data-view="scores"] .ticker{display:none}
-.sc-chips,.sc-days{background:transparent}
-.sc-days{border-bottom:0;padding:2px 6px 4px}
-.sc-day,.sc-day.cur{font-size:18px}
-.sc-day.cur{font-weight:600;padding:0 10px}
-.sc-list{padding-top:0}
-.sc-t{height:38px;padding-left:48px}
-.sc-logo{width:58px;height:58px;left:-14px}
-.sc-logo.txt{font-size:42px}
-.sc-nm{font-size:19px}
-.sc-rec{font-size:15px}
-.sc-t b{font-size:22px}
-.sc-game{grid-template-columns:minmax(0,1fr) 110px;margin-bottom:8px}
-.sc-st span{font-size:18px}
-.sc-st small{font-size:14px}
 
 /* Alerts is display-only */
 #tab-alerts,[data-go="alerts"]{cursor:default}
 #tab-alerts:active{transform:none}
+/* ===== Scores tab (v3, matches the stream-app scoreboard) ===== */
+.app[data-view="scores"] .ticker{display:none}
+#view-scores{background:#2c2c2e}
+.sc-chips{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding:10px max(9px,env(safe-area-inset-right,0px)) 10px max(9px,env(safe-area-inset-left,0px));background:#3a3a3d}
+.sc-chips::-webkit-scrollbar{display:none}
+.sc-chip{flex:none;display:flex;align-items:center;gap:7px;font-family:var(--font-display);font-size:17px;font-weight:500;color:#f0f0f2;background:#5b5b5f;padding:8px 15px;box-shadow:0 1px 2px rgba(0,0,0,.4)}
+.sc-chip[aria-pressed="true"]{background:#77777c;box-shadow:inset 0 -3px 0 var(--flame),0 1px 2px rgba(0,0,0,.4)}
+.caret{display:inline-block;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid currentColor;opacity:.9}
+.sc-menu{display:flex;flex-wrap:wrap;gap:6px;padding:0 max(9px,env(safe-area-inset-right,0px)) 10px max(9px,env(safe-area-inset-left,0px));background:#3a3a3d}
+.sc-menu button{font-family:var(--font-display);font-size:15px;color:#e6e6e8;background:#4a4a4e;padding:6px 11px}
+.sc-menu button[aria-checked="true"]{background:var(--flame);color:#fff}
+.sc-datebar{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;height:42px;margin:10px max(9px,env(safe-area-inset-right,0px)) 4px max(9px,env(safe-area-inset-left,0px));background:#1f1f21;box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+.sc-arrow{height:42px;font-family:var(--font-display);font-size:22px;color:#d8d8da}
+.sc-date{position:relative;justify-self:center;display:flex;align-items:center;gap:8px;font-family:var(--font-display);font-size:21px;font-weight:500;color:#fff;cursor:pointer}
+.sc-date input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+.sc-list{padding:0 0 14px}
+.sc-league{display:flex;justify-content:space-between;align-items:baseline;padding:14px max(12px,env(safe-area-inset-right,0px)) 6px max(12px,env(safe-area-inset-left,0px));font-family:var(--font-display)}
+.sc-league span{font-size:19px;color:rgba(255,255,255,.55)}
+.sc-league a{font-size:14px;color:rgba(255,255,255,.55);text-decoration:none}
+.sc-card{margin:0 max(9px,env(safe-area-inset-right,0px)) 14px max(9px,env(safe-area-inset-left,0px));box-shadow:0 1px 3px rgba(0,0,0,.45)}
+.sc-card .gb{border-bottom:0;background:#3a3a3d}
+.sc-card .gb-date{margin-left:12px;color:rgba(255,255,255,.8);font-weight:500}
+.sc-card .gb-tn small.plain{margin-left:6px;font-size:12.5px;font-weight:500;color:rgba(255,255,255,.55)}
+.sc-card .gb-line.lost .gb-tn,.sc-card .gb-line.lost .gb-cells .c{color:rgba(255,255,255,.55);font-weight:500}
+.sc-empty{font-family:var(--font-display);font-size:17px;color:rgba(255,255,255,.65);text-align:center;padding:30px 16px}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <style>
@@ -835,61 +816,71 @@ function renderTeams(){
   $('#view-teams').innerHTML = html;
 }
 /* ================= Scores tab =================
-   chips: My Teams + each league · day switcher · per-league sections of game rows:
-   [team-color bar: cropped logo · name ............ record or score] x2 | [status / time · channel] */
-let scTab = 'mine', scDay = 0;
-const scCache = {};                       /* `${lg}|${yyyymmdd}` -> {list, t} */
+   gray league chips (CFB/CBB with a ▾ group menu) · dark date bar « Mon, Oct 26 ▾ » (date picker) ·
+   per-league header with "Full Scoreboard »" · one game card per game (same box as team pages, with an F column) */
+let scTab = 'mine', scDay = 0, scMenu = false;
+const scGroup = {cfb:'top25', cbb:'top25'};
+const CFB_GROUPS = [['top25','Top 25',''],['fbs','All FBS','80'],['acc','ACC','1'],['american','American','151'],['big12','Big 12','4'],['big10','Big Ten','5'],['cusa','C-USA','12'],['ind','FBS Independents','18'],['mac','MAC','15'],['mwc','Mountain West','17'],['pac12','Pac-12','9'],['sec','SEC','8'],['sunbelt','Sun Belt','37']];
+const CBB_GROUPS = [['top25','Top 25',''],['d1','All Division I','50']];
+const scCache = {};                       /* `${lg}|${group}|${yyyymmdd}` -> {list, t} */
 const dayFrom = off => { const d = new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate()+off); return d; };
-function dayName(off){
-  if(off===0) return 'Today'; if(off===-1) return 'Yesterday'; if(off===1) return 'Tomorrow';
-  return dayFrom(off).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+const scGroups = lg => lg==='cfb' ? CFB_GROUPS : lg==='cbb' ? CBB_GROUPS : null;
+function scGroupFor(lg, forMine){
+  if(!scGroups(lg)) return null;
+  if(forMine) return lg==='cfb' ? 'fbs' : 'd1';           /* My Teams needs every school, not just the Top 25 */
+  return scGroup[lg];
 }
-async function loadScores(lg, off){
-  const key = lg+'|'+ymd(dayFrom(off)), c = scCache[key];
+function scUrl(lg, group, off){
+  const L = LG[lg]; let base = L.path+'/scoreboard?limit=500';
+  if(lg==='nfl') base = L.path+'/scoreboard?limit=100';
+  const g = (scGroups(lg)||[]).find(x=>x[0]===group);
+  if(g && g[2]) base += '&groups='+g[2];
+  return API+base+'&dates='+ymd(dayFrom(off));
+}
+async function loadScores(lg, group, off){
+  const key = lg+'|'+(group||'')+'|'+ymd(dayFrom(off)), c = scCache[key];
   if(c && (c.loading || Date.now()-c.t < (off<0 ? 600e3 : 55e3))) return;
   scCache[key] = {list:(c&&c.list)||null, t:Date.now(), loading:true};
   try{
-    const L = LG[lg], d = ymd(dayFrom(off));
-    const j = await timed(API+L.path+'/'+L.sb+(L.sb.includes('?')?'&':'?')+'dates='+d, 12000);
-    scCache[key] = {list:(j.events||[]).map(e=>parseEvent(e,lg)).sort((x,y)=>new Date(x.date)-new Date(y.date)), t:Date.now()};
+    const j = await timed(scUrl(lg, group, off), 12000);
+    scCache[key] = {list:(j.events||[]).map(e=>parseEvent(e,lg)).sort((x,y)=>(y.live-x.live) || new Date(x.date)-new Date(y.date)), t:Date.now()};
   }catch(e){ scCache[key] = {list:(c&&c.list)||[], t:Date.now(), err:true}; }
   if(!$('#view-scores').hidden) renderScores();
 }
-function scRow(g){
-  const show = g.live || g.final;
-  const lost = t => g.final && Number(t.sc) < Number((t===g.a?g.h:g.a).sc);
-  const bar = t => `<div class="sc-t${lost(t)?' lost':''}" style="background:${hex(t.color)}">
-      <span class="sc-logo">${logoTag(teamLogoUrl(t,g.lg), (t.ab||'').slice(0,1), 'ticker', t.logoDark)}</span>
-      <span class="sc-nm">${t.rank?`<small>${esc(t.rank)}</small>`:''}${esc(t.name||t.ab)}</span>
-      ${show ? `<b>${esc(t.sc)}</b>` : `<span class="sc-rec">${t.rec?'('+esc(t.rec)+')':''}</span>`}</div>`;
-  let l1, l2 = g.tv || '';
-  if(g.live) l1 = statusParts(g).filter(Boolean).join(' ');
-  else if(g.final) l1 = statusParts(g)[0];
-  else if(g.postponed) l1 = 'Postponed';
-  else { const d = new Date(g.date); l1 = g.tbd ? 'TBD' : d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})+' '+tzLabel(d); }
-  const inner = `<div class="sc-teams">${bar(g.a)}${bar(g.h)}</div><div class="sc-st${g.live?' live':''}"><span>${esc(l1)}</span>${l2?`<small>${esc(l2)}</small>`:''}</div>`;
-  return g.link ? `<a class="sc-game" href="${esc(g.link)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="sc-game">${inner}</div>`;
-}
+const espnBoard = (lg, off) => `https://www.espn.com/${({nfl:'nfl',mlb:'mlb',nba:'nba',cfb:'college-football',cbb:'mens-college-basketball'})[lg]}/scoreboard/_/date/${ymd(dayFrom(off))}`;
 function renderScores(){
   const el = $('#view-scores'); if(!el) return;
-  const chips = [['mine','My Teams'], ...LG_ORDER.map(k=>[k, LG[k].label])];
-  const mine = picks.filter(p=>p.type==='team');
-  const lgs = scTab==='mine' ? [...new Set((mine.length ? mine : picks).map(p=>p.lg))].filter(k=>LG_ORDER.includes(k)).sort((a,b)=>LG_ORDER.indexOf(a)-LG_ORDER.indexOf(b)) : [scTab];
-  lgs.forEach(k => loadScores(k, scDay));
+  const mineTeams = picks.filter(p=>p.type==='team');
+  const isMine = scTab==='mine';
+  const lgs = isMine ? [...new Set((mineTeams.length ? mineTeams : picks).map(p=>p.lg))].filter(k=>LG_ORDER.includes(k)).sort((a,b)=>LG_ORDER.indexOf(a)-LG_ORDER.indexOf(b)) : [scTab];
+  lgs.forEach(k => loadScores(k, scGroupFor(k, isMine && mineTeams.length), scDay));
   let body = '', pending = false;
   for(const k of lgs){
-    const c = scCache[k+'|'+ymd(dayFrom(scDay))];
+    const c = scCache[k+'|'+(scGroupFor(k, isMine && mineTeams.length)||'')+'|'+ymd(dayFrom(scDay))];
     if(!c || !c.list){ pending = true; continue; }
     let list = c.list;
-    if(scTab==='mine' && mine.length) list = list.filter(g => mine.some(p => p.lg===k && isMine(g,p)));
+    if(isMine && mineTeams.length) list = list.filter(g => mineTeams.some(p => p.lg===k && isMine_(g,p)));
     if(!list.length) continue;
-    body += `<div class="sc-league">${esc(LG[k].name)}</div>` + list.map(scRow).join('');
+    const grpName = !isMine && scGroups(k) ? ' · '+(scGroups(k).find(x=>x[0]===scGroup[k])||[,''])[1] : '';
+    body += `<div class="sc-league"><span>${esc(LG[k].label)}${esc(grpName)}</span><a href="${esc(espnBoard(k, scDay))}" target="_blank" rel="noopener">Full Scoreboard »</a></div>`
+          + list.map(g => `<div class="sc-card">${gameBox(g, {scores:true})}</div>`).join('');
   }
-  if(!body) body = `<div class="sc-empty">${pending ? 'Loading games…' : scTab==='mine' && !picks.length ? 'Add teams to see their games here.' : `No games ${scDay===0?'today':scDay===1?'tomorrow':scDay===-1?'yesterday':'on '+dayName(scDay)}.`}</div>`;
-  el.innerHTML = `<div class="sc-chips">${chips.map(([k,l])=>`<button class="sc-chip" data-sctab="${k}" aria-pressed="${k===scTab}">${esc(l)}</button>`).join('')}</div>
-    <div class="sc-days"><button class="sc-day side" data-scday="-1" aria-label="Previous day"><span class="chev">‹</span>${esc(dayName(scDay-1))}</button><span class="sc-day cur">${esc(dayName(scDay))}</span><button class="sc-day side" data-scday="1" aria-label="Next day">${esc(dayName(scDay+1))}<span class="chev">›</span></button></div>
+  const dayWord = scDay===0?'today':scDay===1?'tomorrow':scDay===-1?'yesterday':'on '+dayLabel(dayFrom(scDay));
+  if(!body) body = `<div class="sc-empty">${pending ? 'Loading games…' : isMine && !picks.length ? 'Add teams to see their games here.' : `No games ${dayWord}.`}</div>`;
+  const chips = [['mine','My Teams'], ...LG_ORDER.map(k=>[k, LG[k].label])];
+  const menu = scMenu && scGroups(scTab) ? `<div class="sc-menu" role="menu">${scGroups(scTab).map(([id,label])=>`<button role="menuitemradio" aria-checked="${scGroup[scTab]===id}" data-scgroup="${id}">${esc(label)}</button>`).join('')}</div>` : '';
+  el.innerHTML = `<div class="sc-chips">${chips.map(([k,l])=>`<button class="sc-chip" data-sctab="${k}" aria-pressed="${k===scTab}">${esc(l)}${scGroups(k)?'<i class="caret"></i>':''}</button>`).join('')}</div>${menu}
+    <div class="sc-datebar">
+      <button class="sc-arrow" data-scday="-1" aria-label="Previous day">«</button>
+      <label class="sc-date">${esc(dayLabel(dayFrom(scDay)))}<i class="caret"></i><input type="date" id="scDatePick" value="${dayFrom(scDay).toISOString().slice(0,10)}" aria-label="Pick a date"></label>
+      <button class="sc-arrow" data-scday="1" aria-label="Next day">»</button>
+    </div>
     <div class="sc-list">${body}</div>`;
+  const dp = $('#scDatePick');
+  dp.addEventListener('change', () => { if(!dp.value) return; const [y,m,d] = dp.value.split('-').map(Number);
+    const pick = new Date(y, m-1, d, 12), today = dayFrom(0); scDay = Math.round((pick - today)/86400e3); renderScores(); });
 }
+const isMine_ = (g,p) => String(g.a.id)===String(p.id) || String(g.h.id)===String(p.id);
 function renderAlerts(){
   $('#view-alerts').innerHTML = alerts.map(a => `<div class="alert${a.unread?' unread':''}">
     <span class="src-chip" style="background:${a.color}">${esc(a.chip)}</span>
@@ -1104,7 +1095,7 @@ function preLabel(g){
    label line  : status/date ............................ link
    color row   : [away color: logo ... score or name+record][home color: score or name+record ... logo]  (50/50, each team's primary color)
    detail rows : (live/final only) period headers, then away / home name + record ..... period scores + TOT */
-function gameBox(g){
+function gameBox(g, o={}){
   const show = g.live || g.final;
   const mlb = g.lg==='mlb', reg = (LG[g.lg]||{}).periods || 4;
   /* colors: scoreboard color, else a saved pick's color, else neutral */
@@ -1113,9 +1104,11 @@ function gameBox(g){
   let label, link = '';
   if(g.final){ label = `${esc(statusParts(g)[0])} ${esc(dayLabel(new Date(g.date)))}`; if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Box Score »</a>`; }
   else if(g.live){ label = esc(statusParts(g).filter(Boolean).join(' ')) + gsit(g); if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Gamecast »</a>`; }
-  else { label = esc(preLabel(g)); link = `<button class="linkish" data-tptab="schedule">Schedule »</button>`; }
+  else { label = esc(preLabel(g)); link = o.scores ? (g.link ? `<a href="${esc(g.link)}" target="_blank" rel="noopener">Preview »</a>` : '') : `<button class="linkish" data-tptab="schedule">Schedule »</button>`; }
+  if(o.scores && g.final) label = `${esc(statusParts(g)[0])}<span class="gb-date">${esc(dayLabel(new Date(g.date)))}</span>`;
   const logo = (t, cls) => `<span class="gb-logo ${cls}">${logoTag(teamLogoUrl(t,g.lg), t.ab, '', t.logoDark)}</span>`;
-  const nameRec = t => `${esc(t.name||t.ab)}<small>${t.rec?' ('+esc(t.rec)+')':''}</small>`;
+  const nameRec = t => o.scores && show ? `${esc(t.name||t.ab)}<small class="plain">${t.rec?esc(t.rec):''}</small>`
+                                         : `${esc(t.name||t.ab)}<small>${t.rec?' ('+esc(t.rec)+')':''}</small>`;
   const top = `<div class="gb-top"><span class="st">${label}</span>${link}</div>`;
 
   if(!show){
@@ -1127,7 +1120,7 @@ function gameBox(g){
   }
   const al = g.a.line||[], hl = g.h.line||[], n = Math.max(al.length, hl.length);
   const heads = Array.from({length:n}, (_,i) => (i<reg || mlb) ? String(i+1) : (i-reg ? (i-reg+1)+'OT' : 'OT'));
-  const totH = mlb ? ['R','H','E'] : ['TOT'];
+  const totH = mlb ? ['R','H','E'] : [o.scores ? 'F' : 'TOT'];
   const cw = mlb ? 17 : 23;                              /* period column width */
   const cols = heads.length + totH.length;
   const cellsW = cols*cw;
@@ -1142,9 +1135,9 @@ function gameBox(g){
     </div>
     <div class="gb-sub">
       <div class="gb-line hd"><span class="gb-tn"></span><span class="gb-cells">${heads.map(h=>`<span class="c">${h}</span>`).join('')}${totH.map(h=>`<span class="c tot">${h}</span>`).join('')}</span></div>
-      <div class="gb-line"><span class="gb-tn">${nameRec(g.a)}</span><span class="gb-cells">${vals(g.a, al)}</span></div>
-      <div class="gb-line"><span class="gb-tn">${nameRec(g.h)}</span><span class="gb-cells">${vals(g.h, hl)}</span></div>
-    </div>${g.live ? playsHtml(g) : ''}</div>`;
+      <div class="gb-line${o.scores&&lost(g.a)?' lost':''}"><span class="gb-tn">${nameRec(g.a)}</span><span class="gb-cells">${vals(g.a, al)}</span></div>
+      <div class="gb-line${o.scores&&lost(g.h)?' lost':''}"><span class="gb-tn">${nameRec(g.h)}</span><span class="gb-cells">${vals(g.h, hl)}</span></div>
+    </div>${g.live && !o.scores ? playsHtml(g) : ''}</div>`;
 }
 /* live situation, shown in the label line */
 function gsit(g){
@@ -1369,9 +1362,14 @@ document.addEventListener('click', e => {
     return;
   }
   const sct = e.target.closest('[data-sctab]');
-  if(sct){ scTab = sct.dataset.sctab; renderScores(); $('#view-scores').scrollTop = 0; return; }
+  if(sct){ const k = sct.dataset.sctab;
+    if(k===scTab && scGroups(k)) scMenu = !scMenu; else { scTab = k; scMenu = false; }
+    renderScores(); if(!scMenu) $('#view-scores').scrollTop = 0; return; }
+  const scg = e.target.closest('[data-scgroup]');
+  if(scg){ scGroup[scTab] = scg.dataset.scgroup; scMenu = false; renderScores(); $('#view-scores').scrollTop = 0; return; }
   const scd = e.target.closest('[data-scday]');
-  if(scd){ scDay += Number(scd.dataset.scday); renderScores(); return; }
+  if(scd){ scDay += Number(scd.dataset.scday); scMenu = false; renderScores(); return; }
+  if(scMenu && !e.target.closest('.sc-menu')){ scMenu = false; renderScores(); }
   const go = e.target.closest('[data-go]');
   if(go){ if(go.dataset.go==='alerts') return; setDrawer(false); showView(go.dataset.go); return; }
   const row = e.target.closest('[data-row]');
