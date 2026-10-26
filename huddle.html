@@ -831,7 +831,7 @@ function renderTeams(){
     html += rail() + `<div class="filterbar"><span>${esc(v.name)} stream · ${list.length} stories</span><button data-clear>All teams</button></div>`;
     html += list.length ? list.map((s,i)=> i===0?bigCard(s):mini(s)).join('') : `<div class="datanote">No new stories for ${esc(v.name)} yet.</div>`;
   } else {
-    const leadIdx = Math.max(0, list.findIndex(s=>s.img||s.art));
+    const leadIdx = 0;   /* the newest story always leads */
     const lead = list[leadIdx]; const rest = list.filter((_,i)=>i!==leadIdx);
     const [second, ...more] = rest;
     html += (lead?bigCard(lead):'') + rail() + (second?bigCard(second):'') + more.map(mini).join('');
@@ -1505,9 +1505,10 @@ async function loadLive(force){
     const groups = feeds.map(r => r.status==='fulfilled' ? r.value : []);
     tileMeta = {};
     picks.forEach((p,i) => { const g = groups[i]; if(g.length){ const newest = g.reduce((m,s)=> new Date(s.published)>new Date(m.published)?s:m); tileMeta[pickKey(p)] = {ago:newest.ago, count:g.length}; } });
-    /* Round-robin across picks so every team gets a turn near the top, no duplicate headlines */
+    /* Newest first across all of your streams; a story shared by two streams shows once */
     const out = [], seenTitles = new Set();
-    for(let i=0; i<8; i++) groups.forEach(g => { const s = g[i]; if(s && !seenTitles.has(s.link||s.title)){ seenTitles.add(s.link||s.title); out.push(s); } });
+    groups.flat().sort((a,b) => new Date(b.published||0) - new Date(a.published||0))
+      .forEach(s => { const k = s.link||s.title; if(!seenTitles.has(k)){ seenTitles.add(k); out.push(s); } });
     if(out.length) stories = out;
   }
   liveMode = true;
