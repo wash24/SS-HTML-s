@@ -507,6 +507,26 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .sc-card .gb-line.lost .gb-tn,.sc-card .gb-line.lost .gb-cells .c{color:rgba(255,255,255,.55);font-weight:500}
 .sc-empty{font-family:var(--font-display);font-size:17px;color:rgba(255,255,255,.65);text-align:center;padding:30px 16px}
 
+/* ===== My Teams panel v2 (stream-app style) =====
+   rises from the bottom and stops below the header + a peek of the stream (dimmed);
+   the tab bar rides up as its top edge: Add | Close (orange, raised) | Edit */
+.drawer-dim{position:absolute;left:0;right:0;top:0;bottom:0;z-index:7;background:rgba(0,0,0,.5);opacity:0;visibility:hidden;transition:opacity .28s,visibility 0s .28s}
+.drawer-dim.on{opacity:1;visibility:visible;transition:opacity .28s,visibility 0s}
+.drawer{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 48px + 84px);bottom:0;z-index:8;background:#2d2d2f;transform:translateY(calc(100% + 20px))}
+.dbar{flex:none;position:relative;display:grid;grid-template-columns:1fr 1.25fr 1fr;height:56px;background:#5a5a5d;box-shadow:0 -2px 6px rgba(0,0,0,.35)}
+.dbtn{font-family:var(--font-display);font-size:24px;font-weight:400;color:#f0f0f2;height:56px}
+.dbtn.close{position:relative;margin-top:-8px;height:64px;background:var(--flame);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 -2px 5px rgba(0,0,0,.3)}
+.dbtn.close .bars{width:22px;display:flex;flex-direction:column;gap:2px;opacity:.65}
+.dbtn.close .bars i{display:block;height:1.5px;background:currentColor}
+.drawer-list{background:#2d2d2f;box-shadow:none;padding:8px 8px calc(16px + env(safe-area-inset-bottom,0px));gap:7px}
+.trow{min-height:56px;box-shadow:0 1px 2px rgba(0,0,0,.45)}
+.trow .tlogo{left:-14px;width:74px;height:74px}
+.trow .tname{padding-left:70px;font-size:21px}
+.trow .tago{font-size:17px;color:rgba(255,255,255,.85);padding-right:12px}
+.trow .tgame{padding:0 6px 0 9px;border-left:1px solid rgba(255,255,255,.75)}
+.trow .tgame .tg-rows{font-size:14px;column-gap:6px}
+.trow .tgame .tg-st{font-size:11.5px}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <style>
@@ -540,12 +560,16 @@ html .tabs{padding-bottom:env(safe-area-inset-bottom,0px)}
     <section class="view" id="view-teams" aria-label="My Teams"></section>
     <section class="view" id="view-scores" aria-label="Scores" hidden></section>
     <section class="view" id="view-alerts" aria-label="Alerts" hidden></section>
-    <section class="drawer" id="drawer" aria-label="My Teams" aria-hidden="true">
-      <div class="drawer-bar"><button data-go="scores">Scores</button><button data-go="alerts">Alerts<span class="flag" id="drawerFlag"></span></button></div>
-      <div class="drawer-list" id="drawerList"></div>
-      <div class="drawer-bar"><button data-add>Add Teams</button><button data-edit>Edit Teams</button></div>
-    </section>
   </main>
+  <div class="drawer-dim" id="drawerDim" aria-hidden="true"></div>
+  <section class="drawer" id="drawer" aria-label="My Teams" aria-hidden="true">
+    <div class="dbar" role="toolbar">
+      <button class="dbtn" data-add>Add</button>
+      <button class="dbtn close" id="drawerClose" aria-label="Close My Teams"><span class="bars"><i></i><i></i><i></i></span>Close</button>
+      <button class="dbtn" data-edit>Edit</button>
+    </div>
+    <div class="drawer-list" id="drawerList"></div>
+  </section>
 
   <section class="tpage" id="tpage" aria-hidden="true">
     <div class="tp-head">
@@ -902,7 +926,7 @@ function teamGame(p){
 }
 function drawerRow(p){
   const v = pickView(p), m = tileMeta[v.key] || {};
-  const name = p.type==='league' ? LG[p.lg].name : p.full;
+  const name = p.type==='league' ? LG[p.lg].label+' News' : p.full;
   const g = teamGame(p);
   let right = '';
   if(g){
@@ -924,7 +948,6 @@ function drawerRow(p){
 }
 function renderDrawer(){
   const unread = alerts.filter(a=>a.unread).length;
-  const flag = $('#drawerFlag'); flag.textContent = unread>9 ? '9+' : unread; flag.hidden = !unread;
   $('#drawerList').innerHTML = picks.length ? picks.map(drawerRow).join('')
     : `<div class="drawer-empty">No teams yet. Tap Add Teams to pick your teams and leagues.</div>`;
 }
@@ -932,6 +955,7 @@ const drawerOpen = () => $('#drawer').classList.contains('open');
 function setDrawer(open){
   if(open) renderDrawer();
   $('#drawer').classList.toggle('open', open); $('#drawer').setAttribute('aria-hidden', String(!open));
+  $('#drawerDim').classList.toggle('on', open);
 }
 function showView(name){
   document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected', t.dataset.view===name));
@@ -1370,6 +1394,7 @@ document.addEventListener('click', e => {
   const scd = e.target.closest('[data-scday]');
   if(scd){ scDay += Number(scd.dataset.scday); scMenu = false; renderScores(); return; }
   if(scMenu && !e.target.closest('.sc-menu')){ scMenu = false; renderScores(); }
+  if(e.target.closest('#drawerClose') || e.target.closest('#drawerDim')){ setDrawer(false); return; }
   const go = e.target.closest('[data-go]');
   if(go){ if(go.dataset.go==='alerts') return; setDrawer(false); showView(go.dataset.go); return; }
   const row = e.target.closest('[data-row]');
