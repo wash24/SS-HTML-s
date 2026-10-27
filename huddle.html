@@ -536,8 +536,10 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .stream-more{font-family:var(--font-display);font-size:15px;color:var(--mute);text-align:center;padding:18px 16px}
 
 /* ticker: logo | rank slot | abbreviation — rank no longer overlaps the logo */
-.team-row{padding-left:32px;padding-right:4px}
-.team-row .mono{left:-15px}
+.team-row{padding-left:24px;padding-right:5px}
+.team-row .mono{left:-13px}
+.game.slot .team-row{padding-left:32px;padding-right:4px}
+.game.slot .team-row .mono{left:-15px}
 .team-row .rk{left:17px;width:12px;text-align:right;font-size:9px;letter-spacing:-.02em;text-shadow:none}
 .team-row .rec{margin-left:3px}
 
@@ -790,11 +792,14 @@ function teamRow(t, g){
     : `<span class="mono txt">${esc(fallback)}</span>`;
   return `<div class="team-row${loser?' loser':''}" style="background:${hex(t.color)}">
     ${mono}
-    ${t.rank?`<span class="rk">${t.rank}</span>`:''}<span class="ab">${esc(t.ab)}${rec}</span>${sc}</div>`;
+    ${tickerMark(t,g)?`<span class="rk">${tickerMark(t,g)}</span>`:''}<span class="ab">${esc(t.ab)}${rec}</span>${sc}</div>`;
 }
+/* rank/seed slot: college games (rankings) and pro postseason games (seeds) only */
+const tickerMark = (t,g) => (LG[g.lg]||{}).college ? t.rank : (g.post && t.seed ? t.seed : null);
+const tickerSlot = g => (LG[g.lg]||{}).college || (g.post && (g.a.seed || g.h.seed)) ? ' slot' : '';
 function renderTicker(){
   const list = orderGames(games).slice(0,15);
-  $('#ticker').innerHTML = list.length ? list.map(g => `<div class="game">
+  $('#ticker').innerHTML = list.length ? list.map(g => `<div class="game${tickerSlot(g)}">
     <div class="game-status">${statusParts(g).map(s=>`<span>${esc(s)}</span>`).join('')}</div>
     ${teamRow(g.a,g)}${teamRow(g.h,g)}</div>`).join('')
     : `<div class="ticker-empty">No games today for your teams</div>`;
@@ -1206,7 +1211,7 @@ function tStoryCard(st){
   return st.link ? `<a class="tcard" href="${esc(st.link)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="tcard">${inner}</div>`;
 }
 function tickerCards(list){
-  return `<div class="tp-games">${list.map(g => `<div class="game">
+  return `<div class="tp-games">${list.map(g => `<div class="game${tickerSlot(g)}">
     <div class="game-status">${statusParts(g).map(s=>`<span>${esc(s)}</span>`).join('')}</div>${teamRow(g.a,g)}${teamRow(g.h,g)}</div>`).join('')}</div>`;
 }
 
@@ -1458,13 +1463,13 @@ function parseEvent(ev, lg){
   const side = ha => { const c = comp.competitors.find(x=>x.homeAway===ha) || {}; const tm = c.team || {};
     const rec = (c.records&&c.records[0]&&(c.records[0].summary||c.records[0].displayValue)) || (c.record&&c.record[0]&&c.record[0].displayValue) || '';
     return {id:String(tm.id), ab:tm.abbreviation, name:tm.shortDisplayName||tm.displayName, color:tm.color, alt:tm.alternateColor, logo:tm.logo || (tm.logos&&tm.logos[0]&&tm.logos[0].href) || '', logoDark:tm.logoDark || ((tm.logos||[]).find(l=>(l.rel||[]).includes('dark'))||{}).href || '',
-      sc:val(c.score), rec, rank:(c.curatedRank&&c.curatedRank.current<=25)?c.curatedRank.current:null,
+      sc:val(c.score), rec, rank:(c.curatedRank&&c.curatedRank.current<=25)?c.curatedRank.current:null, seed:c.seed||null,
       line:(c.linescores||[]).map(l=>l.value ?? l.displayValue), hits:c.hits, errors:c.errors, winner:c.winner}; };
   const bc = (comp.broadcasts||[]).map(b => (b.names&&b.names[0]) || (b.media&&b.media.shortName) || '').filter(Boolean)[0] || '';
   return {lg, live:st.state==='in', final:st.state==='post' && st.name!=='STATUS_POSTPONED', postponed:st.name==='STATUS_POSTPONED',
     half:st.name==='STATUS_HALFTIME', endPeriod:st.name==='STATUS_END_PERIOD', detail:st.shortDetail,
     period:status.period, clock:status.displayClock, tbd:!!comp.timeValid===false && comp.timeValid!==undefined,
-    a:side('away'), h:side('home'), date:ev.date || comp.date, id:ev.id, sit:comp.situation||null, tv:bc,
+    a:side('away'), h:side('home'), date:ev.date || comp.date, id:ev.id, post:!!(ev.season&&ev.season.type===3), sit:comp.situation||null, tv:bc,
     link:((ev.links||[]).find(l=>(l.rel||[]).includes('summary'))||(ev.links||[])[0]||{}).href||''};
 }
 const toStory = (a, key, src, chip, chipColor, chipLogo) => ({key, src, chip, chipColor, chipLogo, title:a.headline, published:a.published, byline:a.byline||'',
