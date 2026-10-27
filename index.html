@@ -126,11 +126,12 @@ body{overscroll-behavior:none}
 .brand span{color:#fff}
 
 /* header: inner frame, sport line art, bottom rule that steps down into the slanted menu tab */
-.panel-head{position:relative;flex:none;text-align:center;padding:13px 54px 21px;background-repeat:no-repeat;background-position:right center;background-size:auto 100%}
-.panel-head[data-art="hoops"]{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27400%27%20height%3D%2780%27%20viewBox%3D%270%200%20400%2080%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.1%27%20stroke-width%3D%271.2%27%3E%3Ccircle%20cx%3D%27330%27%20cy%3D%2740%27%20r%3D%2734%27/%3E%3Ccircle%20cx%3D%27330%27%20cy%3D%2740%27%20r%3D%279%27/%3E%3Cpath%20d%3D%27M0%2018h120l26%2036H0M146%2054a40%2040%200%200%200%200-36%27/%3E%3Cpath%20d%3D%27M60%208l14%2014m0-14L60%2022%27%20/%3E%3C/svg%3E")}
-.panel-head[data-art="football"]{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27400%27%20height%3D%2780%27%20viewBox%3D%270%200%20400%2080%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.1%27%20stroke-width%3D%271.2%27%3E%3Cpath%20d%3D%27M40%200v80M100%200v80M160%200v80M240%200v80M300%200v80M360%200v80%27/%3E%3Cpath%20d%3D%27M70%2036v8M130%2036v8M270%2036v8M330%2036v8%27/%3E%3Cpath%20d%3D%27M200%200v80%27%20stroke-opacity%3D%27.24%27/%3E%3C/svg%3E")}
-.panel-head[data-art="baseball"]{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27400%27%20height%3D%2780%27%20viewBox%3D%270%200%20400%2080%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.1%27%20stroke-width%3D%271.2%27%3E%3Cpath%20d%3D%27M330%2070l-40-40%2040-40%2040%2040z%27/%3E%3Ccircle%20cx%3D%27330%27%20cy%3D%2730%27%20r%3D%276%27/%3E%3Cpath%20d%3D%27M0%2070q120-90%20260-40%27/%3E%3Cpath%20d%3D%27M20%2010h60%27/%3E%3C/svg%3E")}
-.panel-head[data-art="lead"]{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27400%27%20height%3D%2780%27%20viewBox%3D%270%200%20400%2080%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.1%27%20stroke-width%3D%271.2%27%3E%3Ccircle%20cx%3D%27340%27%20cy%3D%2740%27%20r%3D%2742%27/%3E%3Cpath%20d%3D%27M0%2060q100-60%20220-20t180-20%27/%3E%3Cpath%20d%3D%27M20%2015l12%2012m0-12L20%2027%27/%3E%3C/svg%3E")}
+.panel-head{position:relative;flex:none;text-align:center;padding:13px 54px 21px;}
+.hd-art{position:absolute;top:5px;left:5px;right:5px;bottom:6px;background-repeat:no-repeat;background-position:right center;background-size:auto 100%;pointer-events:none;clip-path:polygon(0 0,100% 0,100% calc(100% - 17px),calc(100% - 38px) calc(100% - 17px),calc(100% - 51px) 100%,0 100%)}
+.hd-art[data-art="hoops"]{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27400%27%20height%3D%2780%27%20viewBox%3D%270%200%20400%2080%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.1%27%20stroke-width%3D%271.2%27%3E%3Ccircle%20cx%3D%27330%27%20cy%3D%2740%27%20r%3D%2734%27/%3E%3Ccircle%20cx%3D%27330%27%20cy%3D%2740%27%20r%3D%279%27/%3E%3Cpath%20d%3D%27M0%2018h120l26%2036H0M146%2054a40%2040%200%200%200%200-36%27/%3E%3Cpath%20d%3D%27M60%208l14%2014m0-14L60%2022%27%20/%3E%3C/svg%3E")}
+.hd-art[data-art="football"]{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27400%27%20height%3D%2780%27%20viewBox%3D%270%200%20400%2080%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.1%27%20stroke-width%3D%271.2%27%3E%3Cpath%20d%3D%27M40%200v80M100%200v80M160%200v80M240%200v80M300%200v80M360%200v80%27/%3E%3Cpath%20d%3D%27M70%2036v8M130%2036v8M270%2036v8M330%2036v8%27/%3E%3Cpath%20d%3D%27M200%200v80%27%20stroke-opacity%3D%27.24%27/%3E%3C/svg%3E")}
+.hd-art[data-art="baseball"]{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27400%27%20height%3D%2780%27%20viewBox%3D%270%200%20400%2080%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.1%27%20stroke-width%3D%271.2%27%3E%3Cpath%20d%3D%27M330%2070l-40-40%2040-40%2040%2040z%27/%3E%3Ccircle%20cx%3D%27330%27%20cy%3D%2730%27%20r%3D%276%27/%3E%3Cpath%20d%3D%27M0%2070q120-90%20260-40%27/%3E%3Cpath%20d%3D%27M20%2010h60%27/%3E%3C/svg%3E")}
+.hd-art[data-art="lead"]{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27400%27%20height%3D%2780%27%20viewBox%3D%270%200%20400%2080%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.1%27%20stroke-width%3D%271.2%27%3E%3Ccircle%20cx%3D%27340%27%20cy%3D%2740%27%20r%3D%2742%27/%3E%3Cpath%20d%3D%27M0%2060q100-60%20220-20t180-20%27/%3E%3Cpath%20d%3D%27M20%2015l12%2012m0-12L20%2027%27/%3E%3C/svg%3E")}
 .panel-head::before{content:"";position:absolute;inset:0 0 48% 0;background:linear-gradient(rgba(255,255,255,.2),rgba(255,255,255,.05));pointer-events:none}
 .panel-head::after{content:"";position:absolute;inset:4px 4px 5px 4px;border:1px solid rgba(255,255,255,.3);border-bottom:0;pointer-events:none}
 .panel-head.has-tab::after{border-right:0}
@@ -203,16 +204,16 @@ body{overscroll-behavior:none}
 .gm-mid{position:relative;text-align:center;font-size:13px;min-width:44px;font-weight:800;text-transform:uppercase;max-width:96px}
 .gm-mid small{display:block;margin-top:3px;font-size:11px;font-weight:700;color:var(--t-sub)}
 .gm-mid.live::before{content:"";display:block;margin:0 auto 4px;width:8px;height:8px;border-radius:50%;background:var(--live);box-shadow:0 0 6px var(--live);animation:pulse 1.4s infinite}
-.gm-ls{margin:0 10px 10px;border-radius:0;background:rgba(0,0,0,.2);box-shadow:inset 0 1px 3px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.12);overflow-x:auto}
+.gm-ls{margin:0 10px 8px;overflow-x:auto}
 .gm-ls table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;text-shadow:0 -1px 0 rgba(0,0,0,.55)}
-.gm-ls th{padding:8px 6px 2px;font-size:13px;font-weight:700;color:var(--t-sub);text-align:center;min-width:26px}
-.gm-ls td{padding:5px 6px;font-size:19px;font-weight:700;text-align:center}
+.gm-ls th{padding:6px 6px 2px;font-size:12px;font-weight:700;color:var(--t-sub);text-align:center;min-width:26px}
+.gm-ls td{padding:4px 6px;font-size:16px;font-weight:700;text-align:center}
 .gm-ls td.tm{text-align:left;padding-left:12px;white-space:nowrap;max-width:9em;overflow:hidden;text-overflow:ellipsis}
 .gm-ls tr:last-child td{padding-bottom:9px}
 .gm-ls td.tot{font-weight:800}
 .gm-ls .lost td{color:var(--t-sub)}
 .gm-ls .arw{width:12px;padding:0 6px 0 0}
-.gm-ls.dense td{font-size:15px;padding:5px 3px}
+.gm-ls.dense td{font-size:14px;padding:5px 3px}
 .gm-ls.dense th{font-size:12px;padding:8px 3px 2px;min-width:16px}
 .gm-ls.dense td.tm{padding-left:10px}
 .gm-ls .arw i{display:inline-block;width:0;height:0;border-style:solid;border-width:5px 7px 5px 0;border-color:transparent #fff transparent transparent}
@@ -425,7 +426,7 @@ pages.forEach((p, i) => {
   sec.className = 'page th-' + p.theme; sec.id = 'p-' + p.key; sec.setAttribute('aria-label', p.name);
   const isSport = true, isLead = p.key === 'top', conf = CONFS[p.key];
   const views = isLead ? [['scores','Scores'],['news','News']] : [['scores','Scores'],['news','News'],['standings','Standings']];
-  sec.innerHTML = `<div class="panel"><div class="panel-head${isSport ? ' has-tab' : ''}" data-art="${({ cfb:'football', nfl:'football', mlb:'baseball', ncb:'hoops', nba:'hoops' })[p.key] || 'lead'}"><h1>${p.name}</h1><span class="hd-rule"></span>${isSport ? '<span class="hd-rr"></span>' : ''}${isSport ? `<button class="hd-tab" data-k="${p.key}" aria-expanded="false" aria-label="Show ${p.name} menu"><svg viewBox="0 0 52 18"><path class="edge" d="M0 17.5L13 0.5H52"/><path class="tri" d="M31 7h10l-5 6z"/></svg></button>` : ''}</div>
+  sec.innerHTML = `<div class="panel"><div class="panel-head${isSport ? ' has-tab' : ''}"><span class="hd-art" data-art="${({ cfb:'football', nfl:'football', mlb:'baseball', ncb:'hoops', nba:'hoops' })[p.key] || 'lead'}"></span><h1>${p.name}</h1><span class="hd-rule"></span>${isSport ? '<span class="hd-rr"></span>' : ''}${isSport ? `<button class="hd-tab" data-k="${p.key}" aria-expanded="false" aria-label="Show ${p.name} menu"><svg viewBox="0 0 52 18"><path class="edge" d="M0 17.5L13 0.5H52"/><path class="tri" d="M31 7h10l-5 6z"/></svg></button>` : ''}</div>
     ${isSport ? `<div class="tabbar" id="tb-${p.key}" hidden><div class="seg" role="tablist">${views.map(([v, l]) => `<button role="tab" data-k="${p.key}" data-view="${v}" class="${v === 'scores' ? 'on' : ''}" aria-selected="${v === 'scores'}">${l}</button>`).join('')}</div><button class="bell" aria-label="Alerts"><svg viewBox="0 0 20 20"><path d="M10 2.2a1.2 1.2 0 0 1 1.2 1.2v.5a5.2 5.2 0 0 1 4 5.1v3.4l1.6 2.1v.9H3.2V15l1.6-2.1V9a5.2 5.2 0 0 1 4-5.1v-.5A1.2 1.2 0 0 1 10 2.2zM8 16.4h4a2 2 0 0 1-4 0z"/></svg></button></div>` : ''}
     ${conf ? `<div class="fbar"><button class="fsel" data-k="${p.key}" aria-haspopup="listbox" aria-expanded="false"><span id="fl-${p.key}">Top 25</span><i aria-hidden="true"><b></b><b></b><b></b></i></button>
       <div class="fmenu" id="fm-${p.key}" role="listbox" hidden>${[['top25','Top 25'], [conf.all[0], conf.all[1]], ...conf.list].map(([v, l]) => `<button role="option" data-k="${p.key}" data-f="${v}">${l}</button>`).join('')}</div></div>` : ''}
