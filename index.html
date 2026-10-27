@@ -138,6 +138,8 @@ body{overscroll-behavior:none}
 .panel-head h1{position:relative;margin:0;font-size:26px;font-weight:700;letter-spacing:-.3px;text-shadow:0 -1px 0 rgba(0,0,0,.45),0 1px 2px rgba(0,0,0,.45)}
 .hd-tab{position:absolute;right:4px;bottom:5px;width:52px;height:18px;padding:0;border:0;background:none;cursor:pointer}
 .hd-tab::before{content:"";position:absolute;inset:0 0 -1px 0;clip-path:polygon(13px 0,100% 0,100% 100%,0 100%);background:color-mix(in srgb,var(--p-hi) 50%,var(--p-base));background:linear-gradient(var(--p-hi),var(--p-base)) 0 -38px/100% 120px}
+.hd-tab::after{content:"";position:absolute;right:0;top:0;bottom:-5px;width:1px;background:rgba(255,255,255,.3)}
+.gm-venue.tv{border-top:0}
 .hd-tab svg{position:relative;display:block;width:52px;height:18px;overflow:visible}
 .hd-tab .edge{fill:none;stroke:rgba(255,255,255,.3);stroke-width:1}
 .hd-tab .tri{fill:#fff;filter:drop-shadow(0 -1px 0 rgba(0,0,0,.35));transform-origin:36px 10px;transition:transform .2s}
@@ -988,7 +990,7 @@ function gameHTML(g){
       });
       lead = cols.some(Boolean) ? `<div class="gm-strip">Stat Leaders</div><div class="gm-perf">${cols.map(x => x || '<div class="gm-col"></div>').join('')}</div>` : '';
     }
-    info = (place ? `<div class="gm-venue">${esc(place)}</div>` : '')
+    info = (place ? `<div class="gm-venue">${esc(place)}</div>` : '') + (g.tv ? `<div class="gm-venue tv">${esc(g.tv)}</div>` : '')
       + (lead || (sum && sum.loading ? '<div class="gm-strip">Stat Leaders</div><div class="gm-wait">Loading stats…</div>' : ''));
   }
   const footLabel = g.state === 'post' ? 'Recap' : g.state === 'in' ? 'Live Game' : 'Preview';
