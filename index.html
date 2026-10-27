@@ -53,9 +53,43 @@ body{overscroll-behavior:none}
   background:linear-gradient(180deg,var(--p-hi) 0%,var(--p-base) 120px,var(--p-deep) 100%);
   border:1px solid var(--p-line);
   box-shadow:0 0 0 1px rgba(0,0,0,.6),0 6px 18px rgba(0,0,0,.6)}
-.panel-head{position:relative;flex:none;text-align:center;padding:12px 10px 10px}
+.panel-head{position:relative;flex:none;text-align:center;padding:12px 44px 12px}
 .panel-head::before{content:"";position:absolute;inset:0 0 50% 0;background:linear-gradient(rgba(255,255,255,.12),rgba(255,255,255,.03));pointer-events:none}
 .panel-head h1{position:relative;margin:0;font-size:33px;font-weight:700;letter-spacing:-.5px;text-shadow:0 -1px 0 rgba(0,0,0,.6)}
+.hd-tab{position:absolute;right:0;bottom:0;width:34px;height:22px;padding:0;border:0;border-left:1px solid rgba(0,0,0,.45);border-top:1px solid rgba(0,0,0,.45);cursor:pointer;
+  background:linear-gradient(rgba(255,255,255,.35),rgba(255,255,255,.08) 50%,rgba(0,0,0,.12));box-shadow:inset 1px 1px 0 rgba(255,255,255,.3)}
+.hd-tab svg{width:12px;height:8px;fill:none;stroke:#fff;stroke-width:2;filter:drop-shadow(0 -1px 0 rgba(0,0,0,.5));transition:transform .2s}
+.hd-tab.open svg{transform:rotate(180deg)}
+.tabbar{flex:none;display:flex;gap:6px;align-items:stretch;padding:0 8px 8px}
+.seg{flex:1;display:flex;border:1px solid rgba(0,0,0,.55);box-shadow:0 1px 0 rgba(255,255,255,.18)}
+.seg button{flex:1;padding:7px 4px;border:0;border-left:1px solid rgba(0,0,0,.4);font:700 14px var(--font);color:#fff;cursor:pointer;text-shadow:0 -1px 0 rgba(0,0,0,.5);
+  background:linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.08) 50%,rgba(0,0,0,.05));box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.seg button:first-child{border-left:0}
+.seg button.on{background:linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.22));box-shadow:inset 0 2px 4px rgba(0,0,0,.45)}
+.bell{flex:none;width:40px;padding:0;border:1px solid rgba(0,0,0,.55);cursor:pointer;
+  background:linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.08) 50%,rgba(0,0,0,.05));box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 1px 0 rgba(255,255,255,.18)}
+.bell svg{width:18px;height:18px;fill:#fff;filter:drop-shadow(0 -1px 0 rgba(0,0,0,.5))}
+.fbar{position:relative;flex:none;z-index:5}
+.fsel{width:100%;display:flex;align-items:center;justify-content:space-between;padding:6px 12px;cursor:pointer;border:0;color:#fff;font:700 14px var(--font);text-shadow:0 -1px 0 rgba(0,0,0,.5);
+  background:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,.06));border-top:1px solid rgba(255,255,255,.2);border-bottom:1px solid rgba(0,0,0,.45)}
+.fsel i{display:flex;flex-direction:column;gap:3px}
+.fsel i b{display:block;width:16px;height:2px;background:#fff;box-shadow:0 -1px 0 rgba(0,0,0,.4)}
+.fmenu{position:absolute;left:8px;right:8px;top:100%;max-height:min(60vh,360px);overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background:linear-gradient(var(--p-base),var(--p-deep));border:1px solid var(--p-line);box-shadow:0 8px 20px rgba(0,0,0,.7)}
+.fmenu button{display:block;width:100%;text-align:left;padding:10px 14px;border:0;border-bottom:1px solid rgba(0,0,0,.35);box-shadow:0 1px 0 rgba(255,255,255,.08);
+  background:none;color:#fff;font:600 15px var(--font);cursor:pointer;text-shadow:0 -1px 0 rgba(0,0,0,.5)}
+.fmenu button.on{background:rgba(0,0,0,.28);font-weight:800}
+.fmenu button.on::after{content:"✓";float:right}
+.news{display:flex;gap:10px;margin:8px 4px;padding:8px;color:#fff;text-decoration:none;
+  background:linear-gradient(180deg,var(--t-hi),var(--t-mid) 40%,var(--t-lo));border:1px solid var(--t-line);box-shadow:0 2px 4px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35)}
+.news img{flex:none;width:84px;height:56px;object-fit:cover;border:1px solid rgba(255,255,255,.5)}
+.news div{min-width:0;display:flex;flex-direction:column;gap:2px;text-shadow:0 -1px 0 rgba(0,0,0,.5)}
+.news b{font-size:14px;line-height:1.25}
+.news span{font-size:12px;line-height:1.3;color:var(--t-sub);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.news small{font-size:11px;font-weight:700;color:var(--t-sub)}
+.news:active{filter:brightness(1.2)}
+.st-page{padding:10px 4px 14px}
+.hd-tab:focus-visible,.seg button:focus-visible,.bell:focus-visible,.fsel:focus-visible,.fmenu button:focus-visible{outline:2px solid var(--amber);outline-offset:-2px}
 .scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 8px 10px;overscroll-behavior:contain}
 .section{margin:8px -8px 6px;padding:5px 12px;font-size:13px;font-weight:800;letter-spacing:.6px;
   background:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.2));border-top:1px solid rgba(0,0,0,.5);border-bottom:1px solid rgba(255,255,255,.12);
@@ -254,6 +288,12 @@ const SPORTS = [
 // Where tapping a game goes. Default: the game's own page from the feed.
 const gameLink = (sport, ev) => (ev.links && ev.links[0] && ev.links[0].href) || '#';
 const API = 'https://site.api.espn.com/apis/site/v2/sports/';
+const STANDINGS_API = 'https://site.api.espn.com/apis/v2/sports/';
+// College filter menu: Top 25, every conference (feed group id), and all of FBS / Division I.
+const CONFS = {
+  cfb: { all: ['80', 'All FBS'], list: [['1','ACC'],['151','American'],['4','Big 12'],['5','Big Ten'],['12','Conference USA'],['18','FBS Independents'],['15','MAC'],['17','Mountain West'],['9','Pac-12'],['8','SEC'],['37','Sun Belt']] },
+  ncb: { all: ['50', 'All Division I'], list: [['2','ACC'],['1','America East'],['62','American'],['3','Atlantic 10'],['46','ASUN'],['8','Big 12'],['4','Big East'],['5','Big Sky'],['6','Big South'],['7','Big Ten'],['9','Big West'],['10','CAA'],['11','Conference USA'],['45','Horizon'],['12','Ivy League'],['13','MAAC'],['14','MAC'],['16','MEAC'],['18','Missouri Valley'],['44','Mountain West'],['19','NEC'],['20','Ohio Valley'],['21','Pac-12'],['22','Patriot'],['23','SEC'],['24','Southern'],['25','Southland'],['49','Summit'],['27','Sun Belt'],['26','SWAC'],['30','WAC'],['29','West Coast']] },
+};
 const TOP_COUNT = 12;
 
 /* ===== Sample games: shown only when a live feed can't be reached (e.g. in a preview) ===== */
@@ -335,10 +375,14 @@ Object.assign(SAMPLE_SUMMARY, {
   m1: withStand(null, 'nlw', 'ale'), m2: withStand(null, 'nlw', 'ale'),
   b1: withStand(null, 'acc', 'b12'),
 });
+const CONF_SAMPLE = { OSU:'5', PSU:'5', ORE:'5', UW:'5', UGA:'8', TEX:'8', KU:'8', DUKE:'2' };
+const SAMPLE_ARTICLES = sp => [1, 2, 3, 4].map(i => ({ headline: `Sample ${sp.name} headline ${i}`, description: 'Live stories, photos and links load when this page runs on your own site.', published: new Date(Date.now() - i * 5400e3).toISOString(), links: { web: { href: '#' } } }));
+const SAMPLE_STANDINGS = sp => ({ cfb: ['b10','sec'], nfl: ['nfce','afcw','afce'], mlb: ['ale','nlw'], ncb: ['acc','b12'], nba: ['east','west'] }[sp.key] || []).map(k => ({ id: '', name: stTitle({ header: STAND[k][0] }),
+  entries: sampleStand([STAND[k]]).standings.groups[0].standings.entries }));
 const SAMPLE_NEWS = SPORTS.map(s => ({ tag: s.tag, text: `Sample headline for ${s.name}. Live headlines appear when this page runs on your own site.` }));
 
 /* ===== State ===== */
-const state = { data:{}, errors:{}, sample:{}, updated:null, news:[] };
+const state = { data:{}, errors:{}, sample:{}, updated:null, news:[], confData:{}, view:{}, sportNews:{}, standings:{} };
 const pager = document.getElementById('pager');
 const dotsEl = document.getElementById('dots');
 const pages = [{ key:'top', name:'The Lead', mark:'LEAD', theme:'red' }, ...SPORTS];
@@ -349,8 +393,13 @@ if (window.navigator.standalone || matchMedia('(display-mode: standalone)').matc
 pages.forEach((p, i) => {
   const sec = document.createElement('section');
   sec.className = 'page th-' + p.theme; sec.id = 'p-' + p.key; sec.setAttribute('aria-label', p.name);
-  sec.innerHTML = `<div class="panel"><div class="panel-head" data-watermark="${p.mark}"><h1>${p.name}</h1></div>
-    <div class="scroll" id="s-${p.key}"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div></div>`;
+  const isSport = p.key !== 'top', conf = CONFS[p.key];
+  sec.innerHTML = `<div class="panel"><div class="panel-head"><h1>${p.name}</h1>${isSport ? `<button class="hd-tab" data-k="${p.key}" aria-expanded="false" aria-label="Show ${p.name} menu"><svg viewBox="0 0 12 8"><path d="M1 1.5l5 5 5-5"/></svg></button>` : ''}</div>
+    ${isSport ? `<div class="tabbar" id="tb-${p.key}" hidden><div class="seg" role="tablist">${[['scores','Scores'],['news','News'],['standings','Standings']].map(([v, l]) => `<button role="tab" data-k="${p.key}" data-view="${v}" class="${v === 'scores' ? 'on' : ''}" aria-selected="${v === 'scores'}">${l}</button>`).join('')}</div><button class="bell" aria-label="Alerts"><svg viewBox="0 0 20 20"><path d="M10 2.2a1.2 1.2 0 0 1 1.2 1.2v.5a5.2 5.2 0 0 1 4 5.1v3.4l1.6 2.1v.9H3.2V15l1.6-2.1V9a5.2 5.2 0 0 1 4-5.1v-.5A1.2 1.2 0 0 1 10 2.2zM8 16.4h4a2 2 0 0 1-4 0z"/></svg></button></div>` : ''}
+    ${conf ? `<div class="fbar"><button class="fsel" data-k="${p.key}" aria-haspopup="listbox" aria-expanded="false"><span id="fl-${p.key}">Top 25</span><i aria-hidden="true"><b></b><b></b><b></b></i></button>
+      <div class="fmenu" id="fm-${p.key}" role="listbox" hidden>${[['top25','Top 25'], [conf.all[0], conf.all[1]], ...conf.list].map(([v, l]) => `<button role="option" data-k="${p.key}" data-f="${v}">${l}</button>`).join('')}</div></div>` : ''}
+    <div class="scroll" id="s-${p.key}"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+    ${isSport ? `<div class="scroll" id="n-${p.key}" hidden></div><div class="scroll" id="t-${p.key}" hidden></div>` : ''}</div>`;
   pager.appendChild(sec);
   const d = document.createElement('button');
   d.setAttribute('role','tab'); d.setAttribute('aria-label', p.name);
@@ -507,13 +556,16 @@ function grouped(games, byInterest){
 const NOTICE = '<div class="notice">Sample games. Live scores load when this page runs on your own site.</div>';
 function renderSport(sport){
   const el = document.getElementById('s-' + sport.key);
-  const games = state.data[sport.key];
+  const f = filterOf(sport.key);
+  let games = state.data[sport.key];
+  if (CONFS[sport.key] && games && f === 'top25') games = games.filter(g => g.teams.some(t => t.rank));
+  else if (CONFS[sport.key] && f !== CONFS[sport.key].all[0]) games = state.confData[sport.key + ':' + f];
   const more = sport.page ? `<a class="more" href="${esc(sport.page)}">Full ${esc(sport.name)} Scoreboard ›</a>` : '';
   if (!games) {
     if (state.errors[sport.key]) el.innerHTML = `<div class="empty">Couldn't reach ${esc(sport.name)} scores. Check your connection and try again.<br><button class="btn" onclick="refresh()">Try Again</button></div>${more}`;
     return;
   }
-  if (!games.length) { el.innerHTML = `<div class="empty">No ${esc(sport.name)} games on today's slate.</div>${more}`; return; }
+  if (!games.length) { el.innerHTML = `<div class="empty">No ${CONFS[sport.key] ? esc(filterLabel(sport.key)) + ' ' : ''}${esc(sport.name)} games ${sport.daily ? 'from yesterday through tomorrow' : 'this week'}.</div>${more}`; return; }
   el.innerHTML = (state.sample[sport.key] ? NOTICE : '') + grouped(games, false) + more;
 }
 
@@ -527,6 +579,126 @@ function renderTop(){
   const picks = [...all].sort((a, b) => interest(b) - interest(a)).slice(0, TOP_COUNT);
   el.innerHTML = (SPORTS.some(s => state.sample[s.key]) ? NOTICE : '') + grouped(picks, true);
 }
+
+/* ===== Sport menus: header tab, Scores / News / Standings, college filter ===== */
+const store = { get(k, d){ try { const v = localStorage.getItem('scoreline.' + k); return v == null ? d : v; } catch (e) { return d; } }, set(k, v){ try { localStorage.setItem('scoreline.' + k, v); } catch (e) {} } };
+const filterOf = k => store.get('filter.' + k, 'top25');
+function filterLabel(k){
+  const f = filterOf(k), c = CONFS[k];
+  if (f === 'top25') return 'Top 25';
+  if (f === c.all[0]) return c.all[1];
+  return (c.list.find(x => x[0] === f) || [, 'Top 25'])[1];
+}
+const sportOf = k => SPORTS.find(x => x.key === k);
+function setView(k, view){
+  state.view[k] = view;
+  ['s', 'n', 't'].forEach((pre, i) => { document.getElementById(pre + '-' + k).hidden = ['scores', 'news', 'standings'][i] !== view; });
+  document.querySelectorAll(`.seg button[data-k="${k}"]`).forEach(b => { const on = b.dataset.view === view; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
+  const fb = document.querySelector(`#p-${k} .fbar`);
+  if (fb) fb.hidden = view === 'news';
+  if (view === 'news') loadSportNews(sportOf(k));
+  if (view === 'standings') loadStandings(sportOf(k));
+}
+async function applyFilter(k, f){
+  store.set('filter.' + k, f);
+  document.getElementById('fl-' + k).textContent = filterLabel(k);
+  closeMenus();
+  const sp = sportOf(k);
+  if (f !== 'top25' && f !== CONFS[k].all[0] && !state.confData[k + ':' + f]) {
+    document.getElementById('s-' + k).innerHTML = '<div class="skel"></div><div class="skel"></div>';
+    await loadConf(sp, f);
+  }
+  renderSport(sp);
+  if (state.view[k] === 'standings') renderStandings(sp);
+}
+async function loadConf(sp, id){
+  try {
+    if (state.sample[sp.key]) { state.confData[sp.key + ':' + id] = (state.data[sp.key] || []).filter(g => g.teams.some(t => (CONF_SAMPLE[t.abbr] || '') === id)); return; }
+    const params = sp.params.replace(/groups=\d+/, 'groups=' + id);
+    const events = await fetchEvents({ ...sp, params });
+    state.confData[sp.key + ':' + id] = events.flatMap(ev => { try { return [normalize(sp, ev)]; } catch (e) { return []; } });
+  } catch (e) { state.confData[sp.key + ':' + id] = []; }
+}
+function closeMenus(){
+  document.querySelectorAll('.fmenu').forEach(m => m.hidden = true);
+  document.querySelectorAll('.fsel').forEach(b => b.setAttribute('aria-expanded', 'false'));
+}
+
+// News view
+const ago = d => { const m = Math.round((Date.now() - d) / 6e4); return m < 60 ? `${Math.max(m, 1)}m ago` : m < 1440 ? `${Math.round(m / 60)}h ago` : `${Math.round(m / 1440)}d ago`; };
+async function loadSportNews(sp){
+  const el = document.getElementById('n-' + sp.key);
+  if (!state.sportNews[sp.key]) el.innerHTML = '<div class="skel"></div><div class="skel"></div>';
+  try {
+    const j = await getJSON(API + sp.path + '/news?limit=25');
+    state.sportNews[sp.key] = (j.articles || []).filter(a => a.headline);
+  } catch (e) {
+    if (!state.sportNews[sp.key]) state.sportNews[sp.key] = state.sample[sp.key] ? SAMPLE_ARTICLES(sp) : null;
+  }
+  const list = state.sportNews[sp.key];
+  if (!list) { el.innerHTML = `<div class="empty">Couldn't reach ${esc(sp.name)} news. Check your connection and try again.</div>`; return; }
+  if (!list.length) { el.innerHTML = `<div class="empty">No ${esc(sp.name)} headlines right now.</div>`; return; }
+  el.innerHTML = (state.sample[sp.key] ? NOTICE : '') + `<div class="section">Latest</div>` + list.map(a => {
+    const img = a.images && a.images[0] && a.images[0].url;
+    const href = (a.links && a.links.web && a.links.web.href) || '#';
+    return `<a class="news" href="${esc(href)}" target="_blank" rel="noopener">${img ? `<img src="${esc(img)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<div><b>${esc(a.headline)}</b>${a.description ? `<span>${esc(a.description)}</span>` : ''}${a.published ? `<small>${ago(new Date(a.published))}</small>` : ''}</div></a>`;
+  }).join('');
+}
+
+// Standings view: every conference / division as a table; college follows the filter (one conference, or all of them)
+function stLeaves(node, out = []){
+  if (node.standings && node.standings.entries && node.standings.entries.length) out.push(node);
+  (node.children || []).forEach(c => stLeaves(c, out));
+  return out;
+}
+async function loadStandings(sp){
+  const el = document.getElementById('t-' + sp.key);
+  if (!state.standings[sp.key]) el.innerHTML = '<div class="skel"></div><div class="skel"></div>';
+  try {
+    let j = await getJSON(STANDINGS_API + sp.path + '/standings');
+    let leaves = stLeaves(j);
+    // pro leagues come back by conference/league; ask again for divisions
+    if ((sp.key === 'nfl' || sp.key === 'mlb') && leaves.some(l => l.standings.entries.length > 8)) {
+      try { const j2 = await getJSON(STANDINGS_API + sp.path + '/standings?level=3'); const l2 = stLeaves(j2); if (l2.length > leaves.length) leaves = l2; } catch (e) {}
+    }
+    state.standings[sp.key] = leaves.map(l => ({ id: String(l.id || ''), name: l.name || l.abbreviation || '', entries: l.standings.entries }));
+  } catch (e) {
+    if (!state.standings[sp.key] && state.sample[sp.key]) state.standings[sp.key] = SAMPLE_STANDINGS(sp);
+  }
+  renderStandings(sp);
+}
+function renderStandings(sp){
+  const el = document.getElementById('t-' + sp.key);
+  let groups = state.standings[sp.key];
+  if (!groups) { el.innerHTML = `<div class="empty">Couldn't reach ${esc(sp.name)} standings. Check your connection and try again.</div>`; return; }
+  if (CONFS[sp.key]) {
+    const f = filterOf(sp.key);
+    if (f !== 'top25' && f !== CONFS[sp.key].all[0]) {
+      const name = filterLabel(sp.key).toLowerCase();
+      const pick = groups.filter(gr => gr.id === f || gr.name.toLowerCase().includes(name));
+      if (pick.length) groups = pick;
+    }
+  }
+  if (!groups.length) { el.innerHTML = `<div class="empty">No ${esc(sp.name)} standings yet.</div>`; return; }
+  el.innerHTML = (state.sample[sp.key] ? NOTICE : '') + `<div class="gm-stw st-page">${groups.map(gr => stTable(gr.name, gr.entries, sp.college, null, true)).join('')}</div>`;
+}
+
+document.addEventListener('click', e => {
+  const tab = e.target.closest('.hd-tab');
+  if (tab) {
+    const bar = document.getElementById('tb-' + tab.dataset.k), open = bar.hidden;
+    bar.hidden = !open; tab.setAttribute('aria-expanded', open); tab.classList.toggle('open', open);
+    return;
+  }
+  const seg = e.target.closest('.seg button');
+  if (seg) { setView(seg.dataset.k, seg.dataset.view); return; }
+  const fsel = e.target.closest('.fsel');
+  if (fsel) { const m = document.getElementById('fm-' + fsel.dataset.k), open = m.hidden; closeMenus(); m.hidden = !open; fsel.setAttribute('aria-expanded', open); if (open) { const cur = m.querySelector(`[data-f="${filterOf(fsel.dataset.k)}"]`); m.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === cur)); } return; }
+  const opt = e.target.closest('.fmenu button');
+  if (opt) { applyFilter(opt.dataset.k, opt.dataset.f); return; }
+  if (!e.target.closest('.fmenu')) closeMenus();
+});
+Object.keys(CONFS).forEach(k => { const el = document.getElementById('fl-' + k); if (el) el.textContent = filterLabel(k); });
 
 /* ===== Game pop-up ===== */
 const REG = { nba:4, ncb:2, nfl:4, cfb:4, mlb:9 };
@@ -679,60 +851,60 @@ function dateWord(d){
 }
 
 // Standings below the stats: home team's conference/division first, then the away team's (one table if shared).
+// Standings table shared by the game pop-up and the Standings tab.
+// College: W / L / PCT from the conference record. Pros: overall W / L / PCT / GB.
+const stEntryId = e => String(e.id ?? (e.team && e.team.id) ?? '');
+function stEntryName(e, college){
+  if (typeof e.team === 'string') return e.team;
+  const t = e.team || {};
+  return (college ? (t.location || t.shortDisplayName) : (t.shortDisplayName || t.location)) || t.displayName || t.abbreviation || '';
+}
+function stCalc(entries, college){
+  const stat = (e, test) => (e.stats || []).find(test);
+  const num = (e, re) => { const x = stat(e, y => re.test(y.name || '') || re.test(y.abbreviation || '')); if (!x) return null; const v = x.value ?? parseFloat(x.displayValue); return isNaN(v) ? null : +v; };
+  const rec = s => { const m = String(s || '').match(/^(\d+)-(\d+)(?:-(\d+))?/); return m ? { w: +m[1], l: +m[2], t: +(m[3] || 0) } : null; };
+  const confRec = e => { const c = stat(e, x => /vsconf|conf/i.test((x.type || '') + ' ' + (x.name || '') + ' ' + (x.abbreviation || ''))); return c ? String(c.summary || c.displayValue || '') : ''; };
+  const rows = entries.map(e => {
+    let r;
+    if (college) r = rec(confRec(e)) || { w: null, l: null, t: 0 };
+    else {
+      const w = num(e, /^wins$/i), l = num(e, /^losses$/i);
+      if (w != null && l != null) r = { w, l, t: num(e, /^ties$/i) || 0 };
+      else { const o = stat(e, x => /^(overall|total)$/i.test(x.type || x.name || '')); r = rec(o && (o.summary || o.displayValue)) || { w: null, l: null, t: 0 }; }
+    }
+    const p = college ? null : num(e, /^(winPercent|winPct|PCT)$/i);
+    const pct = p != null ? (p > 1 ? p / 100 : p) : (r.w != null ? ((r.w + r.l + r.t) ? (r.w + r.t / 2) / (r.w + r.l + r.t) : 0) : null);
+    return { e, ...r, pct, gb0: college ? null : num(e, /^(gamesBehind|GB)$/i) };
+  });
+  const lead = rows.filter(r => r.w != null).reduce((a, b) => (!a || (b.w - b.l) > (a.w - a.l) ? b : a), null);
+  rows.forEach(r => {
+    let v = r.gb0;
+    if (v == null && lead && r.w != null) v = ((lead.w - r.w) + (r.l - lead.l)) / 2;
+    r.gb = v == null ? '' : v <= 0 ? '-' : v.toFixed(1);
+  });
+  return rows;
+}
+function stTable(title, entries, college, isMe, sort){
+  const pro = !college;
+  let rows = stCalc(entries, college);
+  if (sort) rows = rows.sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1) || (b.w ?? 0) - (a.w ?? 0));
+  const body = rows.map(r => `<tr class="${isMe && isMe(r.e) ? 'me' : ''}"><td class="tm">${esc(stEntryName(r.e, college))}</td><td>${r.w ?? ''}</td><td>${r.l ?? ''}</td><td>${r.pct == null ? '' : r.pct.toFixed(3).replace(/^0/, '')}</td>${pro ? `<td>${esc(r.gb)}</td>` : ''}</tr>`).join('');
+  return `<div class="gm-st"><table><thead><tr><th class="tm">${esc(title)}</th><th>W</th><th>L</th><th>PCT</th>${pro ? '<th>GB</th>' : ''}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
+const stTitle = gr => String(gr.header || gr.name || '').replace(/^\d{4}(-\d{2})?\s+/, '').replace(/\s+Standings$/i, '');
+
+// Standings below the stats: home team's conference/division first, then the away team's (one table if shared).
 function standingsHTML(g, sum){
   const groups = sum && sum.standings && sum.standings.groups;
   if (!groups || !groups.length) return '';
   const college = g.sport.college;
-  const entryId = e => String(e.id ?? (e.team && e.team.id) ?? '');
-  const entryName = e => typeof e.team === 'string' ? e.team : (e.team && (e.team.shortDisplayName || e.team.location || e.team.displayName || e.team.abbreviation)) || '';
-  const stat = (e, test) => (e.stats || []).find(test);
-  const overall = e => {
-    const o = stat(e, x => /^(overall|total)$/i.test(x.type || x.name || ''));
-    if (o && (o.summary || o.displayValue)) return o.summary || o.displayValue;
-    const v = n => { const x = stat(e, y => y.name === n); return x ? (x.value ?? x.displayValue) : null; };
-    const w = v('wins'), l = v('losses'), t = v('ties');
-    return w == null ? '' : `${w}-${l}${t && +t > 0 ? '-' + t : ''}`;
-  };
-  const num = (e, re) => { const x = stat(e, y => re.test(y.name || '') || re.test(y.abbreviation || '')); if (!x) return null; const v = x.value ?? parseFloat(x.displayValue); return isNaN(v) ? null : +v; };
-  const wl = e => {
-    if (college) { const m = confRec(e).match(/^(\d+)-(\d+)(?:-(\d+))?/); return m ? { w: +m[1], l: +m[2], t: +(m[3] || 0) } : { w: null, l: null, t: 0 }; }
-    let w = num(e, /^wins$/i), l = num(e, /^losses$/i), t = num(e, /^ties$/i) || 0;
-    if (w == null || l == null) { const m = String(overall(e)).match(/^(\d+)-(\d+)(?:-(\d+))?/); if (m) { w = +m[1]; l = +m[2]; t = +(m[3] || 0); } }
-    return { w, l, t };
-  };
-  const pctOf = e => {
-    const p = college ? null : num(e, /^(winPercent|winPct|PCT)$/i);
-    const { w, l, t } = wl(e);
-    const v = p != null ? (p > 1 ? p / 100 : p) : (w != null ? ((w + l + t) ? (w + t / 2) / (w + l + t) : 0) : null);
-    return v == null ? '' : v.toFixed(3).replace(/^0/, '');
-  };
-  const pro = !college;
-  const confRec = e => { const c = stat(e, x => /vsconf|conf/i.test((x.type || '') + ' ' + (x.name || '') + ' ' + (x.abbreviation || ''))); return c ? String(c.summary || c.displayValue || '') : ''; };
-  const ids = g.teams.map(t => String(t.id));
-  const groupOf = id => groups.find(gr => ((gr.standings && gr.standings.entries) || []).some(e => entryId(e) === id || (g.teams.find(t => String(t.id) === id) || {}).name === entryName(e)));
+  const ids = g.teams.map(t => String(t.id)), names = g.teams.map(t => t.name);
+  const isMe = e => ids.includes(stEntryId(e)) || names.includes(stEntryName(e, college));
+  const groupOf = id => groups.find(gr => ((gr.standings && gr.standings.entries) || []).some(e => stEntryId(e) === id || (g.teams.find(t => String(t.id) === id) || {}).name === stEntryName(e, college)));
   const order = [];
   [ids[1], ids[0]].forEach(id => { const gr = groupOf(id); if (gr && !order.includes(gr)) order.push(gr); });
   if (!order.length) return '';
-  const names = g.teams.map(t => t.name);
-  const tables = order.map(gr => {
-    const title = String(gr.header || gr.name || '').replace(/^\d{4}(-\d{2})?\s+/, '').replace(/\s+Standings$/i, '');
-    const entries = (gr.standings && gr.standings.entries) || [];
-    const lead = entries.length ? entries.map(wl).reduce((a, b) => ((b.w - b.l) > (a.w - a.l) ? b : a)) : null;
-    const rows = entries.map(e => {
-      const me = ids.includes(entryId(e)) || names.includes(entryName(e));
-      const { w, l } = wl(e);
-      let gb = '';
-      if (pro) {
-        const g0 = num(e, /^(gamesBehind|GB)$/i);
-        let v = g0;
-        if (v == null && lead && lead.w != null && w != null) v = ((lead.w - w) + (l - lead.l)) / 2;
-        gb = v == null ? '' : v <= 0 ? '-' : v.toFixed(1);
-      }
-      return `<tr class="${me ? 'me' : ''}"><td class="tm">${esc(entryName(e))}</td><td>${w ?? ''}</td><td>${l ?? ''}</td><td>${esc(pctOf(e))}</td>${pro ? `<td>${esc(gb)}</td>` : ''}</tr>`;
-    }).join('');
-    return `<div class="gm-st"><table><thead><tr><th class="tm">${esc(title)}</th><th>W</th><th>L</th><th>PCT</th>${pro ? '<th>GB</th>' : ''}</tr></thead><tbody>${rows}</tbody></table></div>`;
-  }).join('');
-  return `<div class="gm-strip">Standings</div><div class="gm-stw">${tables}</div>`;
+  return `<div class="gm-strip">Standings</div><div class="gm-stw">${order.map(gr => stTable(stTitle(gr), (gr.standings && gr.standings.entries) || [], college, isMe)).join('')}</div>`;
 }
 
 function gameHTML(g){
@@ -883,6 +1055,7 @@ async function refresh(){
   if (SPORTS.every(sp => state.errors[sp.key] && !state.data[sp.key])) SPORTS.forEach(sp => {
     if (SAMPLE[sp.key]) { state.data[sp.key] = SAMPLE[sp.key].map(ev => normalize(sp, ev)); state.sample[sp.key] = true; state.errors[sp.key] = false; }
   });
+  await Promise.all(Object.keys(CONFS).map(k => { const f = filterOf(k); return f !== 'top25' && f !== CONFS[k].all[0] ? loadConf(sportOf(k), f) : null; }));
   SPORTS.forEach(renderSport);
   renderTop();
   if (openGid) renderGame(true);
