@@ -169,7 +169,7 @@ body{overscroll-behavior:none}
 .mrow{position:relative;display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;column-gap:7px;height:31px;padding:0 9px 0 5px;font-size:18px;font-weight:700;text-shadow:0 -1px 0 rgba(0,0,0,.5)}
 .mrow img,.mrow .badge{width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
 .mrow .badge{font-size:8px!important}
-.mrow .ab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrow .ab{position:relative;top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mrow .ab i{font-style:normal;font-size:15px;font-weight:400;color:var(--t-sub);margin-left:3px;text-shadow:none}
 .mrow .ab .poss{width:13px;height:8px;margin-left:4px;vertical-align:2px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
 .mrow .sc{font-variant-numeric:tabular-nums;text-align:right}
@@ -309,10 +309,10 @@ body{overscroll-behavior:none}
 <script>
 /* ===== Config: point these at your existing scoreboard pages ===== */
 const SPORTS = [
-  { key:'cfb', theme:'red', name:'College Football', tag:'NCAAF', mark:'NCAAF', path:'football/college-football',          params:'groups=80&limit=300', college:true,  page:'ncaafb-scoreboard.html' },
+  { key:'cfb', theme:'red', name:'NCAA Football', tag:'NCAAF', mark:'NCAAF', path:'football/college-football',          params:'groups=80&limit=300', college:true,  page:'ncaafb-scoreboard.html' },
   { key:'nfl', theme:'nfl', name:'NFL',              tag:'NFL',   mark:'NFL',   path:'football/nfl',                       params:'',                    college:false, page:'nfl-scoreboard.html' },
   { key:'mlb', daily:true, theme:'mlb', name:'MLB',              tag:'MLB',   mark:'MLB',   path:'baseball/mlb',                       params:'',                    college:false, page:'mlb-scoreboard.html' },
-  { key:'ncb', daily:true, theme:'red', name:'College Hoops',    tag:'NCAAB', mark:'NCAAB', path:'basketball/mens-college-basketball', params:'groups=50&limit=300', college:true,  page:'ncaabb-scoreboard.html' },
+  { key:'ncb', daily:true, theme:'red', name:'NCAA Basketball',    tag:'NCAAB', mark:'NCAAB', path:'basketball/mens-college-basketball', params:'groups=50&limit=300', college:true,  page:'ncaabb-scoreboard.html' },
   { key:'nba', daily:true, theme:'nba', name:'NBA',              tag:'NBA',   mark:'NBA',   path:'basketball/nba',                     params:'',                    college:false, page:'nba-scoreboard.html' },
 ];
 // Where tapping a game goes. Default: the game's own page from the feed.
@@ -594,7 +594,7 @@ function grouped(games, byInterest, compact){
   return order.map(k => {
     const list = days.get(k).sort((a, b) =>
       (b.state === 'in') - (a.state === 'in') || (byInterest ? interest(b) - interest(a) : a.date - b.date));
-    return `<div class="section">${dayLabel(k)}</div>` + (compact ? `<div class="grid2">${list.map(miniHTML).join('')}</div>` : list.map(tileHTML).join(''));
+    return `<div class="section">${dayLabel(k)}</div>` + (compact && list.length > 1 ? `<div class="grid2">${list.map(miniHTML).join('')}</div>` : list.map(tileHTML).join(''));
   }).join('');
 }
 
@@ -909,7 +909,13 @@ function stCalc(entries, college){
   const stat = (e, test) => (e.stats || []).find(test);
   const num = (e, re) => { const x = stat(e, y => re.test(y.name || '') || re.test(y.abbreviation || '')); if (!x) return null; const v = x.value ?? parseFloat(x.displayValue); return isNaN(v) ? null : +v; };
   const rec = s => { const m = String(s || '').match(/^(\d+)-(\d+)(?:-(\d+))?/); return m ? { w: +m[1], l: +m[2], t: +(m[3] || 0) } : null; };
-  const confRec = e => { const c = stat(e, x => /vsconf|conf/i.test((x.type || '') + ' ' + (x.name || '') + ' ' + (x.abbreviation || ''))); return c ? String(c.summary || c.displayValue || '') : ''; };
+  const confRec = e => {
+    const isConf = x => /vs\.?\s*conf|vsconf|conference/i.test((x.type || '') + ' ' + (x.name || '') + ' ' + (x.abbreviation || '') + ' ' + (x.displayName || ''));
+    const c = stat(e, x => isConf(x) && /^\d+-\d+/.test(String(x.summary || x.displayValue || '')));
+    if (c) return String(c.summary || c.displayValue);
+    const w = num(e, /^(vsConf_?wins|conferenceWins|confWins)$/i), l = num(e, /^(vsConf_?losses|conferenceLosses|confLosses)$/i);
+    return w != null && l != null ? `${w}-${l}` : '';
+  };
   const rows = entries.map(e => {
     let r;
     if (college) r = rec(confRec(e)) || { w: null, l: null, t: 0 };
