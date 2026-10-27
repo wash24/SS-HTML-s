@@ -170,11 +170,11 @@ body{overscroll-behavior:none}
 .mrow{position:relative;display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;column-gap:7px;height:31px;padding:0 9px 0 5px;font-size:18px;font-weight:700;text-shadow:0 -1px 0 rgba(0,0,0,.5)}
 .mrow img,.mrow .badge{width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
 .mrow .badge{font-size:8px!important}
-.mrow .ab{position:relative;top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mrow .ab i{font-style:normal;font-size:15px;font-weight:400;color:var(--t-sub);margin-left:3px;text-shadow:none}
-.mrow .ab .poss{width:13px;height:8px;margin-left:4px;vertical-align:2px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
-.mrow .sc{font-variant-numeric:tabular-nums;text-align:right}
-.mrow .sc.rec{font-size:13px;font-weight:600;color:var(--t-sub)}
+.mrow .ab{display:flex;align-items:center;min-width:0;font-size:16px;line-height:1;white-space:nowrap;overflow:hidden}
+.mrow .ab i{font-style:normal;font-size:13px;line-height:1;font-weight:400;color:var(--t-sub);margin-left:3px;text-shadow:none}
+.mrow .ab .poss{flex:none;width:13px;height:8px;margin-left:4px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+.mrow .sc{font-size:17px;line-height:1;font-variant-numeric:tabular-nums;text-align:right}
+.mrow .sc.rec{font-size:13px;line-height:1;font-weight:600;color:var(--t-sub)}
 .mrow .win{position:absolute;right:-1px;top:50%;margin-top:-6px;width:0;height:0;border-style:solid;border-width:6px 7px 6px 0;border-color:transparent var(--t-sub) transparent transparent}
 /* game pop-up */
 .gm-veil{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;
