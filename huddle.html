@@ -527,6 +527,14 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .trow .tgame .tg-rows{font-size:14px;column-gap:6px}
 .trow .tgame .tg-st{font-size:11.5px}
 
+/* ticker rank: its own slot left of the abbreviation, so every abbreviation starts at the same x */
+.team-row .rk{position:absolute;left:0;width:22px;text-align:right;z-index:1;font-size:9px;font-weight:600;opacity:.9;margin:0;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+/* live play log: a bit smaller text */
+.gp-txt{font-size:13.5px}
+.gp-when{font-size:13.5px}
+/* infinite stream */
+.stream-more{font-family:var(--font-display);font-size:15px;color:var(--mute);text-align:center;padding:18px 16px}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <style>
@@ -776,7 +784,7 @@ function teamRow(t, g){
     : `<span class="mono txt">${esc(fallback)}</span>`;
   return `<div class="team-row${loser?' loser':''}" style="background:${hex(t.color)}">
     ${mono}
-    <span class="ab">${t.rank?`<span class="rk">${t.rank}</span>`:''}${esc(t.ab)}${rec}</span>${sc}</div>`;
+    ${t.rank?`<span class="rk">${t.rank}</span>`:''}<span class="ab">${esc(t.ab)}${rec}</span>${sc}</div>`;
 }
 function renderTicker(){
   const list = orderGames(games).slice(0,15);
@@ -823,6 +831,15 @@ function rail(){
   return `<div class="rail" aria-label="My teams">${tiles}
     <button class="tile add" data-edit aria-label="Add teams and leagues"><span class="plus">+</span><span class="t-name">${picks.length?'Edit':'Add Teams'}</span></button></div>`;
 }
+let streamShown = 5;                       /* full cards rendered so far on the main stream */
+let streamObs = null;
+function watchStreamEnd(){
+  const sentinel = $('#streamMore'); if(!sentinel) return;
+  if(!streamObs) streamObs = new IntersectionObserver(entries => {
+    if(entries.some(en => en.isIntersecting)){ streamObs.disconnect(); const top = $('#view-teams').scrollTop; streamShown += 5; renderTeams(); $('#view-teams').scrollTop = top; }
+  }, {root: $('#view-teams'), rootMargin: '0px 0px 600px 0px'});
+  streamObs.disconnect(); streamObs.observe(sentinel);
+}
 function renderTeams(){
   const list = filter ? stories.filter(s=>s.key===filter) : stories;
   let html = '';
@@ -831,13 +848,15 @@ function renderTeams(){
     html += rail() + `<div class="filterbar"><span>${esc(v.name)} stream · ${list.length} stories</span><button data-clear>All teams</button></div>`;
     html += list.length ? list.map((s,i)=> i===0?bigCard(s):mini(s)).join('') : `<div class="datanote">No new stories for ${esc(v.name)} yet.</div>`;
   } else {
-    const leadIdx = 0;   /* the newest story always leads */
-    const lead = list[leadIdx]; const rest = list.filter((_,i)=>i!==leadIdx);
-    const [second, ...more] = rest;
-    html += (lead?bigCard(lead):'') + rail() + (second?bigCard(second):'') + more.map(mini).join('');
+    /* every story is a full card (newest first); the team rail sits after the first one */
+    const show = list.slice(0, streamShown);
+    html += show.map((st,i) => bigCard(st) + (i===0 ? rail() : '')).join('');
+    if(!show.length) html += rail();
+    if(list.length > streamShown) html += `<div class="stream-more" id="streamMore">Loading more stories…</div>`;
   }
   html += `<div class="datanote">${liveMode?'Live scores and headlines from ESPN':'Sample scores and stories · live ESPN data loads when hosted'}</div>`;
   $('#view-teams').innerHTML = html;
+  watchStreamEnd();
 }
 /* ================= Scores tab =================
    gray league chips (CFB/CBB with a ▾ group menu) · dark date bar « Mon, Oct 26 ▾ » (date picker) ·
@@ -1142,14 +1161,14 @@ function gameBox(g, o={}){
         <div class="gb-h"><span class="gb-nm">${nameRec(g.h).replace('<small>','<small class="br">')}</span>${logo(g.h,'h')}</div>
       </div></div>`;
   }
-  const al = g.a.line||[], hl = g.h.line||[], n = Math.max(al.length, hl.length);
+  const al = g.a.line||[], hl = g.h.line||[], n = Math.max(al.length, hl.length, reg);   /* all 4 quarters / 2 halves / 9 innings from the start */
   const heads = Array.from({length:n}, (_,i) => (i<reg || mlb) ? String(i+1) : (i-reg ? (i-reg+1)+'OT' : 'OT'));
   const totH = mlb ? ['R','H','E'] : [o.scores ? 'F' : 'TOT'];
   const cw = mlb ? 17 : 23;                              /* period column width */
   const cols = heads.length + totH.length;
   const cellsW = cols*cw;
   const lost = t => g.final && Number(t.sc) < Number((t===g.a?g.h:g.a).sc);
-  const cell = v => `<span class="c">${v==null||v===''?'–':esc(v)}</span>`;
+  const cell = v => `<span class="c">${v==null||v===''?'':esc(v)}</span>`;           /* periods not yet played stay empty */
   const tots = t => mlb ? [t.sc, t.hits??'', t.errors??''] : [t.sc];
   const vals = (t, arr) => heads.map((_,i)=>cell(arr[i])).join('') + tots(t).map(v=>`<span class="c tot">${esc(v)}</span>`).join('');
   return `<div class="gb post" style="--cw:${cw}px">${top}
