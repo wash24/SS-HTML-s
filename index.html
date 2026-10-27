@@ -423,13 +423,14 @@ if (window.navigator.standalone || matchMedia('(display-mode: standalone)').matc
 pages.forEach((p, i) => {
   const sec = document.createElement('section');
   sec.className = 'page th-' + p.theme; sec.id = 'p-' + p.key; sec.setAttribute('aria-label', p.name);
-  const isSport = p.key !== 'top', conf = CONFS[p.key];
+  const isSport = true, isLead = p.key === 'top', conf = CONFS[p.key];
+  const views = isLead ? [['scores','Scores'],['news','News']] : [['scores','Scores'],['news','News'],['standings','Standings']];
   sec.innerHTML = `<div class="panel"><div class="panel-head${isSport ? ' has-tab' : ''}" data-art="${({ cfb:'football', nfl:'football', mlb:'baseball', ncb:'hoops', nba:'hoops' })[p.key] || 'lead'}"><h1>${p.name}</h1><span class="hd-rule"></span>${isSport ? '<span class="hd-rr"></span>' : ''}${isSport ? `<button class="hd-tab" data-k="${p.key}" aria-expanded="false" aria-label="Show ${p.name} menu"><svg viewBox="0 0 52 18"><path class="edge" d="M0 17.5L13 0.5H52"/><path class="tri" d="M31 7h10l-5 6z"/></svg></button>` : ''}</div>
-    ${isSport ? `<div class="tabbar" id="tb-${p.key}" hidden><div class="seg" role="tablist">${[['scores','Scores'],['news','News'],['standings','Standings']].map(([v, l]) => `<button role="tab" data-k="${p.key}" data-view="${v}" class="${v === 'scores' ? 'on' : ''}" aria-selected="${v === 'scores'}">${l}</button>`).join('')}</div><button class="bell" aria-label="Alerts"><svg viewBox="0 0 20 20"><path d="M10 2.2a1.2 1.2 0 0 1 1.2 1.2v.5a5.2 5.2 0 0 1 4 5.1v3.4l1.6 2.1v.9H3.2V15l1.6-2.1V9a5.2 5.2 0 0 1 4-5.1v-.5A1.2 1.2 0 0 1 10 2.2zM8 16.4h4a2 2 0 0 1-4 0z"/></svg></button></div>` : ''}
+    ${isSport ? `<div class="tabbar" id="tb-${p.key}" hidden><div class="seg" role="tablist">${views.map(([v, l]) => `<button role="tab" data-k="${p.key}" data-view="${v}" class="${v === 'scores' ? 'on' : ''}" aria-selected="${v === 'scores'}">${l}</button>`).join('')}</div><button class="bell" aria-label="Alerts"><svg viewBox="0 0 20 20"><path d="M10 2.2a1.2 1.2 0 0 1 1.2 1.2v.5a5.2 5.2 0 0 1 4 5.1v3.4l1.6 2.1v.9H3.2V15l1.6-2.1V9a5.2 5.2 0 0 1 4-5.1v-.5A1.2 1.2 0 0 1 10 2.2zM8 16.4h4a2 2 0 0 1-4 0z"/></svg></button></div>` : ''}
     ${conf ? `<div class="fbar"><button class="fsel" data-k="${p.key}" aria-haspopup="listbox" aria-expanded="false"><span id="fl-${p.key}">Top 25</span><i aria-hidden="true"><b></b><b></b><b></b></i></button>
       <div class="fmenu" id="fm-${p.key}" role="listbox" hidden>${[['top25','Top 25'], [conf.all[0], conf.all[1]], ...conf.list].map(([v, l]) => `<button role="option" data-k="${p.key}" data-f="${v}">${l}</button>`).join('')}</div></div>` : ''}
     <div class="scroll" id="s-${p.key}"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
-    ${isSport ? `<div class="scroll" id="n-${p.key}" hidden></div><div class="scroll" id="t-${p.key}" hidden></div>` : ''}</div>`;
+    <div class="scroll" id="n-${p.key}" hidden></div>${isLead ? '' : `<div class="scroll" id="t-${p.key}" hidden></div>`}</div>`;
   pager.appendChild(sec);
   const d = document.createElement('button');
   d.setAttribute('role','tab'); d.setAttribute('aria-label', p.name);
@@ -638,11 +639,11 @@ function filterLabel(k){
 const sportOf = k => SPORTS.find(x => x.key === k);
 function setView(k, view){
   state.view[k] = view;
-  ['s', 'n', 't'].forEach((pre, i) => { document.getElementById(pre + '-' + k).hidden = ['scores', 'news', 'standings'][i] !== view; });
+  ['s', 'n', 't'].forEach((pre, i) => { const el = document.getElementById(pre + '-' + k); if (el) el.hidden = ['scores', 'news', 'standings'][i] !== view; });
   document.querySelectorAll(`.seg button[data-k="${k}"]`).forEach(b => { const on = b.dataset.view === view; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
   const fb = document.querySelector(`#p-${k} .fbar`);
   if (fb) fb.hidden = view === 'news';
-  if (view === 'news') loadSportNews(sportOf(k));
+  if (view === 'news') k === 'top' ? loadLeadNews() : loadSportNews(sportOf(k));
   if (view === 'standings') loadStandings(sportOf(k));
 }
 async function applyFilter(k, f){
@@ -684,11 +685,35 @@ async function loadSportNews(sp){
   const list = state.sportNews[sp.key];
   if (!list) { el.innerHTML = `<div class="empty">Couldn't reach ${esc(sp.name)} news. Check your connection and try again.</div>`; return; }
   if (!list.length) { el.innerHTML = `<div class="empty">No ${esc(sp.name)} headlines right now.</div>`; return; }
-  el.innerHTML = (state.sample[sp.key] ? NOTICE : '') + `<div class="section">Latest</div>` + list.map(a => {
+  el.innerHTML = (state.sample[sp.key] ? NOTICE : '') + `<div class="section">Latest</div>` + newsList(list, false);
+}
+
+// The Lead's News: top stories from every sport in one list, newest first, each tagged with its sport.
+function newsList(list, withTag){
+  return list.map(a => {
     const img = a.images && a.images[0] && a.images[0].url;
     const href = (a.links && a.links.web && a.links.web.href) || '#';
-    return `<a class="news" href="${esc(href)}" target="_blank" rel="noopener">${img ? `<img src="${esc(img)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<div><b>${esc(a.headline)}</b>${a.description ? `<span>${esc(a.description)}</span>` : ''}${a.published ? `<small>${ago(new Date(a.published))}</small>` : ''}</div></a>`;
+    const meta = [withTag ? a._tag : '', a.published ? ago(new Date(a.published)) : ''].filter(Boolean).join(' · ');
+    return `<a class="news" href="${esc(href)}" target="_blank" rel="noopener">${img ? `<img src="${esc(img)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<div><b>${esc(a.headline)}</b>${a.description ? `<span>${esc(a.description)}</span>` : ''}${meta ? `<small>${esc(meta)}</small>` : ''}</div></a>`;
   }).join('');
+}
+async function loadLeadNews(){
+  const el = document.getElementById('n-top');
+  if (!state.leadNews) el.innerHTML = '<div class="skel"></div><div class="skel"></div>';
+  const res = await Promise.all(SPORTS.map(async sp => {
+    try { const j = await getJSON(API + sp.path + '/news?limit=10'); return (j.articles || []).filter(a => a.headline).map(a => ({ ...a, _tag: sp.tag })); }
+    catch (e) { return null; }
+  }));
+  const ok = res.filter(Boolean);
+  if (ok.length) {
+    const seen = new Set();
+    state.leadNews = ok.flat().filter(a => { const k = a.headline.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
+      .sort((a, b) => new Date(b.published || 0) - new Date(a.published || 0)).slice(0, 40);
+  } else if (!state.leadNews && SPORTS.some(sp => state.sample[sp.key])) {
+    state.leadNews = SPORTS.flatMap(sp => SAMPLE_ARTICLES(sp).slice(0, 2).map(a => ({ ...a, _tag: sp.tag }))).sort((a, b) => new Date(b.published) - new Date(a.published));
+  }
+  if (!state.leadNews) { el.innerHTML = '<div class="empty">Couldn\'t reach the news feeds. Check your connection and try again.</div>'; return; }
+  el.innerHTML = (SPORTS.some(sp => state.sample[sp.key]) ? NOTICE : '') + '<div class="section">Top Stories</div>' + newsList(state.leadNews, true);
 }
 
 // Standings view: every conference / division as a table; college follows the filter (one conference, or all of them)
