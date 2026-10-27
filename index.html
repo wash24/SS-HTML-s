@@ -53,27 +53,26 @@ body{overscroll-behavior:none}
   background:linear-gradient(180deg,var(--p-hi) 0%,var(--p-base) 120px,var(--p-deep) 100%);
   border:1px solid var(--p-line);
   box-shadow:0 0 0 1px rgba(0,0,0,.6),0 6px 18px rgba(0,0,0,.6)}
-.panel-head{position:relative;flex:none;text-align:center;padding:12px 44px 12px}
+.panel-head{position:relative;flex:none;text-align:center;padding:10px 40px 13px;background:linear-gradient(118deg,transparent 0 58%,rgba(255,255,255,.06) 58% 74%,transparent 74%)}
 .panel-head::before{content:"";position:absolute;inset:0 0 50% 0;background:linear-gradient(rgba(255,255,255,.12),rgba(255,255,255,.03));pointer-events:none}
-.panel-head h1{position:relative;margin:0;font-size:33px;font-weight:700;letter-spacing:-.5px;text-shadow:0 -1px 0 rgba(0,0,0,.6)}
-.hd-tab{position:absolute;right:0;bottom:0;width:34px;height:22px;padding:0;border:0;border-left:1px solid rgba(0,0,0,.45);border-top:1px solid rgba(0,0,0,.45);cursor:pointer;
-  background:linear-gradient(rgba(255,255,255,.35),rgba(255,255,255,.08) 50%,rgba(0,0,0,.12));box-shadow:inset 1px 1px 0 rgba(255,255,255,.3)}
-.hd-tab svg{width:12px;height:8px;fill:none;stroke:#fff;stroke-width:2;filter:drop-shadow(0 -1px 0 rgba(0,0,0,.5));transition:transform .2s}
+.panel-head h1{position:relative;margin:0;font-size:27px;font-weight:700;letter-spacing:-.5px;text-shadow:0 -1px 0 rgba(0,0,0,.6)}
+.hd-tab{position:absolute;right:0;bottom:0;width:30px;height:16px;padding:0;border:1px solid rgba(0,0,0,.35);border-right:0;border-bottom:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(rgba(255,255,255,.42),rgba(255,255,255,.2) 50%,rgba(255,255,255,.12));box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
+.hd-tab svg{width:10px;height:6px;fill:none;stroke:#fff;stroke-width:2;filter:drop-shadow(0 -1px 0 rgba(0,0,0,.5));transition:transform .2s}
 .hd-tab.open svg{transform:rotate(180deg)}
-.tabbar{flex:none;display:flex;gap:6px;align-items:stretch;padding:0 8px 8px}
+.tabbar{flex:none;display:flex;gap:6px;align-items:stretch;padding:2px 7px 7px}
 .seg{flex:1;display:flex;border:1px solid rgba(0,0,0,.55);box-shadow:0 1px 0 rgba(255,255,255,.18)}
-.seg button{flex:1;padding:7px 4px;border:0;border-left:1px solid rgba(0,0,0,.4);font:700 14px var(--font);color:#fff;cursor:pointer;text-shadow:0 -1px 0 rgba(0,0,0,.5);
+.seg button{flex:1;padding:6px 2px;border:0;border-left:1px solid rgba(0,0,0,.4);font:700 14px var(--font);color:#fff;cursor:pointer;text-shadow:0 -1px 0 rgba(0,0,0,.5);
   background:linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.08) 50%,rgba(0,0,0,.05));box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
 .seg button:first-child{border-left:0}
 .seg button.on{background:linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.22));box-shadow:inset 0 2px 4px rgba(0,0,0,.45)}
-.bell{flex:none;width:40px;padding:0;border:1px solid rgba(0,0,0,.55);cursor:pointer;
+.bell{flex:none;width:34px;padding:0;border:1px solid rgba(0,0,0,.55);cursor:pointer;
   background:linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.08) 50%,rgba(0,0,0,.05));box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 1px 0 rgba(255,255,255,.18)}
-.bell svg{width:18px;height:18px;fill:#fff;filter:drop-shadow(0 -1px 0 rgba(0,0,0,.5))}
+.bell svg{width:17px;height:17px;fill:rgba(255,255,255,.8);filter:drop-shadow(0 -1px 0 rgba(0,0,0,.5))}
 .fbar{position:relative;flex:none;z-index:5}
-.fsel{width:100%;display:flex;align-items:center;justify-content:space-between;padding:6px 12px;cursor:pointer;border:0;color:#fff;font:700 14px var(--font);text-shadow:0 -1px 0 rgba(0,0,0,.5);
-  background:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,.06));border-top:1px solid rgba(255,255,255,.2);border-bottom:1px solid rgba(0,0,0,.45)}
-.fsel i{display:flex;flex-direction:column;gap:3px}
-.fsel i b{display:block;width:16px;height:2px;background:#fff;box-shadow:0 -1px 0 rgba(0,0,0,.4)}
+.fsel{width:100%;display:flex;align-items:center;justify-content:space-between;padding:7px 10px 7px 12px;cursor:pointer;border:0;color:#fff;font:700 14px var(--font);text-shadow:0 -1px 0 rgba(0,0,0,.5);
+  background:linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.12) 50%,rgba(255,255,255,.06));border-top:1px solid rgba(255,255,255,.3);border-bottom:1px solid rgba(0,0,0,.45)}
+.fsel i{display:flex;flex-direction:column;gap:2px}
+.fsel i b{display:block;width:18px;height:3px;background:rgba(255,255,255,.7);box-shadow:0 -1px 0 rgba(0,0,0,.4)}
 .fmenu{position:absolute;left:8px;right:8px;top:100%;max-height:min(60vh,360px);overflow-y:auto;-webkit-overflow-scrolling:touch;
   background:linear-gradient(var(--p-base),var(--p-deep));border:1px solid var(--p-line);box-shadow:0 8px 20px rgba(0,0,0,.7)}
 .fmenu button{display:block;width:100%;text-align:left;padding:10px 14px;border:0;border-bottom:1px solid rgba(0,0,0,.35);box-shadow:0 1px 0 rgba(255,255,255,.08);
@@ -100,6 +99,18 @@ body{overscroll-behavior:none}
 .tile{display:block;color:inherit;text-decoration:none;margin:8px 4px;border-radius:0;overflow:hidden;
   background:linear-gradient(180deg,var(--t-hi),var(--t-mid) 40%,var(--t-lo));
   border:1px solid var(--t-line);box-shadow:0 2px 4px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35)}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;padding:2px 2px 4px}
+.tile.mini{margin:0;padding-bottom:3px}
+.tile.mini .t-top{padding:4px 7px 1px;font-size:11.5px;color:#fff}
+.mrow{display:grid;grid-template-columns:24px minmax(0,1fr) auto 9px;align-items:center;column-gap:5px;padding:3px 0 3px 6px;font-size:16px;font-weight:700;text-shadow:0 -1px 0 rgba(0,0,0,.6)}
+.mrow img,.mrow .badge{width:24px;height:24px;object-fit:contain;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+.mrow .badge{font-size:7px!important}
+.mrow .ab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrow .ab i{font-style:normal;font-size:12px;font-weight:600;color:var(--t-sub);margin-left:4px}
+.mrow .ab .poss{width:13px;height:8px;margin-left:4px;vertical-align:1px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+.mrow .sc{font-variant-numeric:tabular-nums;text-align:right}
+.mrow .sc.rec{font-size:12px;font-weight:600;color:var(--t-sub)}
+.mrow .win{width:0;height:0;border-style:solid;border-width:5px 7px 5px 0;border-color:transparent #fff transparent transparent;justify-self:end;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
 .tile:active{filter:brightness(1.25)}
 .t-top{display:flex;justify-content:space-between;align-items:center;padding:4px 8px 2px;font-size:12px;font-weight:700;color:var(--t-sub);text-transform:uppercase;letter-spacing:.2px}
 .t-top .rt{display:flex;gap:8px;align-items:center;white-space:nowrap}
@@ -134,9 +145,9 @@ body{overscroll-behavior:none}
 .dotsbar{display:flex;align-items:center;height:30px;padding:0 max(8px,env(safe-area-inset-right,0px)) 0 max(8px,env(safe-area-inset-left,0px));background:#0a0a0a}
 .gear{width:28px;height:28px;border:0;background:none;padding:2px;cursor:pointer}
 .gear svg{width:22px;height:22px;fill:#8c95a3;filter:drop-shadow(0 -1px 0 #000)}
-.dots{flex:1;display:flex;justify-content:center;gap:9px;margin-right:28px}
+.dots{flex:1;display:flex;justify-content:center;align-items:center;gap:9px;margin-right:28px}
 .dots button{width:7px;height:7px;padding:0;border:0;border-radius:50%;background:#4a5566;cursor:pointer}
-.dots button.on{background:#fff}
+.dots button.on{width:15px;height:15px;margin:-4px 0;background:radial-gradient(circle,#fff 0 28%,#6b7380 30% 52%,#e9ecf1 54%);box-shadow:0 0 0 1px #000}
 .ticker{display:flex;align-items:stretch;height:26px;border-top:1px solid #000;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
 .ticker .lab{flex:none;width:56px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;font-style:italic;color:#fff;background:linear-gradient(#5a5a5a,#1c1c1c 55%,#000);border-right:1px solid #000;box-shadow:inset 0 1px 0 rgba(255,255,255,.3);text-shadow:0 -1px 0 #000}
 .ticker .rail{flex:1;min-width:0;overflow:hidden;position:relative;background:linear-gradient(#1a1a1a,#000);color:#fff;font-size:14px;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
@@ -509,6 +520,22 @@ function interest(g){
 }
 
 const FOOTBALL = '<svg class="poss" viewBox="0 0 20 12" aria-label="Has the ball"><path d="M1 6C4 -1.2 16 -1.2 19 6C16 13.2 4 13.2 1 6Z" fill="#fff"/><path d="M6.5 6h7M8 4.4v3.2M10 4.4v3.2M12 4.4v3.2" stroke="rgba(0,0,0,.55)" stroke-width="1" fill="none"/></svg>';
+// Compact box: status line, then logo / abbreviation (rank after it) / score, winner arrow on the edge.
+function miniStatus(g){
+  if (g.state === 'post') return g.detail.replace(/^Final\/(\d*OT)$/i, 'F/$1').replace(/^Final(\/\d+)?$/i, m => /\/\d+/.test(m) ? 'F' + m.slice(5) : 'FINAL');
+  if (g.state === 'in') return g.detail;
+  return /\d:\d\d/.test(g.detail) || !g.detail ? hm(g.date) : g.detail;
+}
+function miniHTML(g){
+  const rows = g.teams.map(t => `<div class="mrow">
+      ${t.logo ? `<img src="${esc(t.darkLogo || t.logo)}" data-std="${esc(t.logo)}" alt="" loading="lazy" onerror="logoFallback(this)">` : `<span class="badge" style="background:#${esc(t.color)}">${esc(t.abbr)}</span>`}
+      <span class="ab">${esc(t.abbr)}${t.rank ? `<i>${t.rank}</i>` : ''}${g.poss && g.poss === String(t.id) ? FOOTBALL : ''}</span>
+      <span class="sc${g.state === 'pre' ? ' rec' : ''}">${esc(g.state === 'pre' ? (t.record || '') : t.score)}</span>
+      ${t.winner && g.state === 'post' ? '<i class="win"></i>' : '<span></span>'}
+    </div>`).join('');
+  return `<a class="tile mini" href="${esc(g.link)}" data-gid="${g.sport.key}:${esc(g.id)}" target="_blank" rel="noopener">
+    <div class="t-top${g.state === 'in' ? ' live' : ''}"><span class="st">${esc(miniStatus(g))}</span></div>${rows}</a>`;
+}
 function tileHTML(g){
   const live = g.state === 'in';
   const rows = g.teams.map(t => {
@@ -535,7 +562,7 @@ function dayLabel(k){
   if (diff === -1) return 'YESTERDAY';
   return new Date(k).toLocaleDateString([], { weekday:'long', month:'short', day:'numeric' }).toUpperCase();
 }
-function grouped(games, byInterest){
+function grouped(games, byInterest, compact){
   const today = dayKey(Date.now());
   const days = new Map();
   games.forEach(g => { const k = g.state === 'in' ? today : dayKey(g.date); if (!days.has(k)) days.set(k, []); days.get(k).push(g); });
@@ -548,7 +575,7 @@ function grouped(games, byInterest){
   return order.map(k => {
     const list = days.get(k).sort((a, b) =>
       (b.state === 'in') - (a.state === 'in') || (byInterest ? interest(b) - interest(a) : a.date - b.date));
-    return `<div class="section">${dayLabel(k)}</div>` + list.map(tileHTML).join('');
+    return `<div class="section">${dayLabel(k)}</div>` + (compact ? `<div class="grid2">${list.map(miniHTML).join('')}</div>` : list.map(tileHTML).join(''));
   }).join('');
 }
 
@@ -566,7 +593,7 @@ function renderSport(sport){
     return;
   }
   if (!games.length) { el.innerHTML = `<div class="empty">No ${CONFS[sport.key] ? esc(filterLabel(sport.key)) + ' ' : ''}${esc(sport.name)} games ${sport.daily ? 'from yesterday through tomorrow' : 'this week'}.</div>${more}`; return; }
-  el.innerHTML = (state.sample[sport.key] ? NOTICE : '') + grouped(games, false) + more;
+  el.innerHTML = (state.sample[sport.key] ? NOTICE : '') + grouped(games, false, true) + more;
 }
 
 function renderTop(){
