@@ -86,7 +86,6 @@ body{overscroll-behavior:none}
 .t-top .tv{color:#fff}
 .t-top .lg{color:var(--amber)}
 .t-top.live{color:#fff}
-.t-top.live .st::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--live);margin-right:5px;vertical-align:1px;box-shadow:0 0 6px var(--live);animation:pulse 1.4s infinite}
 @keyframes pulse{50%{opacity:.35}}
 .row{display:grid;grid-template-columns:28px minmax(0,1fr) auto 10px;align-items:center;column-gap:5px;padding:3px 0 3px 8px;font-size:17px;font-weight:700;text-shadow:0 -1px 0 rgba(0,0,0,.6)}
 .row img{width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
@@ -203,7 +202,6 @@ body{overscroll-behavior:none}
 .gm-num.lost b{color:var(--t-sub)}
 .gm-mid{position:relative;text-align:center;font-size:13px;min-width:44px;font-weight:800;text-transform:uppercase;max-width:96px}
 .gm-mid small{display:block;margin-top:3px;font-size:11px;font-weight:700;color:var(--t-sub)}
-.gm-mid.live::before{content:"";display:block;margin:0 auto 4px;width:8px;height:8px;border-radius:50%;background:var(--live);box-shadow:0 0 6px var(--live);animation:pulse 1.4s infinite}
 .gm-ls{margin:0 0 8px;padding:2px 10px 0;overflow-x:auto;border-top:1px solid rgba(0,0,0,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
 .gm-ls table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;text-shadow:0 -1px 0 rgba(0,0,0,.55)}
 .gm-ls th{padding:6px 6px 2px;font-size:12px;font-weight:700;color:var(--t-sub);text-align:center;min-width:26px}
@@ -250,12 +248,14 @@ body{overscroll-behavior:none}
 .gl-v .none{color:var(--t-sub)}
 .gm-stw{display:flex;flex-direction:column;gap:14px;padding:10px 12px 14px}
 .gm-st{}
-.gm-st table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;text-shadow:0 -1px 0 rgba(0,0,0,.55)}
+.gm-st table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;text-shadow:0 -1px 0 rgba(0,0,0,.55)}
 .gm-st th{padding:2px 6px 4px;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--t-sub);text-align:right;white-space:nowrap}
-.gm-st th.tm{text-align:left;color:#fff;font-size:12px;padding-left:2px;border-bottom:0}
+.gm-st th.tm{text-align:left;color:#fff;font-size:12px;padding-left:2px;border-bottom:0;overflow:hidden;text-overflow:ellipsis}
 .gm-st thead tr{border-bottom:1px solid rgba(255,255,255,.18)}
 .gm-st td{padding:3px 6px;text-align:right;font-weight:500;color:var(--t-sub);white-space:nowrap}
-.gm-st td.tm{padding-left:2px;text-align:left;width:100%;max-width:12em;overflow:hidden;text-overflow:ellipsis}
+.gm-st td.tm{padding-left:2px;text-align:left;overflow:hidden;text-overflow:ellipsis}
+.gm-st th,.gm-st td{overflow:hidden}
+.scroll,.gm-in{overflow-x:hidden}
 .gm-st tbody tr:first-child td{padding-top:5px}
 .gm-st tr.me td{color:#fff;font-weight:800}
 .gm-wait{padding:14px 12px;color:var(--t-sub);font-size:13px}
@@ -583,20 +583,33 @@ function dayLabel(k){
   if (diff === -1) return 'YESTERDAY';
   return new Date(k).toLocaleDateString([], { weekday:'long', month:'short', day:'numeric' }).toUpperCase();
 }
+// Day strips and order.
+// Mornings (before noon, nothing underway yet today): YESTERDAY's results lead, then TODAY, then what's ahead.
+// From noon on, or once a game today has started: TODAY leads, then upcoming days, then YESTERDAY at the bottom.
+// Inside a day: live games first, then upcoming by start time, then finals (The Lead orders by game interest instead).
+// Sport pages: if exactly one game is live, it sits on top of TODAY as a full box until a second game goes live.
 function grouped(games, byInterest, compact){
   const today = dayKey(Date.now());
   const days = new Map();
   games.forEach(g => { const k = g.state === 'in' ? today : dayKey(g.date); if (!days.has(k)) days.set(k, []); days.get(k).push(g); });
-  // Once today's action has started, lead with today and look ahead; before that, lead with yesterday's results.
-  const started = (days.get(today) || []).some(g => g.state !== 'pre');
+  const started = (days.get(today) || []).some(g => g.state !== 'pre') || new Date().getHours() >= 12;
   const keys = [...days.keys()];
   const future = keys.filter(k => k >= today).sort((a, b) => a - b);
   const past = keys.filter(k => k < today).sort((a, b) => b - a);
   const order = started || !past.length ? [...future, ...past] : [past[0], ...future, ...past.slice(1)];
+  const rankState = { in: 0, pre: 1, post: 2 };
   return order.map(k => {
     const list = days.get(k).sort((a, b) =>
-      (b.state === 'in') - (a.state === 'in') || (byInterest ? interest(b) - interest(a) : a.date - b.date));
-    return `<div class="section">${dayLabel(k)}</div>` + (compact && list.length > 1 ? `<div class="grid2">${list.map(miniHTML).join('')}</div>` : list.map(tileHTML).join(''));
+      (rankState[a.state] - rankState[b.state]) * (byInterest ? (a.state === 'in' || b.state === 'in' ? 1 : 0) : 1)
+      || (byInterest ? interest(b) - interest(a) : a.date - b.date));
+    let html = `<div class="section">${dayLabel(k)}</div>`;
+    if (!compact) return html + list.map(tileHTML).join('');
+    const live = list.filter(g => g.state === 'in');
+    let rest = list;
+    if (live.length === 1) { html += tileHTML(live[0]); rest = list.filter(g => g !== live[0]); }
+    if (rest.length === 1) html += tileHTML(rest[0]);
+    else if (rest.length) html += `<div class="grid2">${rest.map(miniHTML).join('')}</div>`;
+    return html;
   }).join('');
 }
 
@@ -624,7 +637,19 @@ function renderTop(){
     if (SPORTS.every(s => state.errors[s.key])) el.innerHTML = `<div class="empty">Couldn't reach the score feeds. Check your connection and try again.<br><button class="btn" onclick="refresh()">Try Again</button></div>`;
     return;
   }
-  const picks = [...all].sort((a, b) => interest(b) - interest(a)).slice(0, TOP_COUNT);
+  // Every live game; finals from roughly the last day; games starting within the next day and a half.
+  // Ranked by interest (stakes, rankings, closeness, recency), at most 4 per sport so one league can't take over.
+  const now = Date.now();
+  const inWindow = g => g.state === 'in' || (g.state === 'post' ? now - g.date < 30 * 36e5 : g.date - now < 36 * 36e5);
+  const ranked = all.filter(inWindow).sort((a, b) => (b.state === 'in') - (a.state === 'in') || interest(b) - interest(a));
+  const perSport = {}, picks = [];
+  for (const g of ranked) {
+    if (picks.length >= TOP_COUNT) break;
+    const n = perSport[g.sport.key] || 0;
+    if (g.state !== 'in' && n >= 4) continue;
+    perSport[g.sport.key] = n + 1; picks.push(g);
+  }
+  if (!picks.length) picks.push(...[...all].sort((a, b) => interest(b) - interest(a)).slice(0, TOP_COUNT));
   el.innerHTML = (SPORTS.some(s => state.sample[s.key]) ? NOTICE : '') + grouped(picks, true);
 }
 
@@ -967,7 +992,7 @@ function stTable(title, entries, college, isMe, sort){
   let rows = stCalc(entries, college);
   if (sort) rows = rows.sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1) || (b.w ?? 0) - (a.w ?? 0));
   const body = rows.map(r => `<tr class="${isMe && isMe(r.e) ? 'me' : ''}"><td class="tm">${esc(stEntryName(r.e, college))}</td><td>${r.w ?? ''}</td><td>${r.l ?? ''}</td><td>${r.pct == null ? '' : r.pct.toFixed(3).replace(/^0/, '')}</td>${pro ? `<td>${esc(r.gb)}</td>` : ''}</tr>`).join('');
-  return `<div class="gm-st"><table><thead><tr><th class="tm">${esc(title)}</th><th>W</th><th>L</th><th>PCT</th>${pro ? '<th>GB</th>' : ''}</tr></thead><tbody>${body}</tbody></table></div>`;
+  return `<div class="gm-st"><table><colgroup><col><col style="width:30px"><col style="width:30px"><col style="width:48px">${pro ? '<col style="width:42px">' : ''}</colgroup><thead><tr><th class="tm">${esc(title)}</th><th>W</th><th>L</th><th>PCT</th>${pro ? '<th>GB</th>' : ''}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 const stTitle = gr => String(gr.header || gr.name || '').replace(/^\d{4}(-\d{2})?\s+/, '').replace(/\s+Standings$/i, '');
 
