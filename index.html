@@ -53,26 +53,7 @@ body{overscroll-behavior:none}
   background:linear-gradient(180deg,var(--p-hi) 0%,var(--p-base) 120px,var(--p-deep) 100%);
   border:1px solid var(--p-line);
   box-shadow:0 0 0 1px rgba(0,0,0,.6),0 6px 18px rgba(0,0,0,.6)}
-.panel-head{position:relative;flex:none;text-align:center;padding:10px 40px 13px;background:linear-gradient(118deg,transparent 0 58%,rgba(255,255,255,.06) 58% 74%,transparent 74%)}
-.panel-head::before{content:"";position:absolute;inset:0 0 50% 0;background:linear-gradient(rgba(255,255,255,.12),rgba(255,255,255,.03));pointer-events:none}
-.panel-head h1{position:relative;margin:0;font-size:27px;font-weight:700;letter-spacing:-.5px;text-shadow:0 -1px 0 rgba(0,0,0,.6)}
-.hd-tab{position:absolute;right:0;bottom:0;width:30px;height:16px;padding:0;border:1px solid rgba(0,0,0,.35);border-right:0;border-bottom:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(rgba(255,255,255,.42),rgba(255,255,255,.2) 50%,rgba(255,255,255,.12));box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
-.hd-tab svg{width:10px;height:6px;fill:none;stroke:#fff;stroke-width:2;filter:drop-shadow(0 -1px 0 rgba(0,0,0,.5));transition:transform .2s}
-.hd-tab.open svg{transform:rotate(180deg)}
-.tabbar{flex:none;display:flex;gap:6px;align-items:stretch;padding:2px 7px 7px}
-.seg{flex:1;display:flex;border:1px solid rgba(0,0,0,.55);box-shadow:0 1px 0 rgba(255,255,255,.18)}
-.seg button{flex:1;padding:6px 2px;border:0;border-left:1px solid rgba(0,0,0,.4);font:700 14px var(--font);color:#fff;cursor:pointer;text-shadow:0 -1px 0 rgba(0,0,0,.5);
-  background:linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.08) 50%,rgba(0,0,0,.05));box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
-.seg button:first-child{border-left:0}
-.seg button.on{background:linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.22));box-shadow:inset 0 2px 4px rgba(0,0,0,.45)}
-.bell{flex:none;width:34px;padding:0;border:1px solid rgba(0,0,0,.55);cursor:pointer;
-  background:linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.08) 50%,rgba(0,0,0,.05));box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 1px 0 rgba(255,255,255,.18)}
-.bell svg{width:17px;height:17px;fill:rgba(255,255,255,.8);filter:drop-shadow(0 -1px 0 rgba(0,0,0,.5))}
 .fbar{position:relative;flex:none;z-index:5}
-.fsel{width:100%;display:flex;align-items:center;justify-content:space-between;padding:7px 10px 7px 12px;cursor:pointer;border:0;color:#fff;font:700 14px var(--font);text-shadow:0 -1px 0 rgba(0,0,0,.5);
-  background:linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.12) 50%,rgba(255,255,255,.06));border-top:1px solid rgba(255,255,255,.3);border-bottom:1px solid rgba(0,0,0,.45)}
-.fsel i{display:flex;flex-direction:column;gap:2px}
-.fsel i b{display:block;width:18px;height:3px;background:rgba(255,255,255,.7);box-shadow:0 -1px 0 rgba(0,0,0,.4)}
 .fmenu{position:absolute;left:8px;right:8px;top:100%;max-height:min(60vh,360px);overflow-y:auto;-webkit-overflow-scrolling:touch;
   background:linear-gradient(var(--p-base),var(--p-deep));border:1px solid var(--p-line);box-shadow:0 8px 20px rgba(0,0,0,.7)}
 .fmenu button{display:block;width:100%;text-align:left;padding:10px 14px;border:0;border-bottom:1px solid rgba(0,0,0,.35);box-shadow:0 1px 0 rgba(255,255,255,.08);
@@ -99,18 +80,6 @@ body{overscroll-behavior:none}
 .tile{display:block;color:inherit;text-decoration:none;margin:8px 4px;border-radius:0;overflow:hidden;
   background:linear-gradient(180deg,var(--t-hi),var(--t-mid) 40%,var(--t-lo));
   border:1px solid var(--t-line);box-shadow:0 2px 4px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35)}
-.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;padding:2px 2px 4px}
-.tile.mini{margin:0;padding-bottom:3px}
-.tile.mini .t-top{padding:4px 7px 1px;font-size:11.5px;color:#fff}
-.mrow{display:grid;grid-template-columns:24px minmax(0,1fr) auto 9px;align-items:center;column-gap:5px;padding:3px 0 3px 6px;font-size:16px;font-weight:700;text-shadow:0 -1px 0 rgba(0,0,0,.6)}
-.mrow img,.mrow .badge{width:24px;height:24px;object-fit:contain;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
-.mrow .badge{font-size:7px!important}
-.mrow .ab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mrow .ab i{font-style:normal;font-size:12px;font-weight:600;color:var(--t-sub);margin-left:4px}
-.mrow .ab .poss{width:13px;height:8px;margin-left:4px;vertical-align:1px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
-.mrow .sc{font-variant-numeric:tabular-nums;text-align:right}
-.mrow .sc.rec{font-size:12px;font-weight:600;color:var(--t-sub)}
-.mrow .win{width:0;height:0;border-style:solid;border-width:5px 7px 5px 0;border-color:transparent #fff transparent transparent;justify-self:end;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
 .tile:active{filter:brightness(1.25)}
 .t-top{display:flex;justify-content:space-between;align-items:center;padding:4px 8px 2px;font-size:12px;font-weight:700;color:var(--t-sub);text-transform:uppercase;letter-spacing:.2px}
 .t-top .rt{display:flex;gap:8px;align-items:center;white-space:nowrap}
@@ -156,6 +125,52 @@ body{overscroll-behavior:none}
   background:linear-gradient(#e8382b,#b3100a 55%,#8f0c07);border-left:1px solid #000;text-shadow:0 -1px 0 rgba(0,0,0,.5);clip-path:polygon(10px 0,100% 0,100% 100%,0 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
 .brand span{color:#fff}
 
+/* header: inner frame, sport line art, bottom rule that steps down into the slanted menu tab */
+.panel-head{position:relative;flex:none;text-align:center;padding:13px 54px 21px;background-repeat:no-repeat;background-position:right center;background-size:auto 100%}
+.panel-head[data-art="hoops"]{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27400%27%20height%3D%2780%27%20viewBox%3D%270%200%20400%2080%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.1%27%20stroke-width%3D%271.2%27%3E%3Ccircle%20cx%3D%27330%27%20cy%3D%2740%27%20r%3D%2734%27/%3E%3Ccircle%20cx%3D%27330%27%20cy%3D%2740%27%20r%3D%279%27/%3E%3Cpath%20d%3D%27M0%2018h120l26%2036H0M146%2054a40%2040%200%200%200%200-36%27/%3E%3Cpath%20d%3D%27M60%208l14%2014m0-14L60%2022%27%20/%3E%3C/svg%3E")}
+.panel-head[data-art="football"]{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27400%27%20height%3D%2780%27%20viewBox%3D%270%200%20400%2080%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.1%27%20stroke-width%3D%271.2%27%3E%3Cpath%20d%3D%27M40%200v80M100%200v80M160%200v80M240%200v80M300%200v80M360%200v80%27/%3E%3Cpath%20d%3D%27M70%2036v8M130%2036v8M270%2036v8M330%2036v8%27/%3E%3Cpath%20d%3D%27M200%200v80%27%20stroke-opacity%3D%27.24%27/%3E%3C/svg%3E")}
+.panel-head[data-art="baseball"]{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27400%27%20height%3D%2780%27%20viewBox%3D%270%200%20400%2080%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.1%27%20stroke-width%3D%271.2%27%3E%3Cpath%20d%3D%27M330%2070l-40-40%2040-40%2040%2040z%27/%3E%3Ccircle%20cx%3D%27330%27%20cy%3D%2730%27%20r%3D%276%27/%3E%3Cpath%20d%3D%27M0%2070q120-90%20260-40%27/%3E%3Cpath%20d%3D%27M20%2010h60%27/%3E%3C/svg%3E")}
+.panel-head[data-art="lead"]{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27400%27%20height%3D%2780%27%20viewBox%3D%270%200%20400%2080%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.1%27%20stroke-width%3D%271.2%27%3E%3Ccircle%20cx%3D%27340%27%20cy%3D%2740%27%20r%3D%2742%27/%3E%3Cpath%20d%3D%27M0%2060q100-60%20220-20t180-20%27/%3E%3Cpath%20d%3D%27M20%2015l12%2012m0-12L20%2027%27/%3E%3C/svg%3E")}
+.panel-head::before{content:"";position:absolute;inset:0 0 48% 0;background:linear-gradient(rgba(255,255,255,.2),rgba(255,255,255,.05));pointer-events:none}
+.panel-head::after{content:"";position:absolute;inset:4px 4px 5px 4px;border:1px solid rgba(255,255,255,.3);border-bottom:0;pointer-events:none}
+.hd-rule{position:absolute;left:4px;right:4px;bottom:5px;height:1px;background:rgba(255,255,255,.3)}
+.panel-head.has-tab .hd-rule{right:56px}
+.panel-head h1{position:relative;margin:0;font-size:26px;font-weight:700;letter-spacing:-.3px;text-shadow:0 -1px 0 rgba(0,0,0,.45),0 1px 2px rgba(0,0,0,.45)}
+.hd-tab{position:absolute;right:4px;bottom:5px;width:52px;height:18px;padding:0;border:0;background:none;cursor:pointer}
+.hd-tab svg{display:block;width:52px;height:18px;overflow:visible}
+.hd-tab .edge{fill:none;stroke:rgba(255,255,255,.3);stroke-width:1}
+.hd-tab .tri{fill:#fff;filter:drop-shadow(0 -1px 0 rgba(0,0,0,.35));transform-origin:36px 10px;transition:transform .2s}
+.hd-tab.open .tri{transform:rotate(180deg)}
+/* menu row on its own darker band, like the date strips */
+.tabbar{flex:none;display:flex;gap:6px;align-items:stretch;padding:6px 6px 6px;background:linear-gradient(rgba(0,0,0,.34),rgba(0,0,0,.24));border-bottom:1px solid rgba(0,0,0,.35);box-shadow:inset 0 1px 2px rgba(0,0,0,.35)}
+.seg{flex:1;display:flex;border:1px solid rgba(0,0,0,.6);box-shadow:0 1px 0 rgba(255,255,255,.14)}
+.seg button{flex:1;min-width:0;padding:0 2px;height:32px;border:0;border-left:1px solid rgba(0,0,0,.38);font:700 14.5px var(--font);color:#fff;cursor:pointer;text-shadow:0 -1px 0 rgba(0,0,0,.45);white-space:nowrap;
+  background:linear-gradient(rgba(255,255,255,.34),rgba(255,255,255,.14) 50%,rgba(255,255,255,.04) 51%,rgba(255,255,255,.1)),var(--p-hi);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.seg button:first-child{border-left:0}
+.seg button.on{background:linear-gradient(rgba(0,0,0,.18),rgba(0,0,0,.04) 50%,rgba(0,0,0,.1) 51%,rgba(0,0,0,.02)),var(--p-base);box-shadow:inset 0 2px 5px rgba(0,0,0,.5)}
+.bell{flex:none;width:40px;height:34px;padding:0;cursor:pointer;border:1px solid rgba(0,0,0,.5);
+  background:linear-gradient(rgba(255,255,255,.14),rgba(255,255,255,.05));box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.bell svg{width:21px;height:21px;fill:var(--t-sub);opacity:.75;transform:rotate(-14deg)}
+/* filter strip */
+.fsel{width:100%;display:flex;align-items:center;justify-content:space-between;height:31px;padding:0 9px 0 10px;cursor:pointer;border:0;color:#fff;font:700 15px var(--font);text-shadow:0 -1px 0 rgba(0,0,0,.45);
+  background:linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.14) 50%,rgba(255,255,255,.08));border-top:1px solid rgba(255,255,255,.28);border-bottom:1px solid rgba(0,0,0,.45)}
+.fsel i{display:flex;flex-direction:column;gap:3px}
+.fsel i b{display:block;width:21px;height:3.5px;background:rgba(255,255,255,.55)}
+/* compact game boxes (sport pages) */
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:14px;row-gap:14px;padding:6px 4px 6px}
+.tile.mini{margin:0;padding:0 0 4px;overflow:visible;border:1px solid rgba(255,255,255,.5);box-shadow:0 1px 3px rgba(0,0,0,.5);
+  background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,.13) 52%,rgba(255,255,255,.05) 52%,rgba(255,255,255,.03)),var(--t-mid)}
+.tile.mini .t-top{padding:6px 7px 1px;font-size:12.5px;color:var(--t-sub);text-shadow:none}
+.tile.mini .t-top.live{color:#fff}
+.mrow{display:grid;grid-template-columns:28px minmax(0,1fr) auto 6px;align-items:center;column-gap:7px;height:31px;padding-left:5px;font-size:18px;font-weight:700;text-shadow:0 -1px 0 rgba(0,0,0,.5)}
+.mrow img,.mrow .badge{width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
+.mrow .badge{font-size:8px!important}
+.mrow .ab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrow .ab i{font-style:normal;font-size:15px;font-weight:400;color:var(--t-sub);margin-left:3px;text-shadow:none}
+.mrow .ab .poss{width:13px;height:8px;margin-left:4px;vertical-align:2px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+.mrow .sc{font-variant-numeric:tabular-nums;text-align:right}
+.mrow .sc.rec{font-size:13px;font-weight:600;color:var(--t-sub)}
+.mrow .win{width:0;height:0;border-style:solid;border-width:6px 7px 6px 0;border-color:transparent var(--t-sub) transparent transparent;justify-self:end;margin-right:-1px}
 /* game pop-up */
 .gm-veil{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;
   padding:calc(env(safe-area-inset-top,0px) + 22px) max(14px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 22px) max(14px,env(safe-area-inset-left,0px));
@@ -405,7 +420,7 @@ pages.forEach((p, i) => {
   const sec = document.createElement('section');
   sec.className = 'page th-' + p.theme; sec.id = 'p-' + p.key; sec.setAttribute('aria-label', p.name);
   const isSport = p.key !== 'top', conf = CONFS[p.key];
-  sec.innerHTML = `<div class="panel"><div class="panel-head"><h1>${p.name}</h1>${isSport ? `<button class="hd-tab" data-k="${p.key}" aria-expanded="false" aria-label="Show ${p.name} menu"><svg viewBox="0 0 12 8"><path d="M1 1.5l5 5 5-5"/></svg></button>` : ''}</div>
+  sec.innerHTML = `<div class="panel"><div class="panel-head${isSport ? ' has-tab' : ''}" data-art="${({ cfb:'football', nfl:'football', mlb:'baseball', ncb:'hoops', nba:'hoops' })[p.key] || 'lead'}"><h1>${p.name}</h1><span class="hd-rule"></span>${isSport ? `<button class="hd-tab" data-k="${p.key}" aria-expanded="false" aria-label="Show ${p.name} menu"><svg viewBox="0 0 52 18"><path class="edge" d="M0 17.5L13 0.5H52"/><path class="tri" d="M31 7h10l-5 6z"/></svg></button>` : ''}</div>
     ${isSport ? `<div class="tabbar" id="tb-${p.key}" hidden><div class="seg" role="tablist">${[['scores','Scores'],['news','News'],['standings','Standings']].map(([v, l]) => `<button role="tab" data-k="${p.key}" data-view="${v}" class="${v === 'scores' ? 'on' : ''}" aria-selected="${v === 'scores'}">${l}</button>`).join('')}</div><button class="bell" aria-label="Alerts"><svg viewBox="0 0 20 20"><path d="M10 2.2a1.2 1.2 0 0 1 1.2 1.2v.5a5.2 5.2 0 0 1 4 5.1v3.4l1.6 2.1v.9H3.2V15l1.6-2.1V9a5.2 5.2 0 0 1 4-5.1v-.5A1.2 1.2 0 0 1 10 2.2zM8 16.4h4a2 2 0 0 1-4 0z"/></svg></button></div>` : ''}
     ${conf ? `<div class="fbar"><button class="fsel" data-k="${p.key}" aria-haspopup="listbox" aria-expanded="false"><span id="fl-${p.key}">Top 25</span><i aria-hidden="true"><b></b><b></b><b></b></i></button>
       <div class="fmenu" id="fm-${p.key}" role="listbox" hidden>${[['top25','Top 25'], [conf.all[0], conf.all[1]], ...conf.list].map(([v, l]) => `<button role="option" data-k="${p.key}" data-f="${v}">${l}</button>`).join('')}</div></div>` : ''}
