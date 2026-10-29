@@ -502,9 +502,9 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .sc-league a{font-size:14px;color:rgba(255,255,255,.55);text-decoration:none}
 .sc-card{margin:0 max(9px,env(safe-area-inset-right,0px)) 14px max(9px,env(safe-area-inset-left,0px));box-shadow:0 1px 3px rgba(0,0,0,.45)}
 .sc-card .gb{border-bottom:0;background:#3a3a3d}
-.sc-card .gb-date{margin-left:12px;color:rgba(255,255,255,.8);font-weight:500}
+
 .sc-card .gb-tn small.plain{margin-left:6px;font-size:12.5px;font-weight:500;color:rgba(255,255,255,.55)}
-.sc-card .gb-line.lost .gb-tn,.sc-card .gb-line.lost .gb-cells .c{color:rgba(255,255,255,.55);font-weight:500}
+
 .sc-empty{font-family:var(--font-display);font-size:17px;color:rgba(255,255,255,.65);text-align:center;padding:30px 16px}
 
 /* ===== My Teams panel v2 (stream-app style) =====
@@ -554,6 +554,28 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .sc-arrow:disabled{opacity:.25}
 .sc-bye{margin:-4px max(9px,env(safe-area-inset-right,0px)) 14px max(9px,env(safe-area-inset-left,0px));font-family:var(--font-display);font-size:14px;color:rgba(255,255,255,.6);line-height:1.35}
 .sc-bye b{color:rgba(255,255,255,.85);font-weight:600;margin-right:6px}
+
+/* final game boxes (scores + team pages): grey "Final" and date, date close to it;
+   winner's line-score numbers bold, loser's regular; both team names stay white */
+.gb.fin .gb-top .st{color:rgba(255,255,255,.6)}
+.gb-date{margin-left:5px;font-weight:500}
+.gb.fin .gb-line .gb-tn{color:#fff}
+.gb.fin .gb-line.win .gb-cells .c{color:#fff;font-weight:700}
+.gb.fin .gb-line.lose .gb-cells .c{color:rgba(255,255,255,.62);font-weight:400}
+/* Scores tab cards a tad smaller */
+.sc-card .gb-top{height:24px;font-size:13px}
+.sc-card .gb-top a,.sc-card .gb-top .linkish{font-size:12.5px}
+.sc-card .gb-row{height:42px}
+.sc-card .gb-row b{font-size:28px}
+.sc-card .gb-logo.a,.sc-card .gb-logo.h{width:58px;height:58px}
+.sc-card .gb-a{padding-left:52px}
+.sc-card .gb-h{padding-right:52px}
+.sc-card .gb-nm{font-size:16px}
+.sc-card .gb-nm small{font-size:12px}
+.sc-card .gb-line{height:18px}
+.sc-card .gb-tn{font-size:13px}
+.sc-card .gb-cells{font-size:12.5px}
+.sc-card{margin-bottom:11px}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -764,6 +786,45 @@ function orderGames(list){
   return list.filter(g => act.includes(g.lg))
     .sort((x,y)=> (gameHasMine(y,mine)-gameHasMine(x,mine)) || rank(x)-rank(y) || new Date(x.date)-new Date(y.date));
 }
+/* ---- Top Games (ticker): only games happening today, ranked by how much they're worth watching ----
+   your teams > live (closer and later = higher) > big matchups (rankings, playoffs, national TV) > soonest kickoff;
+   today's finals sort last */
+const NATIONAL_TV = /^(ESPN|ESPN2|ABC|CBS|NBC|FOX|Fox|TNT|TBS|Prime Video|Peacock|NFL Net|NFL Network|MLB Network|NBA TV|truTV|FS1|Netflix)$/i;
+function isToday(g){
+  if(g.live) return true;                                   /* a late game past midnight still counts */
+  const d = new Date(g.date), now = new Date();
+  return d.toDateString()===now.toDateString();
+}
+function topGameScore(g, mine){
+  let sc = 0;
+  if(gameHasMine(g, mine)) sc += 1000;
+  const ra = g.a.rank||99, rh = g.h.rank||99;
+  if(ra<=25 && rh<=25) sc += 160 + (50 - ra - rh);          /* ranked vs ranked */
+  else if(Math.min(ra,rh)<=25) sc += 60 + (25 - Math.min(ra,rh));
+  if(g.post) sc += 200;                                     /* playoffs */
+  if(g.tv && NATIONAL_TV.test(g.tv)) sc += 40;
+  if(g.live){
+    sc += 400;
+    const margin = Math.abs(Number(g.a.sc) - Number(g.h.sc));
+    const close = g.lg==='mlb' ? 2 : (g.lg==='nfl'||g.lg==='cfb') ? 8 : 8;
+    if(margin <= close) sc += 90 - margin*5;
+    const reg = (LG[g.lg]||{}).periods || 4;
+    if((g.period||0) >= reg) sc += 40;                     /* late in the game */
+  } else if(g.final){
+    sc -= 500;
+  } else {
+    const hrs = (new Date(g.date) - Date.now()) / 3600e3;
+    sc += Math.max(0, 80 - hrs*6);                         /* starting soon */
+  }
+  return sc;
+}
+function topGames(list){
+  const mine = myTeamKeys(), act = activeLeagues();
+  return list.filter(g => act.includes(g.lg) && isToday(g))
+    .map(g => [topGameScore(g, mine), g])
+    .sort((x,y) => y[0]-x[0] || new Date(x[1].date)-new Date(y[1].date))
+    .map(x => x[1]);
+}
 
 /* ================= Generative hero art (no stock photos) ================= */
 function art(kind, seed){
@@ -810,11 +871,11 @@ function teamRow(t, g){
 const tickerMark = (t,g) => (LG[g.lg]||{}).college ? t.rank : (g.post && t.seed ? t.seed : null);
 const tickerSlot = g => (LG[g.lg]||{}).college || (g.post && (g.a.seed || g.h.seed)) ? ' slot' : '';
 function renderTicker(){
-  const list = orderGames(games).slice(0,15);
+  const list = topGames(games).slice(0,15);
   $('#ticker').innerHTML = list.length ? list.map(g => `<div class="game${tickerSlot(g)}">
     <div class="game-status">${statusParts(g).map(s=>`<span>${esc(s)}</span>`).join('')}</div>
     ${teamRow(g.a,g)}${teamRow(g.h,g)}</div>`).join('')
-    : `<div class="ticker-empty">No games today for your teams</div>`;
+    : `<div class="ticker-empty">No games today</div>`;
 }
 function bigCard(st){
   const pressed = starred.has(st.title);
@@ -1230,10 +1291,9 @@ function gameBox(g, o={}){
   const pc = t => t.color || (picks.find(x=>x.type==='team' && x.lg===g.lg && String(x.id)===String(t.id))||{}).color || '#555558';
   g = {...g, a:{...g.a, color:pc(g.a)}, h:{...g.h, color:pc(g.h)}};
   let label, link = '';
-  if(g.final){ label = `${esc(statusParts(g)[0])} ${esc(dayLabel(new Date(g.date)))}`; if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Box Score »</a>`; }
+  if(g.final){ label = `${esc(statusParts(g)[0])}<span class="gb-date">${esc(dayLabel(new Date(g.date)))}</span>`; if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Box Score »</a>`; }
   else if(g.live){ label = esc(statusParts(g).filter(Boolean).join(' ')) + gsit(g); if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Gamecast »</a>`; }
   else { label = esc(o.scores ? scoresPreLabel(g) : preLabel(g)); link = o.scores ? (g.link ? `<a href="${esc(g.link)}" target="_blank" rel="noopener">Preview »</a>` : '') : `<button class="linkish" data-tptab="schedule">Schedule »</button>`; }
-  if(o.scores && g.final) label = `${esc(statusParts(g)[0])}<span class="gb-date">${esc(dayLabel(new Date(g.date)))}</span>`;
   const logo = (t, cls) => `<span class="gb-logo ${cls}">${logoTag(teamLogoUrl(t,g.lg), t.ab, '', t.logoDark)}</span>`;
   const rk = t => t.rank ? `<span class="gb-rk">${esc(t.rank)}</span>` : '';
   const nameRec = t => o.scores && show ? `<span class="ln">${rk(t)}${esc(t.name||t.ab)}</span><small class="plain">${t.rec?esc(t.rec):''}</small>`
@@ -1257,15 +1317,15 @@ function gameBox(g, o={}){
   const cell = v => `<span class="c">${v==null||v===''?'':esc(v)}</span>`;           /* periods not yet played stay empty */
   const tots = t => mlb ? [t.sc, t.hits??'', t.errors??''] : [t.sc];
   const vals = (t, arr) => heads.map((_,i)=>cell(arr[i])).join('') + tots(t).map(v=>`<span class="c tot">${esc(v)}</span>`).join('');
-  return `<div class="gb post" style="--cw:${cw}px">${top}
+  return `<div class="gb post${g.final?' fin':''}" style="--cw:${cw}px">${top}
     <div class="gb-row" style="--ca:${hex(g.a.color)};--ch:${hex(g.h.color)}">
       <div class="gb-a">${logo(g.a,'a')}<b class="${lost(g.a)?'lost':''}">${esc(g.a.sc)}</b></div>
       <div class="gb-h"><b class="${lost(g.h)?'lost':''}">${esc(g.h.sc)}</b>${logo(g.h,'h')}</div>
     </div>
     <div class="gb-sub">
       <div class="gb-line hd"><span class="gb-tn"></span><span class="gb-cells">${heads.map(h=>`<span class="c">${h}</span>`).join('')}${totH.map(h=>`<span class="c tot">${h}</span>`).join('')}</span></div>
-      <div class="gb-line${o.scores&&lost(g.a)?' lost':''}"><span class="gb-tn">${nameRec(g.a)}</span><span class="gb-cells">${vals(g.a, al)}</span></div>
-      <div class="gb-line${o.scores&&lost(g.h)?' lost':''}"><span class="gb-tn">${nameRec(g.h)}</span><span class="gb-cells">${vals(g.h, hl)}</span></div>
+      <div class="gb-line${g.final ? (lost(g.a)?' lose':' win') : ''}"><span class="gb-tn">${nameRec(g.a)}</span><span class="gb-cells">${vals(g.a, al)}</span></div>
+      <div class="gb-line${g.final ? (lost(g.h)?' lose':' win') : ''}"><span class="gb-tn">${nameRec(g.h)}</span><span class="gb-cells">${vals(g.h, hl)}</span></div>
     </div>${g.live && !o.scores ? playsHtml(g) : ''}</div>`;
 }
 /* live situation, shown in the label line */
@@ -1460,7 +1520,7 @@ function renderTeamPage(){
   const p = picks.find(x=>pickKey(x)===tpKey); if(!p) return closeTeamPage();
   const v = pickView(p), page = $('#tpage');
   const base = p.type==='league' ? '#3a3a3d' : v.bg;
-  page.style.setProperty('--tp-bg', '#2f2f31');
+  page.style.setProperty('--tp-bg', p.type==='league' ? '#2f2f31' : (lum(base) > .55 ? shade(base, .6) : hex(base)));   /* team primary color (darkened only if very light) */
   page.style.setProperty('--tp-bar', p.type==='league' ? '#4a4a4d' : shade(base, .8));
   page.style.setProperty('--tp-bar2', p.type==='league' ? '#444447' : shade(base, .62));
   $('#tpName').textContent = p.type==='league' ? LG[p.lg].name : p.full;
