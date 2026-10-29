@@ -543,6 +543,12 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .team-row .rk{left:17px;width:12px;text-align:right;font-size:9px;letter-spacing:-.02em;text-shadow:none}
 .team-row .rec{margin-left:3px}
 
+/* article source line: just the logo, no square behind it */
+.src-chip.logo{background:none!important;padding:0;min-width:0;width:26px;height:26px}
+.src-chip.logo img{width:26px;height:26px}
+/* college rankings in game boxes */
+.gb-rk{font-size:.72em;font-weight:500;opacity:.8;margin-right:4px}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <style>
@@ -874,8 +880,8 @@ function renderTeams(){
    per-league header with "Full Scoreboard »" · one game card per game (same box as team pages, with an F column) */
 let scTab = 'mine', scDay = 0, scMenu = false;
 const scGroup = {cfb:'top25', cbb:'top25'};
-const CFB_GROUPS = [['top25','Top 25',''],['fbs','All FBS','80'],['acc','ACC','1'],['american','American','151'],['big12','Big 12','4'],['big10','Big Ten','5'],['cusa','C-USA','12'],['ind','FBS Independents','18'],['mac','MAC','15'],['mwc','Mountain West','17'],['pac12','Pac-12','9'],['sec','SEC','8'],['sunbelt','Sun Belt','37']];
-const CBB_GROUPS = [['top25','Top 25',''],['d1','All Division I','50']];
+const CFB_GROUPS = [['top25','Top 25','80'],['fbs','All FBS','80'],['acc','ACC','1'],['american','American','151'],['big12','Big 12','4'],['big10','Big Ten','5'],['cusa','C-USA','12'],['ind','FBS Independents','18'],['mac','MAC','15'],['mwc','Mountain West','17'],['pac12','Pac-12','9'],['sec','SEC','8'],['sunbelt','Sun Belt','37']];
+const CBB_GROUPS = [['top25','Top 25','50'],['d1','All Division I','50']];
 const scCache = {};                       /* `${lg}|${group}|${yyyymmdd}` -> {list, t} */
 const dayFrom = off => { const d = new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate()+off); return d; };
 const scGroups = lg => lg==='cfb' ? CFB_GROUPS : lg==='cbb' ? CBB_GROUPS : null;
@@ -914,6 +920,11 @@ function renderScores(){
     if(!c || !c.list){ pending = true; continue; }
     let list = c.list;
     if(isMine && mineTeams.length) list = list.filter(g => mineTeams.some(p => p.lg===k && isMine_(g,p)));
+    /* Top 25: games with a ranked team, best-ranked matchup first (live games still lead) */
+    if(!isMine && scGroups(k) && scGroup[k]==='top25'){
+      const best = g => Math.min(g.a.rank||99, g.h.rank||99);
+      list = list.filter(g => best(g) <= 25).sort((x,y) => (y.live-x.live) || best(x)-best(y) || new Date(x.date)-new Date(y.date));
+    }
     if(!list.length) continue;
     const grpName = !isMine && scGroups(k) ? ' · '+(scGroups(k).find(x=>x[0]===scGroup[k])||[,''])[1] : '';
     body += `<div class="sc-league"><span>${esc(LG[k].label)}${esc(grpName)}</span><a href="${esc(espnBoard(k, scDay))}" target="_blank" rel="noopener">Full Scoreboard »</a></div>`
@@ -1139,6 +1150,11 @@ function gside(t, g, which){
   return `<div class="gside ${which}${lost?' lost':''}${show?'':' pre'}" style="background:${hex(t.color)}">
     <span class="glogo">${logoTag(teamLogoUrl(t,g.lg), t.ab, '', t.logoDark)}</span>${val}</div>`;
 }
+function scoresPreLabel(g){
+  const d = new Date(g.date), today = d.toDateString()===new Date().toDateString();
+  const time = g.tbd ? 'TBD' : d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).replace(/\s/g,'')+' '+tzLabel(d);
+  return `${today ? '' : dayLabel(d)+' '}${time}${g.tv?' · '+g.tv:''}`;
+}
 function preLabel(g){
   const d = new Date(g.date), now = new Date(), tm = new Date(); tm.setDate(now.getDate()+1);
   const day = d.toDateString()===now.toDateString() ? 'Today' : d.toDateString()===tm.toDateString() ? 'Tomorrow' : dayLabel(d);
@@ -1158,11 +1174,12 @@ function gameBox(g, o={}){
   let label, link = '';
   if(g.final){ label = `${esc(statusParts(g)[0])} ${esc(dayLabel(new Date(g.date)))}`; if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Box Score »</a>`; }
   else if(g.live){ label = esc(statusParts(g).filter(Boolean).join(' ')) + gsit(g); if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Gamecast »</a>`; }
-  else { label = esc(preLabel(g)); link = o.scores ? (g.link ? `<a href="${esc(g.link)}" target="_blank" rel="noopener">Preview »</a>` : '') : `<button class="linkish" data-tptab="schedule">Schedule »</button>`; }
+  else { label = esc(o.scores ? scoresPreLabel(g) : preLabel(g)); link = o.scores ? (g.link ? `<a href="${esc(g.link)}" target="_blank" rel="noopener">Preview »</a>` : '') : `<button class="linkish" data-tptab="schedule">Schedule »</button>`; }
   if(o.scores && g.final) label = `${esc(statusParts(g)[0])}<span class="gb-date">${esc(dayLabel(new Date(g.date)))}</span>`;
   const logo = (t, cls) => `<span class="gb-logo ${cls}">${logoTag(teamLogoUrl(t,g.lg), t.ab, '', t.logoDark)}</span>`;
-  const nameRec = t => o.scores && show ? `${esc(t.name||t.ab)}<small class="plain">${t.rec?esc(t.rec):''}</small>`
-                                         : `${esc(t.name||t.ab)}<small>${t.rec?' ('+esc(t.rec)+')':''}</small>`;
+  const rk = t => t.rank ? `<span class="gb-rk">${esc(t.rank)}</span>` : '';
+  const nameRec = t => o.scores && show ? `<span class="ln">${rk(t)}${esc(t.name||t.ab)}</span><small class="plain">${t.rec?esc(t.rec):''}</small>`
+                                         : `<span class="ln">${rk(t)}${esc(t.name||t.ab)}</span><small>${t.rec?' ('+esc(t.rec)+')':''}</small>`;
   const top = `<div class="gb-top"><span class="st">${label}</span>${link}</div>`;
 
   if(!show){
