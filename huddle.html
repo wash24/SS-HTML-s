@@ -557,7 +557,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 
 /* final game boxes (scores + team pages): grey "Final" and date, date close to it;
    winner's line-score numbers bold, loser's regular; both team names stay white */
-.gb.fin .gb-top .st{color:rgba(255,255,255,.6)}
+.gb.fin .gb-top .st{color:rgba(255,255,255,.6);gap:0}   /* no flex gap, so the date sits 5px after "Final" */
 .gb-date{margin-left:5px;font-weight:500}
 .gb.fin .gb-line .gb-tn{color:#fff}
 .gb.fin .gb-line.win .gb-cells .c{color:#fff;font-weight:700}
