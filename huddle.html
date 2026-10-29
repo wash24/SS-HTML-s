@@ -641,6 +641,14 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .gd-ld b{display:block;font-size:16px;font-weight:500;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gd-ld small{display:block;font-size:13.5px;color:rgba(255,255,255,.65)}
 .gd-load{font-family:var(--font-display);font-size:17px;color:rgba(255,255,255,.7);text-align:center;padding:28px 16px}
+
+/* ===== Loading screen ===== */
+#splash{position:fixed;inset:0;z-index:1000;background:#4a4a4d;display:flex;align-items:center;justify-content:center;transition:opacity .4s ease}
+#splash.done{opacity:0;pointer-events:none}
+.splash-mark{position:relative;width:140px;height:140px;display:flex;align-items:center;justify-content:center}
+.splash-mark img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.splash-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;border:2px dashed rgba(255,255,255,.35);border-radius:24px;font-family:var(--font-display);font-size:22px;letter-spacing:.12em;color:rgba(255,255,255,.45)}
+.splash-mark.has-img .splash-ph{display:none}
 </style>
 <style>
 /* Home-screen app fit.
@@ -658,6 +666,10 @@ html .tabs{padding-bottom:env(safe-area-inset-bottom,0px)}
 </style>
 </head><body>
 
+<!-- Loading screen. To use your logo, upload it to the repo as team-stream-logo.png (square, about 512x512, transparent background works best). Until then a placeholder shows. -->
+<div id="splash" aria-label="Loading">
+  <div class="splash-mark"><img src="team-stream-logo.png" alt="Team Stream" onload="this.parentNode.classList.add('has-img')" onerror="this.remove()"><span class="splash-ph">LOGO</span></div>
+</div>
 <div class="app" id="app">
   <header class="appbar">
     <button class="icon search-btn" aria-label="Search teams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></button>
@@ -1620,7 +1632,7 @@ const teamPageOpen = () => $('#tpage').classList.contains('open');
 /* ================= Game page =================
    Any game box or ticker card opens this page. Everything comes from ESPN's game summary:
    header (score/status), boxscore.players (per-sport player tables), boxscore.teams (team stats),
-   plays / drives / scoringPlays, gameInfo, pickcenter and leaders (pregame). Live games refresh every 30s. */
+   plays / drives / scoringPlays, gameInfo and leaders (pregame). Live games refresh every 30s. */
 const gameReg = {};                                   /* "lg:id" -> latest game object seen in any list */
 function gameAttr(g){ if(!g || !g.id || !g.lg) return ''; const k = g.lg+':'+g.id; gameReg[k] = {...(gameReg[k]||{}), ...g}; return ` data-game="${k}"`; }
 let gd = null;                                        /* {key, g, s (summary), tab, side, more, t} */
@@ -1807,15 +1819,12 @@ function gdPlays(g, s){
 function gdInfo(g, s){
   const gi = s.gameInfo || {}, v = gi.venue || {}, ad = v.address || {};
   const d = new Date(g.date);
-  const pc = (s.pickcenter||[])[0] || {};
   const rows = [
     ['Date', d.toLocaleDateString('en-US',{weekday:'long', month:'long', day:'numeric'})],
     ['Time', g.tbd ? 'TBD' : d.toLocaleTimeString('en-US',{hour:'numeric', minute:'2-digit'})],
     ['TV', g.tv],
     ['Venue', v.fullName],
-    ['Location', [ad.city, ad.state || ad.country].filter(Boolean).join(', ')],
-    ['Line', pc.details],
-    ['Over/Under', pc.overUnder]
+    ['Location', [ad.city, ad.state || ad.country].filter(Boolean).join(', ')]
   ].filter(r => r[1]!=null && r[1]!=='');
   let html = `<div class="gd-sec"><div class="gd-h">Game Info</div><div class="gd-card gd-info">${rows.map(([k,v]) => `<div><span>${k}</span><b>${esc(v)}</b></div>`).join('')}</div>`;
   /* season leaders, away vs home by category */
@@ -1893,12 +1902,17 @@ $('#teamSearch').addEventListener('input', e => { pickerQuery = e.target.value; 
 document.addEventListener('keydown', e => { if(e.key!=='Escape') return; if($('#picker').classList.contains('open')) closePicker(); else if(gameOpen()) closeGame(); });
 
 /* ================= Live data (ESPN public site API) ================= */
+/* Box names: college = school only ("Ohio State", not "Ohio State Buckeyes"); pro = team name only ("Rangers", not "Texas Rangers") */
+function shortName(tm, lg){
+  if((LG[lg]||{}).college) return tm.location || tm.shortDisplayName || tm.displayName || '';
+  return tm.name || tm.nickname || tm.shortDisplayName || tm.displayName || '';
+}
 function parseEvent(ev, lg){
   const comp = ev.competitions[0]; const status = comp.status || ev.status || {}; const st = status.type || {};
   const val = x => x==null ? '' : (typeof x==='object' ? (x.displayValue ?? x.value ?? '') : x);
   const side = ha => { const c = comp.competitors.find(x=>x.homeAway===ha) || {}; const tm = c.team || {};
     const rec = (c.records&&c.records[0]&&(c.records[0].summary||c.records[0].displayValue)) || (c.record&&c.record[0]&&c.record[0].displayValue) || '';
-    return {id:String(tm.id), ab:tm.abbreviation, name:tm.shortDisplayName||tm.displayName, color:tm.color, alt:tm.alternateColor, logo:tm.logo || (tm.logos&&tm.logos[0]&&tm.logos[0].href) || '', logoDark:tm.logoDark || ((tm.logos||[]).find(l=>(l.rel||[]).includes('dark'))||{}).href || '',
+    return {id:String(tm.id), ab:tm.abbreviation, name:shortName(tm, lg), color:tm.color, alt:tm.alternateColor, logo:tm.logo || (tm.logos&&tm.logos[0]&&tm.logos[0].href) || '', logoDark:tm.logoDark || ((tm.logos||[]).find(l=>(l.rel||[]).includes('dark'))||{}).href || '',
       sc:val(c.score), rec, rank:(c.curatedRank&&c.curatedRank.current<=25)?c.curatedRank.current:null, seed:c.seed||null,
       line:(c.linescores||[]).map(l=>l.value ?? l.displayValue), hits:c.hits, errors:c.errors, winner:c.winner}; };
   const bc = (comp.broadcasts||[]).map(b => (b.names&&b.names[0]) || (b.media&&b.media.shortName) || '').filter(Boolean)[0] || '';
@@ -1989,8 +2003,11 @@ function refresh(){ return loadLive(true).then(renderAll).catch(()=>{}); }
 
 /* ================= Boot ================= */
 sampleMode(); renderAll();
+/* loading screen stays up until the first real data arrives (or 12s, whichever comes first) */
+const hideSplash = () => { const sp = $('#splash'); if(sp && !sp.classList.contains('done')){ sp.classList.add('done'); setTimeout(()=>sp.remove(), 450); } };
+setTimeout(hideSplash, 12000);
 picks.forEach(p => { if(p.type==='team' && !p.colorChecked) fillColors(p); });
-refresh();
+refresh().finally(hideSplash);
 setInterval(()=>{ if(liveMode) loadLive().then(()=>{ renderTicker(); renderScores(); if(drawerOpen()) renderDrawer(); if(tpKey){ const p = picks.find(x=>pickKey(x)===tpKey); if(p) loadTeamGames(p); } }).catch(()=>{}); }, 60000);
 })();
 </script>
