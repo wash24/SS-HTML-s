@@ -440,7 +440,9 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .gb-a{padding-left:60px}
 .gb-h{padding-right:60px}
 /* team page header: same base gray as the main header, team name white and centered */
-.tp-head,.tp-tabs{background:var(--bar)}
+/* header (name bar + tabs) in the team's primary color; leagues stay gray */
+.tp-head{background:var(--tp-bar,var(--bar))}
+.tp-tabs{background:var(--tp-bar2,var(--bar))}
 .tp-head{border-bottom:0}
 .tp-tabs{border-bottom:1px solid rgba(0,0,0,.3)}
 .tp-title{color:#fff;justify-content:center;text-align:center}
@@ -1609,9 +1611,10 @@ function renderTeamPage(){
   const p = picks.find(x=>pickKey(x)===tpKey); if(!p) return closeTeamPage();
   const v = pickView(p), page = $('#tpage');
   const base = p.type==='league' ? '#3a3a3d' : v.bg;
-  page.style.setProperty('--tp-bg', p.type==='league' ? '#2f2f31' : (lum(base) > .55 ? shade(base, .6) : hex(base)));   /* team primary color (darkened only if very light) */
-  page.style.setProperty('--tp-bar', p.type==='league' ? '#4a4a4d' : shade(base, .8));
-  page.style.setProperty('--tp-bar2', p.type==='league' ? '#444447' : shade(base, .62));
+  const prim = lum(base) > .55 ? shade(base, .6) : hex(base);   /* team primary color (darkened only if very light, so white text reads) */
+  page.style.setProperty('--tp-bg', '#2f2f31');                  /* page body stays gray */
+  page.style.setProperty('--tp-bar', p.type==='league' ? '#4a4a4d' : prim);
+  page.style.setProperty('--tp-bar2', p.type==='league' ? '#4a4a4d' : shade(prim, .82));   /* tabs a step darker than the name bar */
   $('#tpName').textContent = p.type==='league' ? LG[p.lg].name : p.full;
   const tabs = p.type==='team' ? ['stream','standings','schedule'] : ['stream','standings'];
   if(!tabs.includes(tpTab)) tpTab = 'stream';
