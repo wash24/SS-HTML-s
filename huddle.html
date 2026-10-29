@@ -578,6 +578,69 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .sc-card{margin-bottom:11px}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ===== Game page: tap any game for box score / team stats / plays ===== */
+[data-game]{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.gb-top .gb-more{color:#fff;white-space:nowrap}
+.gpage{z-index:7;background:#2b2b2d}
+.gp-title{justify-self:center;font-family:var(--font-display);font-size:24px;color:#fff;line-height:1.3;white-space:nowrap}
+.gd-head{background:#3a3a3d}
+.gd-head .gb{border-bottom:0;background:#3a3a3d}
+.gd-tabs{position:sticky;top:0;z-index:2;display:flex;gap:4px;background:var(--bar);padding:0 max(8px,env(safe-area-inset-right,0px)) 0 max(8px,env(safe-area-inset-left,0px));border-bottom:1px solid rgba(0,0,0,.3)}
+.gd-sec{padding:12px max(10px,env(safe-area-inset-right,0px)) 0 max(10px,env(safe-area-inset-left,0px))}
+.gd-h{font-family:var(--font-display);font-size:18px;font-weight:500;color:#fff;margin:4px 0 6px;letter-spacing:.01em}
+.gd-card{background:#3a3a3d;box-shadow:0 1px 3px rgba(0,0,0,.45);margin-bottom:12px}
+.gd-teams{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.45)}
+.gd-teams button{display:flex;align-items:center;justify-content:center;gap:8px;height:42px;font-family:var(--font-display);font-size:18px;color:rgba(255,255,255,.75);background:#3a3a3d;border-bottom:3px solid transparent}
+.gd-teams button[aria-pressed="true"]{color:#fff;background:var(--tc);border-bottom-color:var(--flame)}
+.gd-teams img{width:26px;height:26px;object-fit:contain}
+/* stat tables: name column stays put while the numbers scroll sideways */
+.gd-tbl{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.gd-tbl table{border-collapse:collapse;min-width:100%;font-family:var(--font-display);font-size:15px;color:#e8e8ea;font-variant-numeric:tabular-nums}
+.gd-tbl th,.gd-tbl td{padding:6px 7px;text-align:right;white-space:nowrap;font-weight:400;border-bottom:1px solid rgba(255,255,255,.06)}
+.gd-tbl th{font-size:13px;color:rgba(255,255,255,.55);font-weight:500;background:#333336}
+.gd-tbl th:first-child,.gd-tbl td:first-child{position:sticky;left:0;text-align:left;background:#3a3a3d;z-index:1;max-width:150px;overflow:hidden;text-overflow:ellipsis;box-shadow:1px 0 0 rgba(255,255,255,.06)}
+.gd-tbl th:first-child{background:#333336;color:#fff;font-size:15px}
+.gd-tbl td:first-child small{color:rgba(255,255,255,.5);font-size:12px;margin-left:5px}
+.gd-tbl td.sub:first-child{padding-left:18px}
+.gd-tbl tr.grp td{background:#333336;color:rgba(255,255,255,.55);font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;padding:4px 7px}
+.gd-tbl tr.grp td:first-child{background:#333336}
+.gd-tbl tr.tot td{color:#fff;font-weight:600;border-bottom:0}
+.gd-tbl td.dnp{text-align:left;color:rgba(255,255,255,.45);font-size:13px}
+/* team stats: away | label | home with a split bar */
+.gd-ts{padding:2px 12px}
+.gd-ts-hd{display:flex;justify-content:space-between;align-items:center;padding:8px 0 6px;font-family:var(--font-display);font-size:17px;color:#fff;border-bottom:1px solid rgba(255,255,255,.08)}
+.gd-ts-hd span{display:flex;align-items:center;gap:7px}
+.gd-ts-hd img{width:26px;height:26px;object-fit:contain}
+.gd-st{padding:7px 0 8px;border-bottom:1px solid rgba(255,255,255,.06)}
+.gd-st:last-child{border-bottom:0}
+.gd-st-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:baseline;gap:8px;font-family:var(--font-display);font-variant-numeric:tabular-nums}
+.gd-st-row b{font-size:17px;font-weight:500;color:#fff}
+.gd-st-row b:last-child{text-align:right}
+.gd-st-row span{font-size:13.5px;color:rgba(255,255,255,.62);text-align:center}
+.gd-bar{display:flex;gap:3px;height:4px;margin-top:5px}
+.gd-bar i{display:block;height:100%;background:var(--c);min-width:2px}
+.gd-bar i.lo{opacity:.45}
+/* play-by-play */
+.gd-plays .gp{border-bottom:1px solid rgba(255,255,255,.06);padding:8px 10px}
+.gd-plays .gp:last-child{border-bottom:0}
+.gd-plays .gp-txt{-webkit-line-clamp:unset;display:block}
+.gd-plays .gp-when small{display:block;font-size:12.5px;color:rgba(255,255,255,.5);font-weight:400}
+.gd-sep{font-family:var(--font-display);font-size:14px;color:rgba(255,255,255,.7);background:#333336;padding:5px 10px;display:flex;justify-content:space-between;gap:8px}
+.gd-sep b{color:#fff;font-weight:500}
+.gd-more{display:block;width:100%;padding:11px;font-family:var(--font-display);font-size:16px;color:#fff;background:#333336}
+/* preview */
+.gd-info{padding:4px 12px}
+.gd-info div{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-family:var(--font-display);font-size:16px;color:#fff}
+.gd-info div:last-child{border-bottom:0}
+.gd-info span{color:rgba(255,255,255,.6)}
+.gd-info b{font-weight:400;text-align:right}
+.gd-ld{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,255,255,.06)}
+.gd-ld>div{background:#3a3a3d;padding:8px 10px;font-family:var(--font-display);min-width:0}
+.gd-ld .cat{grid-column:1/-1;background:#333336;padding:4px 10px;font-size:13px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.04em}
+.gd-ld b{display:block;font-size:16px;font-weight:500;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gd-ld small{display:block;font-size:13.5px;color:rgba(255,255,255,.65)}
+.gd-load{font-family:var(--font-display);font-size:17px;color:rgba(255,255,255,.7);text-align:center;padding:28px 16px}
 </style>
 <style>
 /* Home-screen app fit.
@@ -629,6 +692,16 @@ html .tabs{padding-bottom:env(safe-area-inset-bottom,0px)}
     </div>
     <div class="tp-tabs" id="tpTabs" role="tablist"></div>
     <div class="tp-body" id="tpBody"></div>
+  </section>
+
+
+  <section class="tpage gpage" id="gpage" aria-hidden="true">
+    <div class="tp-head">
+      <button class="back" id="gpBack" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4l-8 8 8 8"/></svg></button>
+      <div class="gp-title" id="gpName"></div>
+      <span></span>
+    </div>
+    <div class="tp-body" id="gpBody"></div>
   </section>
 
   <nav class="tabs" role="tablist">
@@ -873,7 +946,7 @@ const tickerMark = (t,g) => (LG[g.lg]||{}).college ? t.rank : (g.post && t.seed 
 const tickerSlot = g => (LG[g.lg]||{}).college || (g.post && (g.a.seed || g.h.seed)) ? ' slot' : '';
 function renderTicker(){
   const list = topGames(games).slice(0,15);
-  $('#ticker').innerHTML = list.length ? list.map(g => `<div class="game${tickerSlot(g)}">
+  $('#ticker').innerHTML = list.length ? list.map(g => `<div class="game${tickerSlot(g)}"${gameAttr(g)}>
     <div class="game-status">${statusParts(g).map(s=>`<span>${esc(s)}</span>`).join('')}</div>
     ${teamRow(g.a,g)}${teamRow(g.h,g)}</div>`).join('')
     : `<div class="ticker-empty">No games today</div>`;
@@ -1292,9 +1365,12 @@ function gameBox(g, o={}){
   const pc = t => t.color || (picks.find(x=>x.type==='team' && x.lg===g.lg && String(x.id)===String(t.id))||{}).color || '#555558';
   g = {...g, a:{...g.a, color:pc(g.a)}, h:{...g.h, color:pc(g.h)}};
   let label, link = '';
-  if(g.final){ label = `${esc(statusParts(g)[0])}<span class="gb-date">${esc(dayLabel(new Date(g.date)))}</span>`; if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Box Score »</a>`; }
-  else if(g.live){ label = esc(statusParts(g).filter(Boolean).join(' ')) + gsit(g); if(g.link) link = `<a href="${esc(g.link)}" target="_blank" rel="noopener">Gamecast »</a>`; }
-  else { label = esc(o.scores ? scoresPreLabel(g) : preLabel(g)); link = o.scores ? (g.link ? `<a href="${esc(g.link)}" target="_blank" rel="noopener">Preview »</a>` : '') : `<button class="linkish" data-tptab="schedule">Schedule »</button>`; }
+  /* the whole box opens the game page; these are just the cue */
+  if(g.final){ label = `${esc(statusParts(g)[0])}<span class="gb-date">${esc(dayLabel(new Date(g.date)))}</span>`; link = `<span class="gb-more">Box Score »</span>`; }
+  else if(g.live){ label = esc(statusParts(g).filter(Boolean).join(' ')) + gsit(g); link = `<span class="gb-more">Gamecast »</span>`; }
+  else { label = esc(o.scores ? scoresPreLabel(g) : preLabel(g)); link = o.scores ? `<span class="gb-more">Preview »</span>` : `<button class="linkish" data-tptab="schedule">Schedule »</button>`; }
+  if(o.detail) link = '';
+  const dg = gameAttr(g);
   const logo = (t, cls) => `<span class="gb-logo ${cls}">${logoTag(teamLogoUrl(t,g.lg), t.ab, '', t.logoDark)}</span>`;
   const rk = t => t.rank ? `<span class="gb-rk">${esc(t.rank)}</span>` : '';
   const nameRec = t => o.scores && show ? `<span class="ln">${rk(t)}${esc(t.name||t.ab)}</span><small class="plain">${t.rec?esc(t.rec):''}</small>`
@@ -1302,7 +1378,7 @@ function gameBox(g, o={}){
   const top = `<div class="gb-top"><span class="st">${label}</span>${link}</div>`;
 
   if(!show){
-    return `<div class="gb pre">${top}
+    return `<div class="gb pre"${dg}>${top}
       <div class="gb-row" style="--ca:${hex(g.a.color)};--ch:${hex(g.h.color)}">
         <div class="gb-a">${logo(g.a,'a')}<span class="gb-nm">${nameRec(g.a).replace('<small>','<small class="br">')}</span></div>
         <div class="gb-h"><span class="gb-nm">${nameRec(g.h).replace('<small>','<small class="br">')}</span>${logo(g.h,'h')}</div>
@@ -1318,7 +1394,7 @@ function gameBox(g, o={}){
   const cell = v => `<span class="c">${v==null||v===''?'':esc(v)}</span>`;           /* periods not yet played stay empty */
   const tots = t => mlb ? [t.sc, t.hits??'', t.errors??''] : [t.sc];
   const vals = (t, arr) => heads.map((_,i)=>cell(arr[i])).join('') + tots(t).map(v=>`<span class="c tot">${esc(v)}</span>`).join('');
-  return `<div class="gb post${g.final?' fin':''}" style="--cw:${cw}px">${top}
+  return `<div class="gb post${g.final?' fin':''}" style="--cw:${cw}px"${dg}>${top}
     <div class="gb-row" style="--ca:${hex(g.a.color)};--ch:${hex(g.h.color)}">
       <div class="gb-a">${logo(g.a,'a')}<b class="${lost(g.a)?'lost':''}">${esc(g.a.sc)}</b></div>
       <div class="gb-h"><b class="${lost(g.h)?'lost':''}">${esc(g.h.sc)}</b>${logo(g.h,'h')}</div>
@@ -1327,7 +1403,7 @@ function gameBox(g, o={}){
       <div class="gb-line hd"><span class="gb-tn"></span><span class="gb-cells">${heads.map(h=>`<span class="c">${h}</span>`).join('')}${totH.map(h=>`<span class="c tot">${h}</span>`).join('')}</span></div>
       <div class="gb-line${g.final ? (lost(g.a)?' lose':' win') : ''}"><span class="gb-tn">${nameRec(g.a)}</span><span class="gb-cells">${vals(g.a, al)}</span></div>
       <div class="gb-line${g.final ? (lost(g.h)?' lose':' win') : ''}"><span class="gb-tn">${nameRec(g.h)}</span><span class="gb-cells">${vals(g.h, hl)}</span></div>
-    </div>${g.live && !o.scores ? playsHtml(g) : ''}</div>`;
+    </div>${g.live && !o.scores && !o.detail ? playsHtml(g) : ''}</div>`;
 }
 /* live situation, shown in the label line */
 function gsit(g){
@@ -1347,7 +1423,7 @@ function tStoryCard(st){
   return st.link ? `<a class="tcard" href="${esc(st.link)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="tcard">${inner}</div>`;
 }
 function tickerCards(list){
-  return `<div class="tp-games">${list.map(g => `<div class="game${tickerSlot(g)}">
+  return `<div class="tp-games">${list.map(g => `<div class="game${tickerSlot(g)}"${gameAttr(g)}>
     <div class="game-status">${statusParts(g).map(s=>`<span>${esc(s)}</span>`).join('')}</div>${teamRow(g.a,g)}${teamRow(g.h,g)}</div>`).join('')}</div>`;
 }
 
@@ -1392,7 +1468,7 @@ async function loadPlays(g){
       return true;
     };
     const list = raw.filter(keep).slice(-3).reverse().map(pl => ({
-      text: String(pl.text).replace(/^\(\d+:\d+\)\s*/,''),
+      text: String(pl.text).replace(/^\(\d+:\d+(\.\d+)?\)\s*/,''),
       teamId: pl.teamId ? String(pl.teamId) : '',
       clock: pl.clock && pl.clock.displayValue,
       period: pl.period && pl.period.number,
@@ -1541,11 +1617,225 @@ function openTeamPage(key){
 function closeTeamPage(){ tpKey = null; $('#tpage').classList.remove('open'); $('#tpage').setAttribute('aria-hidden','true'); renderTeams(); }
 const teamPageOpen = () => $('#tpage').classList.contains('open');
 
+/* ================= Game page =================
+   Any game box or ticker card opens this page. Everything comes from ESPN's game summary:
+   header (score/status), boxscore.players (per-sport player tables), boxscore.teams (team stats),
+   plays / drives / scoringPlays, gameInfo, pickcenter and leaders (pregame). Live games refresh every 30s. */
+const gameReg = {};                                   /* "lg:id" -> latest game object seen in any list */
+function gameAttr(g){ if(!g || !g.id || !g.lg) return ''; const k = g.lg+':'+g.id; gameReg[k] = {...(gameReg[k]||{}), ...g}; return ` data-game="${k}"`; }
+let gd = null;                                        /* {key, g, s (summary), tab, side, more, t} */
+const gdKeep = (o, n) => { const r = {...o}; for(const k in n){ const v = n[k]; if(v==null || v==='' || v==='undefined' || (Array.isArray(v) && !v.length && (o[k]||[]).length)) continue; r[k] = v; } return r; };
+const athName = a => { a = a || {}; return a.shortName || (a.firstName && a.lastName ? a.firstName[0]+'. '+a.lastName : a.displayName || ''); };
+const gdTeamOf = (g, id) => String(id)===String(g.a.id) ? g.a : String(id)===String(g.h.id) ? g.h : null;
+const gdLogo = (t, lg) => t ? logoTag(teamLogoUrl(t, lg), t.ab, '', t.logoDark) : '';
+
+function openGame(key){
+  const g = gameReg[key]; if(!g) return;
+  const k = key;
+  gd = {key:k, g, s:null, tab: g.live ? 'plays' : g.final ? 'box' : 'info', side: 'a', more: 0, t: 0};
+  renderGame(); $('#gpBody').scrollTop = 0;
+  $('#gpage').classList.add('open'); $('#gpage').setAttribute('aria-hidden','false');
+  loadGame(true);
+}
+function closeGame(){ gd = null; $('#gpage').classList.remove('open'); $('#gpage').setAttribute('aria-hidden','true'); }
+const gameOpen = () => !!gd;
+
+async function loadGame(force){
+  if(!gd) return; const cur = gd;
+  if(!force && Date.now()-cur.t < 25e3) return;
+  cur.t = Date.now();
+  try{
+    const s = await timed(API+LG[cur.g.lg].path+'/summary?event='+cur.g.id, 10000);
+    if(gd !== cur) return;
+    cur.s = s;
+    /* fresh score/status from the summary header, keeping colors, ranks and links we already had */
+    const h = s.header, c = h && h.competitions && h.competitions[0];
+    if(c){ const ng = parseEvent({...h, date:c.date, links:[]}, cur.g.lg);
+      const g = {...cur.g, ...gdKeep({}, {live:ng.live, final:ng.final, postponed:ng.postponed, half:ng.half, endPeriod:ng.endPeriod, detail:ng.detail, period:ng.period, clock:ng.clock})};
+      g.live = ng.live; g.final = ng.final;
+      g.a = gdKeep(cur.g.a, {...ng.a, rank:ng.a.rank||cur.g.a.rank}); g.h = gdKeep(cur.g.h, {...ng.h, rank:ng.h.rank||cur.g.h.rank});
+      if(s.situation) g.sit = s.situation; else if(!g.live) g.sit = null;
+      cur.g = g; gameReg[cur.key] = g; }
+    if(cur.tab==='info' && (cur.g.live || cur.g.final)) cur.tab = cur.g.live ? 'plays' : 'box';
+  }catch(e){ cur.err = true; }
+  if(gd === cur) renderGame();
+}
+
+function renderGame(){
+  if(!gd) return;
+  const {g, s} = gd, body = $('#gpBody'), y = body.scrollTop;
+  $('#gpName').textContent = `${g.a.ab||g.a.name} @ ${g.h.ab||g.h.name}`;
+  const started = g.live || g.final;
+  const tabs = started ? [['plays', g.live ? 'Plays' : 'Plays'], ['box','Box Score'], ['team','Team Stats']] : [['info','Preview']];
+  if(!tabs.some(t=>t[0]===gd.tab)) gd.tab = tabs[0][0];
+  let html = `<div class="gd-head">${gameBox(g, {detail:true})}</div>`;
+  html += `<div class="gd-tabs" role="tablist">${tabs.map(([k,l]) => `<button class="tp-tab" data-gdtab="${k}" aria-selected="${k===gd.tab}">${l}</button>`).join('')}</div>`;
+  if(!s) html += `<div class="gd-load">${gd.err ? 'Couldn’t load this game. Pull back and try again.' : 'Loading…'}</div>`;
+  else html += gd.tab==='box' ? gdBox(g, s) : gd.tab==='team' ? gdTeamStats(g, s) : gd.tab==='plays' ? gdPlays(g, s) : gdInfo(g, s);
+  body.innerHTML = html;
+  body.scrollTop = y;
+}
+
+/* ---- Box score: player tables per sport ---- */
+function gdBox(g, s){
+  const P = (s.boxscore && s.boxscore.players) || [];
+  if(!P.length) return `<div class="gd-load">No player stats yet.</div>`;
+  const t = gd.side==='h' ? g.h : g.a;
+  const tp = P.find(x => String(x.team && x.team.id)===String(t.id)) || P[gd.side==='h' ? 1 : 0];
+  const btn = (k, tm) => `<button data-gdside="${k}" aria-pressed="${gd.side===k}" style="--tc:${hex(tm.color||'#555558')}">${gdLogo(tm, g.lg)}${esc(tm.name||tm.ab)}</button>`;
+  let html = `<div class="gd-sec"><div class="gd-teams">${btn('a', g.a)}${btn('h', g.h)}</div>`;
+  const groups = (tp && tp.statistics) || [];
+  const lg = g.lg;
+  if(lg==='nba' || lg==='cbb'){
+    const st = groups[0]; if(!st) return html + `<div class="gd-load">No player stats yet.</div></div>`;
+    const labels = st.labels || st.names || [];
+    const ath = st.athletes || [];
+    const row = a => a.didNotPlay || !(a.stats||[]).length
+      ? `<tr><td>${esc(athName(a.athlete))}<small>${esc((a.athlete.position||{}).abbreviation||'')}</small></td><td class="dnp" colspan="${labels.length}">${esc(a.didNotPlay ? 'DNP'+(a.reason ? ' – '+cap(a.reason) : '') : '—')}</td></tr>`
+      : `<tr><td>${esc(athName(a.athlete))}<small>${esc((a.athlete.position||{}).abbreviation||'')}</small></td>${a.stats.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`;
+    const starters = ath.filter(a=>a.starter), bench = ath.filter(a=>!a.starter);
+    html += `<div class="gd-card gd-tbl"><table><tr><th>${esc(t.ab||'')}</th>${labels.map(l=>`<th>${esc(l)}</th>`).join('')}</tr>
+      ${starters.length ? `<tr class="grp"><td colspan="${labels.length+1}">Starters</td></tr>` + starters.map(row).join('') : ''}
+      ${bench.length ? `<tr class="grp"><td colspan="${labels.length+1}">Bench</td></tr>` + bench.map(row).join('') : ''}
+      ${(st.totals||[]).some(Boolean) ? `<tr class="tot"><td>Team</td>${st.totals.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>` : ''}</table></div>`;
+  } else if(lg==='mlb'){
+    groups.forEach(st => {
+      const labels = st.labels || st.names || [], ath = st.athletes || [];
+      const bat = st.type==='batting';
+      html += `<div class="gd-h">${bat ? 'Batting' : 'Pitching'}</div><div class="gd-card gd-tbl"><table><tr><th>${bat?'Hitters':'Pitchers'}</th>${labels.map(l=>`<th>${esc(l)}</th>`).join('')}</tr>
+        ${ath.map(a => `<tr><td class="${bat && !a.starter ? 'sub' : ''}">${esc(athName(a.athlete))}<small>${esc((a.position||a.athlete.position||{}).abbreviation||'')}</small></td>${(a.stats||[]).map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}
+        ${(st.totals||[]).some(x=>String(x).trim()) ? `<tr class="tot"><td>Team</td>${st.totals.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>` : ''}</table></div>`;
+    });
+  } else {   /* football: one table per category */
+    const name = {passing:'Passing', rushing:'Rushing', receiving:'Receiving', fumbles:'Fumbles', defensive:'Defense', interceptions:'Interceptions', kickReturns:'Kick Returns', puntReturns:'Punt Returns', kicking:'Kicking', punting:'Punting'};
+    groups.filter(st => (st.athletes||[]).length).forEach(st => {
+      const labels = st.labels || st.names || [];
+      html += `<div class="gd-h">${esc(name[st.name] || st.text || st.name)}</div><div class="gd-card gd-tbl"><table><tr><th>${esc(t.ab||'')}</th>${labels.map(l=>`<th>${esc(l)}</th>`).join('')}</tr>
+        ${st.athletes.map(a => `<tr><td>${esc(athName(a.athlete))}</td>${(a.stats||[]).map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}
+        ${st.athletes.length > 1 && (st.totals||[]).some(Boolean) ? `<tr class="tot"><td>Team</td>${st.totals.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>` : ''}</table></div>`;
+    });
+  }
+  return html + '</div>';
+}
+const cap = x => String(x).toLowerCase().replace(/(^|[\s-])\w/g, c=>c.toUpperCase());
+
+/* ---- Team stats: side-by-side with a split bar ---- */
+const MLB_TS = [['batting','H','Hits'],['batting','HR','Home Runs'],['batting','BB','Walks'],['batting','SO','Strikeouts'],['batting','LOB','Left on Base'],['batting','SB','Stolen Bases'],['batting','2B','Doubles'],['batting','AVG','Batting Avg'],['batting','OBP','On-Base %'],['batting','SLG','Slugging %'],['pitching','P','Pitches'],['pitching','ER','Earned Runs Allowed'],['fielding','E','Errors']];
+function gdTeamStats(g, s){
+  const T = (s.boxscore && s.boxscore.teams) || [];
+  const ta = T.find(x=>x.homeAway==='away') || T[0], th = T.find(x=>x.homeAway==='home') || T[1];
+  if(!ta || !th) return `<div class="gd-load">No team stats yet.</div>`;
+  let rows = [];
+  if(g.lg==='mlb'){
+    const val = (t, grp, ab) => { const G = (t.statistics||[]).find(x=>x.name===grp); const st = G && (G.stats||[]).find(x=>x.abbreviation===ab); return st ? st.displayValue : null; };
+    rows = MLB_TS.map(([grp, ab, label]) => [label, val(ta,grp,ab), val(th,grp,ab)]).filter(r => r[1]!=null && r[2]!=null);
+  } else {
+    const hs = {}; (th.statistics||[]).forEach(x => hs[x.name||x.label] = x.displayValue);
+    rows = (ta.statistics||[]).filter(x => x.label && x.displayValue!=null).map(x => [x.label, x.displayValue, hs[x.name||x.label]]).filter(r => r[2]!=null);
+  }
+  if(!rows.length) return `<div class="gd-load">No team stats yet.</div>`;
+  const num = v => { const m = String(v).match(/-?\d*\.?\d+/); return m ? parseFloat(m[0]) : NaN; };
+  const lowBetter = /turnover|interception|fumble|penalt|foul|error|left on base|sack.*yards|earned runs allowed/i;
+  /* very dark primaries (navy, black) disappear on the gray card, so those use the team's alternate color */
+  const barC = t => { const c = hex(t.color||'#888'), al = t.alt ? hex(t.alt) : ''; return lum(c) < .12 && al && lum(al) > lum(c) && lum(al) < .9 ? al : lum(c) < .12 ? '#8a8a8e' : c; };
+  const ca = barC(g.a), ch = barC(g.h);
+  const secs = v => String(v).split(':').reduce((m,s)=>m*60+Number(s),0);
+  const bar = (label, a, h) => { const clock = /:/.test(a) && /:/.test(h);   /* time of possession */
+    const x = clock ? secs(a) : num(a), y = clock ? secs(h) : num(h);
+    if(!(x>=0) || !(y>=0) || x+y===0) return '';
+    const lo = lowBetter.test(label), aw = lo ? x < y : x > y, hw = lo ? y < x : y > x;
+    return `<div class="gd-bar"><i class="${hw&&!aw?'lo':''}" style="--c:${ca};flex:${x}"></i><i class="${aw&&!hw?'lo':''}" style="--c:${ch};flex:${y}"></i></div>`; };
+  return `<div class="gd-sec"><div class="gd-card gd-ts">
+    <div class="gd-ts-hd"><span>${gdLogo(g.a,g.lg)}${esc(g.a.ab||g.a.name)}</span><span>${esc(g.h.ab||g.h.name)}${gdLogo(g.h,g.lg)}</span></div>
+    ${rows.map(([l,a,h]) => `<div class="gd-st"><div class="gd-st-row"><b>${esc(a)}</b><span>${esc(l)}</span><b>${esc(h)}</b></div>${bar(l,a,h)}</div>`).join('')}
+  </div></div>`;
+}
+
+/* ---- Plays: scoring summary + play-by-play (newest first while live) ---- */
+function gdPlayList(g, s){
+  let raw = [];
+  if(s.drives){
+    const drives = (s.drives.previous||[]).concat(s.drives.current ? [s.drives.current] : []), seen = new Set();
+    drives.forEach((d, di) => (d.plays||[]).forEach(pl => { if(seen.has(pl.id)) return; seen.add(pl.id);
+      raw.push({...pl, teamId: (pl.team&&pl.team.id) || (d.team&&d.team.id), drive: di, driveInfo: d}); }));
+  } else raw = (s.plays||[]).map(pl => ({...pl, teamId: pl.team && pl.team.id}));
+  if(g.lg==='mlb') raw = raw.filter(pl => pl.scoringPlay || /play result/i.test((pl.type&&pl.type.text)||''));   /* at-bat results, not every pitch */
+  return raw.filter(pl => pl.text && !/^(end|start) of/i.test(pl.text.trim()) && !/^end (of )?(game|period|quarter|half)/i.test((pl.type&&pl.type.text)||''));   /* period markers become section headers */
+}
+function gdPlayRow(g, pl, withScore){
+  const t = gdTeamOf(g, pl.teamId);
+  let when;
+  if(g.lg==='mlb') when = pl.outs!=null ? pl.outs+' Out'+(pl.outs===1?'':'s') : '';
+  else when = esc((pl.clock && pl.clock.displayValue) || '');
+  const sc = withScore && pl.awayScore!=null ? `<small>${esc(g.a.ab||'')} ${pl.awayScore}, ${esc(g.h.ab||'')} ${pl.homeScore}</small>` : '';
+  return `<div class="gp${pl.scoringPlay?' score':''}"><span class="gp-logo">${gdLogo(t, g.lg)}</span><span class="gp-txt">${esc(String(pl.text).replace(/^\(\d+:\d+(\.\d+)?\)\s*/,''))}</span><span class="gp-when">${when}${sc}</span></div>`;
+}
+const gdPer = (g, pl) => { const p = pl.period||{};
+  if(g.lg==='mlb') return `${p.type ? (/^b/i.test(p.type)?'Bottom':'Top')+' ' : ''}${ordinal(p.number||1)}`;
+  const reg = (LG[g.lg]||{}).periods || 4, n = p.number||1;
+  if(n > reg) return n-reg===1 ? 'Overtime' : (n-reg)+'OT';
+  return reg===2 ? (n===1?'1st Half':'2nd Half') : ordinal(n)+' Quarter'; };
+function gdPlays(g, s){
+  let html = '<div class="gd-sec">';
+  /* scoring summary (football and baseball) */
+  let scoring = (s.scoringPlays||[]).map(pl => ({...pl, teamId: pl.team && pl.team.id, scoringPlay:true}));
+  if(!scoring.length && g.lg==='mlb') scoring = gdPlayList(g, s).filter(pl => pl.scoringPlay);
+  const scoringBlock = scoring.length ? `<div class="gd-h">Scoring Summary</div><div class="gd-card gd-plays">${(() => { let last = null, out = '';
+      scoring.forEach(pl => { const pr = gdPer(g, pl); if(pr!==last){ out += `<div class="gd-sep"><b>${esc(pr)}</b></div>`; last = pr; } out += gdPlayRow(g, pl, true); });
+      return out; })()}</div>` : '';
+  /* play-by-play, newest first */
+  const list = gdPlayList(g, s).slice().reverse();
+  const limit = 60 + gd.more*60;
+  let pbp = '';
+  if(list.length){
+    let last = null, lastDrive = null, out = '';
+    list.slice(0, limit).forEach(pl => {
+      const pr = gdPer(g, pl);
+      if(pr!==last){ out += `<div class="gd-sep"><b>${esc(pr)}</b></div>`; last = pr; lastDrive = null; }
+      if(pl.driveInfo && pl.drive!==lastDrive){ const d = pl.driveInfo, t = gdTeamOf(g, d.team && d.team.id);
+        out += `<div class="gd-sep"><span><b>${esc(t ? t.ab : (d.team&&d.team.abbreviation)||'')}</b>${d.displayResult ? ' · '+esc(d.displayResult) : ''}</span><span>${esc(d.description||'')}</span></div>`; lastDrive = pl.drive; }
+      out += gdPlayRow(g, pl, !!pl.scoringPlay);
+    });
+    pbp = `<div class="gd-h">${g.live ? 'Latest Plays' : 'Play-by-Play'}</div><div class="gd-card gd-plays">${out}${list.length > limit ? `<button class="gd-more" data-gdmore>Show more plays</button>` : ''}</div>`;
+  }
+  if(!scoringBlock && !pbp) return html + `<div class="gd-load">No plays yet.</div></div>`;
+  html += g.live ? pbp + scoringBlock : scoringBlock + pbp;
+  return html + '</div>';
+}
+
+/* ---- Preview (before the game) ---- */
+function gdInfo(g, s){
+  const gi = s.gameInfo || {}, v = gi.venue || {}, ad = v.address || {};
+  const d = new Date(g.date);
+  const pc = (s.pickcenter||[])[0] || {};
+  const rows = [
+    ['Date', d.toLocaleDateString('en-US',{weekday:'long', month:'long', day:'numeric'})],
+    ['Time', g.tbd ? 'TBD' : d.toLocaleTimeString('en-US',{hour:'numeric', minute:'2-digit'})],
+    ['TV', g.tv],
+    ['Venue', v.fullName],
+    ['Location', [ad.city, ad.state || ad.country].filter(Boolean).join(', ')],
+    ['Line', pc.details],
+    ['Over/Under', pc.overUnder]
+  ].filter(r => r[1]!=null && r[1]!=='');
+  let html = `<div class="gd-sec"><div class="gd-h">Game Info</div><div class="gd-card gd-info">${rows.map(([k,v]) => `<div><span>${k}</span><b>${esc(v)}</b></div>`).join('')}</div>`;
+  /* season leaders, away vs home by category */
+  const L = s.leaders || [];
+  const la = L.find(x => String(x.team&&x.team.id)===String(g.a.id)) || L[0], lh = L.find(x => String(x.team&&x.team.id)===String(g.h.id)) || L[1];
+  if(la && lh && (la.leaders||[]).length){
+    const cats = la.leaders.map(c => c.name);
+    const cell = (tl, name) => { const c = (tl.leaders||[]).find(x=>x.name===name), l = c && c.leaders && c.leaders[0]; return l ? `<div><b>${esc(athName(l.athlete))}</b><small>${esc(l.displayValue||'')}</small></div>` : '<div></div>'; };
+    html += `<div class="gd-h">Season Leaders</div><div class="gd-card gd-ld">${cats.map(n => { const c = la.leaders.find(x=>x.name===n); return `<div class="cat">${esc(c.displayName||n)}</div>${cell(la,n)}${cell(lh,n)}`; }).join('')}</div>`;
+  }
+  return html + '</div>';
+}
+setInterval(() => { if(gd && gd.g.live && document.visibilityState!=='hidden') loadGame(); }, 30000);
+
 /* ================= Events ================= */
 document.addEventListener('click', e => {
   const tab = e.target.closest('.tab');
   if(tab){
     if(tab.dataset.view==='alerts') return;   /* Alerts is display-only: no alerts page */
+    if(gameOpen()) closeGame();
     /* My Teams pulls the drawer up (tap again to put it away); the other tabs switch views */
     if(tab.dataset.view==='teams'){ if(teamPageOpen()) closeTeamPage(); showView('teams'); setDrawer(!drawerOpen()); }
     else { if(teamPageOpen()) closeTeamPage(); setDrawer(false); showView(tab.dataset.view); }
@@ -1567,7 +1857,15 @@ document.addEventListener('click', e => {
   if(go){ if(go.dataset.go==='alerts') return; setDrawer(false); showView(go.dataset.go); return; }
   const row = e.target.closest('[data-row]');
   if(row){ openTeamPage(row.dataset.row); return; }
+  if(e.target.closest('#gpBack')){ closeGame(); return; }
+  const gdt = e.target.closest('[data-gdtab]');
+  if(gdt){ gd.tab = gdt.dataset.gdtab; gd.more = 0; renderGame(); const hd = $('#gpBody .gd-head'); if($('#gpBody').scrollTop > hd.offsetHeight) $('#gpBody').scrollTop = hd.offsetHeight; return; }
+  const gds = e.target.closest('[data-gdside]');
+  if(gds){ gd.side = gds.dataset.gdside; renderGame(); return; }
+  if(e.target.closest('[data-gdmore]')){ gd.more++; renderGame(); return; }
   if(e.target.closest('#tpBack')){ closeTeamPage(); return; }
+  const gm = e.target.closest('[data-game]');
+  if(gm && !e.target.closest('[data-tptab]') && !e.target.closest('#gpage')){ openGame(gm.dataset.game); return; }
   const tt = e.target.closest('[data-tptab]');
   if(tt){ tpTab = tt.dataset.tptab; renderTeamPage._scrolled = false; renderTeamPage(); if(tpTab!=='schedule') $('#tpBody').scrollTop = 0; return; }
   if(e.target.closest('#tpTitle')){ showView('teams'); setDrawer(true); closeTeamPage(); return; }
@@ -1592,7 +1890,7 @@ document.addEventListener('click', e => {
   if(star){ const k=star.dataset.star; starred.has(k)?starred.delete(k):starred.add(k); star.setAttribute('aria-pressed', starred.has(k)); }
 });
 $('#teamSearch').addEventListener('input', e => { pickerQuery = e.target.value; renderPickerBody(); });
-document.addEventListener('keydown', e => { if(e.key==='Escape' && $('#picker').classList.contains('open')) closePicker(); });
+document.addEventListener('keydown', e => { if(e.key!=='Escape') return; if($('#picker').classList.contains('open')) closePicker(); else if(gameOpen()) closeGame(); });
 
 /* ================= Live data (ESPN public site API) ================= */
 function parseEvent(ev, lg){
