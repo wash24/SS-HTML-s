@@ -787,7 +787,7 @@ function orderGames(list){
     .sort((x,y)=> (gameHasMine(y,mine)-gameHasMine(x,mine)) || rank(x)-rank(y) || new Date(x.date)-new Date(y.date));
 }
 /* ---- Top Games (ticker): only games happening today, ranked by how much they're worth watching ----
-   your teams > live (closer and later = higher) > big matchups (rankings, playoffs, national TV) > soonest kickoff;
+   your teams > live (closer and later = higher) > big matchups (NFL, rankings, playoffs, national TV) > soonest kickoff;
    today's finals sort last */
 const NATIONAL_TV = /^(ESPN|ESPN2|ABC|CBS|NBC|FOX|Fox|TNT|TBS|Prime Video|Peacock|NFL Net|NFL Network|MLB Network|NBA TV|truTV|FS1|Netflix)$/i;
 function isToday(g){
@@ -798,6 +798,7 @@ function isToday(g){
 function topGameScore(g, mine){
   let sc = 0;
   if(gameHasMine(g, mine)) sc += 1000;
+  sc += ({nfl:120, cfb:30, nba:40, mlb:30, cbb:10})[g.lg] || 0;   /* a single NFL game outweighs a random weeknight game */
   const ra = g.a.rank||99, rh = g.h.rank||99;
   if(ra<=25 && rh<=25) sc += 160 + (50 - ra - rh);          /* ranked vs ranked */
   else if(Math.min(ra,rh)<=25) sc += 60 + (25 - Math.min(ra,rh));
