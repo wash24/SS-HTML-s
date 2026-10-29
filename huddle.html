@@ -549,6 +549,12 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 /* college rankings in game boxes */
 .gb-rk{font-size:.72em;font-weight:500;opacity:.8;margin-right:4px}
 
+/* week bar (NFL / CFB) */
+.sc-date select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+.sc-arrow:disabled{opacity:.25}
+.sc-bye{margin:-4px max(9px,env(safe-area-inset-right,0px)) 14px max(9px,env(safe-area-inset-left,0px));font-family:var(--font-display);font-size:14px;color:rgba(255,255,255,.6);line-height:1.35}
+.sc-bye b{color:rgba(255,255,255,.85);font-weight:600;margin-right:6px}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <style>
@@ -895,7 +901,7 @@ function scUrl(lg, group, off){
   if(lg==='nfl') base = L.path+'/scoreboard?limit=100';
   const g = (scGroups(lg)||[]).find(x=>x[0]===group);
   if(g && g[2]) base += '&groups='+g[2];
-  return API+base+'&dates='+ymd(dayFrom(off));
+  return off===null ? API+base : API+base+'&dates='+ymd(dayFrom(off));
 }
 async function loadScores(lg, group, off){
   const key = lg+'|'+(group||'')+'|'+ymd(dayFrom(off)), c = scCache[key];
@@ -907,16 +913,51 @@ async function loadScores(lg, group, off){
   }catch(e){ scCache[key] = {list:(c&&c.list)||[], t:Date.now(), err:true}; }
   if(!$('#view-scores').hidden) renderScores();
 }
+/* Football is played in weeks: NFL and CFB chips step through ESPN's season calendar instead of days */
+const WEEKLY = {nfl:true, cfb:true};
+const weekMeta = {};                      /* lg -> {year, weeks:[{st,wk,label,start,end}], cur:index} */
+const scWeek = {};                        /* lg -> selected index into weekMeta[lg].weeks */
+async function loadWeekMeta(lg){
+  if(weekMeta[lg] && !weekMeta[lg].err) return;
+  weekMeta[lg] = {loading:true};
+  try{
+    const j = await timed(scUrl(lg, scGroupFor(lg,false), null), 12000);
+    const weeks = [];
+    (j.leagues[0].calendar||[]).forEach(c => { if(c.value==='2' || c.value==='3') (c.entries||[]).forEach(e =>
+      weeks.push({st:+c.value, wk:+e.value, label:e.label, start:e.startDate, end:e.endDate})); });
+    let cur = weeks.findIndex(w => w.st===(j.season&&j.season.type) && w.wk===(j.week&&j.week.number));
+    if(cur<0){ const now = Date.now(); cur = weeks.findIndex(w => new Date(w.end) >= now); if(cur<0) cur = weeks.length-1; }
+    weekMeta[lg] = {year:j.season&&j.season.year, weeks, cur};
+    if(scWeek[lg]==null) scWeek[lg] = cur;
+  }catch(e){ weekMeta[lg] = {err:true}; }
+  if(!$('#view-scores').hidden) renderScores();
+}
+async function loadWeek(lg, group, idx){
+  const m = weekMeta[lg], w = m.weeks[idx]; if(!w) return;
+  const key = lg+'|'+(group||'')+'|W'+m.year+'-'+w.st+'-'+w.wk, c = scCache[key];
+  if(c && (c.loading || Date.now()-c.t < (idx===m.cur ? 55e3 : 600e3))) return;
+  scCache[key] = {list:(c&&c.list)||null, byes:(c&&c.byes)||[], t:Date.now(), loading:true};
+  try{
+    const j = await timed(scUrl(lg, group, null)+`&dates=${m.year}&seasontype=${w.st}&week=${w.wk}`, 15000);
+    scCache[key] = {list:(j.events||[]).map(e=>parseEvent(e,lg)).sort((x,y)=>(y.live-x.live) || new Date(x.date)-new Date(y.date)),
+                    byes:((j.week&&j.week.teamsOnBye)||[]).map(t=>t.shortDisplayName||t.name), t:Date.now()};
+  }catch(e){ scCache[key] = {list:(c&&c.list)||[], byes:[], t:Date.now(), err:true}; }
+  if(!$('#view-scores').hidden) renderScores();
+}
+const weekKey = (lg, group) => { const m = weekMeta[lg], w = m && m.weeks && m.weeks[scWeek[lg]]; return w ? lg+'|'+(group||'')+'|W'+m.year+'-'+w.st+'-'+w.wk : null; };
+const shortDay = iso => new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric'});
 const espnBoard = (lg, off) => `https://www.espn.com/${({nfl:'nfl',mlb:'mlb',nba:'nba',cfb:'college-football',cbb:'mens-college-basketball'})[lg]}/scoreboard/_/date/${ymd(dayFrom(off))}`;
 function renderScores(){
   const el = $('#view-scores'); if(!el) return;
   const mineTeams = picks.filter(p=>p.type==='team');
   const isMine = scTab==='mine';
   const lgs = isMine ? [...new Set((mineTeams.length ? mineTeams : picks).map(p=>p.lg))].filter(k=>LG_ORDER.includes(k)).sort((a,b)=>LG_ORDER.indexOf(a)-LG_ORDER.indexOf(b)) : [scTab];
-  lgs.forEach(k => loadScores(k, scGroupFor(k, isMine && mineTeams.length), scDay));
+  const weekly = !isMine && WEEKLY[scTab];
+  if(weekly){ loadWeekMeta(scTab); if(weekMeta[scTab] && weekMeta[scTab].weeks) loadWeek(scTab, scGroupFor(scTab,false), scWeek[scTab]); }
+  else lgs.forEach(k => loadScores(k, scGroupFor(k, isMine && mineTeams.length), scDay));
   let body = '', pending = false;
   for(const k of lgs){
-    const c = scCache[k+'|'+(scGroupFor(k, isMine && mineTeams.length)||'')+'|'+ymd(dayFrom(scDay))];
+    const c = weekly ? scCache[weekKey(k, scGroupFor(k,false))] : scCache[k+'|'+(scGroupFor(k, isMine && mineTeams.length)||'')+'|'+ymd(dayFrom(scDay))];
     if(!c || !c.list){ pending = true; continue; }
     let list = c.list;
     if(isMine && mineTeams.length) list = list.filter(g => mineTeams.some(p => p.lg===k && isMine_(g,p)));
@@ -927,23 +968,40 @@ function renderScores(){
     }
     if(!list.length) continue;
     const grpName = !isMine && scGroups(k) ? ' · '+(scGroups(k).find(x=>x[0]===scGroup[k])||[,''])[1] : '';
-    body += `<div class="sc-league"><span>${esc(LG[k].label)}${esc(grpName)}</span><a href="${esc(espnBoard(k, scDay))}" target="_blank" rel="noopener">Full Scoreboard »</a></div>`
-          + list.map(g => `<div class="sc-card">${gameBox(g, {scores:true})}</div>`).join('');
+    const wkb = weekly && weekMeta[k] && weekMeta[k].weeks ? weekMeta[k].weeks[scWeek[k]] : null;
+    const board = wkb ? `https://www.espn.com/${k==='nfl'?'nfl':'college-football'}/scoreboard/_/week/${wkb.wk}/year/${weekMeta[k].year}/seasontype/${wkb.st}` : espnBoard(k, scDay);
+    body += `<div class="sc-league"><span>${esc(LG[k].label)}${esc(grpName)}</span><a href="${esc(board)}" target="_blank" rel="noopener">Full Scoreboard »</a></div>`
+          + list.map(g => `<div class="sc-card">${gameBox(g, {scores:true})}</div>`).join('')
+          + (weekly && c.byes && c.byes.length ? `<div class="sc-bye"><b>Bye</b>${c.byes.map(esc).join(', ')}</div>` : '');
   }
-  const dayWord = scDay===0?'today':scDay===1?'tomorrow':scDay===-1?'yesterday':'on '+dayLabel(dayFrom(scDay));
+  const wkObj = weekly && weekMeta[scTab] && weekMeta[scTab].weeks ? weekMeta[scTab].weeks[scWeek[scTab]] : null;
+  const dayWord = weekly ? (wkObj ? 'in '+wkObj.label : '') : scDay===0?'today':scDay===1?'tomorrow':scDay===-1?'yesterday':'on '+dayLabel(dayFrom(scDay));
   if(!body) body = `<div class="sc-empty">${pending ? 'Loading games…' : isMine && !picks.length ? 'Add teams to see their games here.' : `No games ${dayWord}.`}</div>`;
   const chips = [['mine','My Teams'], ...LG_ORDER.map(k=>[k, LG[k].label])];
   const menu = scMenu && scGroups(scTab) ? `<div class="sc-menu" role="menu">${scGroups(scTab).map(([id,label])=>`<button role="menuitemradio" aria-checked="${scGroup[scTab]===id}" data-scgroup="${id}">${esc(label)}</button>`).join('')}</div>` : '';
   el.innerHTML = `<div class="sc-chips">${chips.map(([k,l])=>`<button class="sc-chip" data-sctab="${k}" aria-pressed="${k===scTab}">${esc(l)}${scGroups(k)?'<i class="caret"></i>':''}</button>`).join('')}</div>${menu}
-    <div class="sc-datebar">
+    ${weekly ? weekBar(scTab) : `<div class="sc-datebar">
       <button class="sc-arrow" data-scday="-1" aria-label="Previous day">«</button>
       <label class="sc-date">${esc(dayLabel(dayFrom(scDay)))}<i class="caret"></i><input type="date" id="scDatePick" value="${dayFrom(scDay).toISOString().slice(0,10)}" aria-label="Pick a date"></label>
       <button class="sc-arrow" data-scday="1" aria-label="Next day">»</button>
-    </div>
+    </div>`}
     <div class="sc-list">${body}</div>`;
+  const wp = $('#scWeekPick');
+  if(wp) wp.addEventListener('change', () => { scWeek[scTab] = Number(wp.value); renderScores(); $('#view-scores').scrollTop = 0; });
   const dp = $('#scDatePick');
-  dp.addEventListener('change', () => { if(!dp.value) return; const [y,m,d] = dp.value.split('-').map(Number);
+  if(dp) dp.addEventListener('change', () => { if(!dp.value) return; const [y,m,d] = dp.value.split('-').map(Number);
     const pick = new Date(y, m-1, d, 12), today = dayFrom(0); scDay = Math.round((pick - today)/86400e3); renderScores(); });
+}
+function weekBar(lg){
+  const m = weekMeta[lg];
+  if(!m || !m.weeks) return `<div class="sc-datebar"><span></span><span class="sc-date">Loading weeks…</span><span></span></div>`;
+  const i = scWeek[lg], w = m.weeks[i];
+  const opts = m.weeks.map((x,j) => `<option value="${j}"${j===i?' selected':''}>${esc(x.label)}${x.st===2?' · '+esc(shortDay(x.start)):''}</option>`).join('');
+  return `<div class="sc-datebar">
+      <button class="sc-arrow" data-scweek="-1" aria-label="Previous week"${i<=0?' disabled':''}>«</button>
+      <label class="sc-date">${esc(w.label)}<i class="caret"></i><select id="scWeekPick" aria-label="Pick a week">${opts}</select></label>
+      <button class="sc-arrow" data-scweek="1" aria-label="Next week"${i>=m.weeks.length-1?' disabled':''}>»</button>
+    </div>`;
 }
 const isMine_ = (g,p) => String(g.a.id)===String(p.id) || String(g.h.id)===String(p.id);
 function renderAlerts(){
@@ -1438,6 +1496,8 @@ document.addEventListener('click', e => {
     renderScores(); if(!scMenu) $('#view-scores').scrollTop = 0; return; }
   const scg = e.target.closest('[data-scgroup]');
   if(scg){ scGroup[scTab] = scg.dataset.scgroup; scMenu = false; renderScores(); $('#view-scores').scrollTop = 0; return; }
+  const scw = e.target.closest('[data-scweek]');
+  if(scw){ const m = weekMeta[scTab]; if(m && m.weeks){ scWeek[scTab] = Math.max(0, Math.min(m.weeks.length-1, scWeek[scTab] + Number(scw.dataset.scweek))); } scMenu = false; renderScores(); $('#view-scores').scrollTop = 0; return; }
   const scd = e.target.closest('[data-scday]');
   if(scd){ scDay += Number(scd.dataset.scday); scMenu = false; renderScores(); return; }
   if(scMenu && !e.target.closest('.sc-menu')){ scMenu = false; renderScores(); }
