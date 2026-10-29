@@ -426,8 +426,8 @@ pages.forEach((p, i) => {
   sec.className = 'page th-' + p.theme; sec.id = 'p-' + p.key; sec.setAttribute('aria-label', p.name);
   const isSport = true, isLead = p.key === 'top', conf = CONFS[p.key];
   const views = isLead ? [['scores','Scores'],['news','News']] : [['scores','Scores'],['news','News'],['standings','Standings']];
-  sec.innerHTML = `<div class="panel"><div class="panel-head${isSport ? ' has-tab' : ''}"><span class="hd-art" data-art="${({ cfb:'football', nfl:'football', mlb:'baseball', ncb:'hoops', nba:'hoops' })[p.key] || 'lead'}"></span><h1>${p.name}</h1><span class="hd-rule"></span>${isSport ? '<span class="hd-rr"></span>' : ''}${isSport ? `<button class="hd-tab" data-k="${p.key}" aria-expanded="false" aria-label="Show ${p.name} menu"><svg viewBox="0 0 52 18"><path class="edge" d="M0 17.5L13 0.5H52"/><path class="tri" d="M31 7h10l-5 6z"/></svg></button>` : ''}</div>
-    ${isSport ? `<div class="tabbar" id="tb-${p.key}" hidden><div class="seg" role="tablist">${views.map(([v, l]) => `<button role="tab" data-k="${p.key}" data-view="${v}" class="${v === 'scores' ? 'on' : ''}" aria-selected="${v === 'scores'}">${l}</button>`).join('')}</div><button class="bell" aria-label="Alerts"><svg viewBox="0 0 20 20"><path d="M10 2.2a1.2 1.2 0 0 1 1.2 1.2v.5a5.2 5.2 0 0 1 4 5.1v3.4l1.6 2.1v.9H3.2V15l1.6-2.1V9a5.2 5.2 0 0 1 4-5.1v-.5A1.2 1.2 0 0 1 10 2.2zM8 16.4h4a2 2 0 0 1-4 0z"/></svg></button></div>` : ''}
+  sec.innerHTML = `<div class="panel"><div class="panel-head${isSport ? ' has-tab' : ''}"><span class="hd-art" data-art="${({ cfb:'football', nfl:'football', mlb:'baseball', ncb:'hoops', nba:'hoops' })[p.key] || 'lead'}"></span><h1>${p.name}</h1><span class="hd-rule"></span>${isSport ? '<span class="hd-rr"></span>' : ''}${isSport ? `<button class="hd-tab open" data-k="${p.key}" aria-expanded="true" aria-label="Show ${p.name} menu"><svg viewBox="0 0 52 18"><path class="edge" d="M0 17.5L13 0.5H52"/><path class="tri" d="M31 7h10l-5 6z"/></svg></button>` : ''}</div>
+    ${isSport ? `<div class="tabbar" id="tb-${p.key}"><div class="seg" role="tablist">${views.map(([v, l]) => `<button role="tab" data-k="${p.key}" data-view="${v}" class="${v === 'scores' ? 'on' : ''}" aria-selected="${v === 'scores'}">${l}</button>`).join('')}</div><button class="bell" aria-label="Alerts"><svg viewBox="0 0 20 20"><path d="M10 2.2a1.2 1.2 0 0 1 1.2 1.2v.5a5.2 5.2 0 0 1 4 5.1v3.4l1.6 2.1v.9H3.2V15l1.6-2.1V9a5.2 5.2 0 0 1 4-5.1v-.5A1.2 1.2 0 0 1 10 2.2zM8 16.4h4a2 2 0 0 1-4 0z"/></svg></button></div>` : ''}
     ${conf ? `<div class="fbar"><button class="fsel" data-k="${p.key}" aria-haspopup="listbox" aria-expanded="false"><span id="fl-${p.key}">Top 25</span><i aria-hidden="true"><b></b><b></b><b></b></i></button>
       <div class="fmenu" id="fm-${p.key}" role="listbox" hidden>${[['top25','Top 25'], [conf.all[0], conf.all[1]], ...conf.list].map(([v, l]) => `<button role="option" data-k="${p.key}" data-f="${v}">${l}</button>`).join('')}</div></div>` : ''}
     <div class="scroll" id="s-${p.key}"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
@@ -585,14 +585,16 @@ function dayLabel(k){
 }
 // Day strips and order.
 // Mornings (before noon, nothing underway yet today): YESTERDAY's results lead, then TODAY, then what's ahead.
-// From noon on, or once a game today has started: TODAY leads, then upcoming days, then YESTERDAY at the bottom.
+// From noon on (on a day with games), or once a game today has started: TODAY leads, then upcoming days, then YESTERDAY at the bottom.
+// No games today (off day or offseason): the most recent results lead, then the next games scheduled.
 // Inside a day: live games first, then upcoming by start time, then finals (The Lead orders by game interest instead).
 // Sport pages: if exactly one game is live, it sits on top of TODAY as a full box until a second game goes live.
 function grouped(games, byInterest, compact){
   const today = dayKey(Date.now());
   const days = new Map();
   games.forEach(g => { const k = g.state === 'in' ? today : dayKey(g.date); if (!days.has(k)) days.set(k, []); days.get(k).push(g); });
-  const started = (days.get(today) || []).some(g => g.state !== 'pre') || new Date().getHours() >= 12;
+  const todays = days.get(today) || [];
+  const started = todays.some(g => g.state !== 'pre') || (todays.length > 0 && new Date().getHours() >= 12);
   const keys = [...days.keys()];
   const future = keys.filter(k => k >= today).sort((a, b) => a - b);
   const past = keys.filter(k => k < today).sort((a, b) => b - a);
@@ -619,7 +621,8 @@ function renderSport(sport){
   const el = document.getElementById('s-' + sport.key);
   const f = filterOf(sport.key);
   let games = state.data[sport.key];
-  if (CONFS[sport.key] && games && f === 'top25') games = games.filter(g => g.teams.some(t => t.rank));
+  // Top 25 with no ranked games in view (e.g. a season opener between unranked teams): show everything rather than an empty page
+  if (CONFS[sport.key] && games && f === 'top25') { const ranked = games.filter(g => g.teams.some(t => t.rank)); if (ranked.length) games = ranked; }
   else if (CONFS[sport.key] && f !== CONFS[sport.key].all[0]) games = state.confData[sport.key + ':' + f];
   const more = sport.page ? `<a class="more" href="${esc(sport.page)}">Full ${esc(sport.name)} Scoreboard ›</a>` : '';
   if (!games) {
@@ -1127,17 +1130,40 @@ async function getJSON(url){
   return r.json();
 }
 // Daily sports: try one yesterday→tomorrow request, then each day on its own, then the feed's default day.
+const dayOf = e => dayKey(new Date(e.date));
 async function fetchEvents(sport){
   const base = API + sport.path + '/scoreboard';
   const qs = extra => { const q = [sport.params, extra].filter(Boolean).join('&'); return q ? '?' + q : ''; };
   if (sport.daily) {
-    try { return (await getJSON(base + qs('dates=' + dateRange()))).events || []; } catch (e) {}
-    const days = [-1, 0, 1].map(o => ymd(new Date(Date.now() + o * 864e5)));
-    const res = await Promise.allSettled(days.map(d => getJSON(base + qs('dates=' + d))));
-    const ok = res.filter(r => r.status === 'fulfilled');
-    if (ok.length) { const m = new Map(); ok.forEach(r => (r.value.events || []).forEach(e => m.set(e.id, e))); return [...m.values()]; }
+    let events = null;
+    try { events = (await getJSON(base + qs('dates=' + dateRange()))).events || []; } catch (e) {}
+    if (!events) {
+      const days = [-1, 0, 1].map(o => ymd(new Date(Date.now() + o * 864e5)));
+      const res = await Promise.allSettled(days.map(d => getJSON(base + qs('dates=' + d))));
+      const ok = res.filter(r => r.status === 'fulfilled');
+      if (ok.length) { const m = new Map(); ok.forEach(r => (r.value.events || []).forEach(e => m.set(e.id, e))); events = [...m.values()]; }
+    }
+    if (events && events.length) return events;
+    if (events) return offseason(sport, base, qs);
   }
   return (await getJSON(base + qs(''))).events || [];
+}
+// Quiet stretch (offseason, or a gap between seasons):
+// - the last day that had games, if it was within the past 60 days (keeps the World Series final up until the next games)
+// - plus the next day with games, however far out (the season opener shows as soon as the feed lists it)
+async function offseason(sport, base, qs){
+  const span = (from, to) => ymd(new Date(Date.now() + from * 864e5)) + '-' + ymd(new Date(Date.now() + to * 864e5));
+  const params = sport.params.replace(/&?limit=\d+/, '');
+  const grab = async (from, to) => { try { return (await getJSON(base + '?' + [params, 'dates=' + span(from, to), 'limit=1000'].filter(Boolean).join('&'))).events || []; } catch (e) { return []; } };
+  let next = [];
+  for (const [f, t] of [[2, 14], [15, 60], [61, 200]]) { next = await grab(f, t); if (next.length) break; }
+  const past = await grab(-60, -2);
+  const pick = (list, last) => {
+    if (!list.length) return [];
+    const target = last ? Math.max(...list.map(dayOf)) : Math.min(...list.map(dayOf));
+    return list.filter(e => dayOf(e) === target);
+  };
+  return [...pick(past, true), ...pick(next, false)];
 }
 async function loadSport(sport){
   try {
