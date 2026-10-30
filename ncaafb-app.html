@@ -115,23 +115,56 @@ body.stream #band{display:none}
 .tm .rec{font-size:15px;color:#555;margin-left:4px}
 .tm .sc{font-size:17px;font-weight:700;color:#333;min-width:28px;text-align:right;flex:none}
 .tm.lose .nm,.tm.lose .sc{color:#999}
-.tm .pos{display:inline-block;width:0;height:0;border:4px solid transparent;border-right:5px solid #333;margin-left:4px;vertical-align:1px}
 .pv{display:block;border-top:1px solid #e6e6e6;padding:9px 10px 0;height:61px;font-size:12.5px;color:#333}
 .pv:active{background:#f4f4f4}
 
+/* live + final cards (tall rows, big scores) */
+.gc.big .teams{padding:0}
+.gc.big .tm{height:auto;min-height:54px;padding:7px 10px;gap:12px}
+.gc.big .tm + .tm{border-top:1px solid #e6e6e6}
+.gc.big .tm img,.gc.big .tm .ph{width:40px;height:40px}
+.gc.big .tm .txt{white-space:normal;line-height:1.2;padding-left:2px}
+.gc.big .tm .rk{font-size:16px;color:#8a8a8a;margin-right:3px}
+.gc.big .tm .nm{font-size:16px}
+.gc.big .tm .rec{display:block;margin:1px 0 0;font-size:15px;color:#4a4a4a}
+.gc.big .tm .sc{font-size:34px;line-height:1;font-weight:600;letter-spacing:-1px;min-width:46px;color:#333;padding-right:1px}
+.gc.big .tm.lose .nm{color:#333}
+.gc.big .tm.lose .sc{color:#a3a3a3}
+.gc.big .top{padding:9px 10px 8px}
+.ball{width:24px;height:14px;flex:none}
+.sc.flash{animation:flash 2.4s ease-out}
+@keyframes flash{0%,35%{background:#fff1a6;box-shadow:0 0 0 4px #fff1a6}100%{background:transparent;box-shadow:0 0 0 4px transparent}}
+.gc.live{color:inherit}
+.sit{background:#efefef;border-top:1px solid #dfdfdf;padding:7px 10px 6px;font-size:12.5px;font-weight:700;color:#444}
+.sit.rz{color:#c8102e}
+.fld{display:flex;height:42px;background:#e0e0e0}
+.ez{width:27px;flex:none;background:#cbcbcb;position:relative;overflow:hidden}
+.ez span{position:absolute;left:50%;top:50%;font-size:13px;font-weight:700;color:#fff;white-space:nowrap;letter-spacing:.3px}
+.ez.l span{transform:translate(-50%,-50%) rotate(-90deg)}
+.ez.r span{transform:translate(-50%,-50%) rotate(90deg)}
+.pf{flex:1;position:relative;overflow:hidden}
+.pf i,.pf b{position:absolute;display:block}
+.pf .yl{top:0;bottom:16px;width:1px;background:#fff;opacity:.95}
+.pf .yn{bottom:2px;transform:translateX(-50%);font-size:12.5px;font-weight:700;line-height:1;color:#fff;letter-spacing:-.2px}
+.pf .fd{top:0;height:25px;width:2px;margin-left:-1px;background:#f0c300;z-index:3}
+.pf .dr{top:5px;height:16px;background:#b2c9bf;z-index:1}
+.pf .lp{top:5px;height:16px;background:#448e6b;z-index:2}
+.pf .lp.l{clip-path:polygon(8px 0,100% 0,100% 100%,8px 100%,0 50%)}
+.pf .lp.r{clip-path:polygon(0 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,0 100%)}
+
 /* classic (fall 2012) layout */
 body.classic .venue{display:none}
-body.classic .top{padding:9px 10px 8px}
-body.classic .teams{padding:0}
-body.classic .tm{height:auto;padding:7px 10px;align-items:center}
-body.classic .tm + .tm{border-top:1px solid #e6e6e6}
-body.classic .tm img,body.classic .tm .ph{width:34px;height:34px}
-body.classic .tm .txt{white-space:normal;padding-left:2px}
-body.classic .tm .rk{font-size:14px}
-body.classic .tm .nm{font-size:15px}
-body.classic .tm .rec{display:block;margin:1px 0 0;font-size:14.5px;color:#777;line-height:1.15}
-body.classic .tm .txt{line-height:1.2}
-body.classic .pv{height:64px;padding-top:10px}
+body.classic .gc:not(.big) .top{padding:9px 10px 8px}
+body.classic .gc:not(.big) .teams{padding:0}
+body.classic .gc:not(.big) .tm{height:auto;padding:7px 10px;align-items:center}
+body.classic .gc:not(.big) .tm + .tm{border-top:1px solid #e6e6e6}
+body.classic .gc:not(.big) .tm img,body.classic .gc:not(.big) .tm .ph{width:34px;height:34px}
+body.classic .gc:not(.big) .tm .txt{white-space:normal;padding-left:2px}
+body.classic .gc:not(.big) .tm .rk{font-size:14px}
+body.classic .gc:not(.big) .tm .nm{font-size:15px}
+body.classic .gc:not(.big) .tm .rec{display:block;margin:1px 0 0;font-size:14.5px;color:#777;line-height:1.15}
+body.classic .gc:not(.big) .tm .txt{line-height:1.2}
+body.classic .gc:not(.big) .pv{height:64px;padding-top:10px}
 
 /* states */
 .msg{margin:30px 20px;text-align:center;color:#777;font-size:14px;line-height:1.45;text-shadow:0 1px 0 #fff}
@@ -231,7 +264,7 @@ const S = {
   layout: store.get('cfb.layout', 'compact'),
   my: store.get('cfb.my', []),
   weeks: [], weekKey: null, season: null,
-  cache: {}, timer: null, token: 0
+  cache: {}, scores: {}, timer: null, token: 0
 };
 if (!TABS.includes(S.tab)) S.tab = 'all';
 
@@ -309,46 +342,135 @@ function ago(iso){
 }
 
 /* ---------------- rendering ---------------- */
-function teamRow(c, state, possId){
+const ORD = ['', '1ST', '2ND', '3RD', '4TH'];
+const ordOf = n => n > 4 ? (n === 5 ? 'OT' : (n - 4) + 'OT') : (ORD[n] || '');
+function liveStatus(st){
+  const n = st.type?.name || '', p = st.period;
+  if (/HALFTIME/.test(n)) return 'HALFTIME';
+  if (/END_PERIOD/.test(n)) return 'END ' + ordOf(p);
+  if (p && st.displayClock) return `${ordOf(p)} ${st.displayClock}`;
+  return (st.type?.shortDetail || '').replace(/\s*-\s*/, ' ').toUpperCase();
+}
+const recOf = (c, re) => ((c.records || []).find(r => re.test(r.type || '') || re.test(r.name || '')) || {}).summary;
+// tall-row record, as in the live mockup: "(12-1, 7-1 Pac 12)" or, for independents, "(7-6, 3-3 Away)"
+function recordBig(c){
+  const tot = recOf(c, /^(total|overall)$/i);
+  if (!tot) return '';
+  const conf = recOf(c, /vsconf/i), cn = CONF_SHORT[c.team?.conferenceId];
+  if (conf && cn && cn !== 'Ind.') return `(${tot}, ${conf} ${cn.replace('-', ' ')})`;
+  const home = c.homeAway === 'home';
+  const ha = home ? recOf(c, /^home/i) : recOf(c, /^(away|road)/i);
+  if (ha) return `(${tot}, ${ha} ${home ? 'Home' : 'Away'})`;
+  return `(${tot})`;
+}
+const BALL = '<svg class="ball" viewBox="0 0 26 15" aria-label="Possession"><ellipse cx="13" cy="7.5" rx="12.5" ry="7" fill="#cdcdcd"/><path d="M8.5 7.5h9M10 5.6v3.8M12 5.6v3.8M14 5.6v3.8M16 5.6v3.8" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg>';
+
+function teamRow(c, state, possId, eid){
   const t = c.team || {};
   const logo = t.logo || t.logos?.[0]?.href;
   const rk = rankOf(c);
-  const showScore = state !== 'pre' && c.score != null;
+  const big = state !== 'pre';
+  const showScore = big && c.score != null;
   const lose = state === 'post' && c.winner === false;
-  const rec = recordText(c);
+  const rec = big ? recordBig(c) : recordText(c);
+  const key = eid + ':' + t.id, prev = S.scores[key];
+  const flash = showScore && prev != null && prev !== c.score;
+  if (showScore) S.scores[key] = c.score;
+  const poss = state === 'in' && possId && String(possId) === String(t.id);
   return `<div class="tm${lose ? ' lose' : ''}">
     ${logo ? `<img src="${esc(logo)}" alt="" loading="lazy">` : '<div class="ph"></div>'}
     <div class="txt">${rk ? `<span class="rk">${rk}</span>` : ''}<span class="nm">${esc(teamName(t))}</span>${rec ? `<span class="rec">${esc(rec)}</span>` : ''}</div>
-    ${showScore ? `<span class="sc">${esc(c.score)}${state === 'in' && possId && possId === t.id ? '<i class="pos"></i>' : ''}</span>` : ''}
+    ${poss ? BALL : ''}${showScore ? `<span class="sc${flash ? ' flash' : ''}">${esc(c.score)}</span>` : ''}
   </div>`;
 }
+
+/* ---- field graphic: x = yards from the away team's goal line (left end zone) ---- */
+function spotX(text, away, home){
+  if (!text) return null;
+  const t = String(text).trim();
+  if (/^50$/.test(t)) return 50;
+  const m = t.match(/^(.+?)\s+(\d{1,2})$/);
+  if (!m) return null;
+  const y = +m[2]; if (y === 50) return 50;
+  const ab = m[1].toUpperCase();
+  if (ab === (away.team?.abbreviation || '').toUpperCase()) return y;
+  if (ab === (home.team?.abbreviation || '').toUpperCase()) return 100 - y;
+  return null;
+}
+const clampX = x => Math.max(0, Math.min(100, x));
+function fieldHTML(comp, away, home){
+  const sit = comp.situation;
+  if (!sit) return '';
+  const lp = sit.lastPlay || {};
+  const possId = String(sit.possession || '');
+  const possHome = possId && possId === String(home.team?.id);
+  const possAway = possId && possId === String(away.team?.id);
+  const dir = possHome ? -1 : 1;                    // home drives toward the left end zone
+  const fromOwn = yl => yl == null || !(possHome || possAway) ? null : (possHome ? 100 - yl : yl);
+  let ball = spotX(sit.possessionText, away, home);
+  if (ball == null) ball = spotX(lp.end?.possessionText, away, home);
+  if (ball == null && sit.yardLine != null && lp.end?.yardLine === sit.yardLine) ball = fromOwn(sit.yardLine);
+  let text = sit.downDistanceText || lp.end?.downDistanceText || '';
+  text = text.replace(/\s&\s/, ' and ');
+  if (!text && !lp.text) return '';
+  let bars = '', fd = '';
+  if (ball != null && (possHome || possAway)) {
+    const sameTeam = !lp.team?.id || String(lp.team.id) === possId;
+    let lastStart = sameTeam ? spotX(lp.start?.possessionText, away, home) : null;
+    if (lastStart == null && sameTeam && typeof lp.statYardage === 'number' && lp.statYardage) lastStart = clampX(ball - dir * lp.statYardage);
+    let driveStart = spotX(lp.drive?.start?.text || sit.drive?.start?.text, away, home);
+    if (driveStart == null) driveStart = fromOwn(lp.drive?.start?.yardLine);
+    if (lastStart == null && driveStart == null) lastStart = clampX(ball - dir * 3);
+    if (lastStart == null) lastStart = ball;
+    // light: drive so far; dark arrow: last play, tip at the ball
+    if (driveStart != null && driveStart !== lastStart) {
+      const a = Math.min(driveStart, lastStart), b = Math.max(driveStart, lastStart);
+      bars += `<i class="dr" style="left:${a}%;width:${b - a}%"></i>`;
+    }
+    const a = Math.min(lastStart, ball), b = Math.max(lastStart, ball);
+    const tipLeft = ball <= lastStart;
+    bars += `<i class="lp ${tipLeft ? 'l' : 'r'}" style="${tipLeft ? 'left:' + a : 'right:' + (100 - b)}%;width:max(${b - a}%,10px)"></i>`;
+    if (sit.down > 0 && sit.distance > 0 && !/goal/i.test(text)) fd = `<i class="fd" style="left:${clampX(ball + dir * sit.distance)}%"></i>`;
+  }
+  const lines = [10,20,30,40,50,60,70,80,90].map(x => `<i class="yl" style="left:${x}%"></i><b class="yn" style="left:${x}%">${x > 50 ? 100 - x : x}</b>`).join('');
+  return `<div class="sit${sit.isRedZone ? ' rz' : ''}">${esc(text)}</div>
+    <div class="fld"><div class="ez l"><span>${esc(away.team?.abbreviation || '')}</span></div>
+      <div class="pf">${lines}${bars}${fd}</div>
+    <div class="ez r"><span>${esc(home.team?.abbreviation || '')}</span></div></div>
+`;
+}
+
 function card(e){
   const comp = e.competitions[0];
   const st = comp.status || e.status;
   const state = st?.type?.state || 'pre';
   const {away, home} = sides(e);
   const d = new Date(e.date);
-  let status, cls = '';
+  let status;
   if (state === 'pre') {
     status = comp.timeValid === false || /TBD|TBA/i.test(st.type.shortDetail || '') ? 'TBA' : timeStr(d);
-    if (/postponed|canceled|cancelled/i.test(st.type.description || '')) status = st.type.description.toUpperCase();
+    if (/postponed|canceled|cancelled|delayed/i.test(st.type.description || '')) status = st.type.description.toUpperCase();
   } else if (state === 'in') {
-    status = (st.type.shortDetail || '').replace(/\s*-\s*/, ' ').toUpperCase(); cls = ' live';
+    status = liveStatus(st);
   } else {
     status = (st.type.shortDetail || 'Final').toUpperCase();
   }
   const net = netOf(comp);
   const venue = comp.venue?.fullName;
-  const label = state === 'pre' ? 'Preview' : state === 'in' ? 'Gamecast' : 'Recap';
   const href = (e.links || []).find(l => (l.rel || []).includes('summary'))?.href
             || `https://www.espn.com/college-football/game/_/gameId/${e.id}`;
   const possId = comp.situation?.possession;
   const loc = t => t?.team?.location || t?.team?.shortDisplayName || '';
-  return `<div class="gc">
-    ${venue ? `<div class="venue">${esc(venue)}</div>` : ''}
-    <div class="top"><span class="st${cls}">${esc(status)}</span>
-      <span class="net">${esc(net)}</span></div>
-    <div class="teams">${teamRow(away, state, possId)}${teamRow(home, state, possId)}</div>
+  const big = state !== 'pre';
+  const head = `${venue && !big ? `<div class="venue">${esc(venue)}</div>` : ''}
+    <div class="top"><span class="st">${esc(status)}</span><span class="net">${esc(net)}</span></div>
+    <div class="teams">${teamRow(away, state, possId, e.id)}${teamRow(home, state, possId, e.id)}</div>`;
+  if (state === 'in') {
+    const fld = fieldHTML(comp, away, home);
+    return `<a class="gc big live" href="${esc(href)}" target="_blank" rel="noopener">${head}${fld || `<div class="sit">${esc(loc(away))}-${esc(loc(home))} Gamecast</div>`}</a>`;
+  }
+  const label = state === 'pre' ? 'Preview' : 'Recap';
+  return `<div class="gc${big ? ' big' : ''}">${head}
     <a class="pv" href="${esc(href)}" target="_blank" rel="noopener">${esc(loc(away))}-${esc(loc(home))} ${label}</a>
   </div>`;
 }
