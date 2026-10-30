@@ -387,28 +387,21 @@ body.teamv .scard:first-child{margin-top:0}
 .bwhead span{display:block;font-size:12px;color:#888;margin-top:5px}
 .bwhead a{display:inline-block;margin-top:7px;font-size:12.5px;font-weight:700;color:#0b5ea8}
 body.pagev .bwhead + .pseg{margin-top:12px}
-.bwsec{margin:18px 10px 0;padding:0 2px 6px;border-bottom:3px solid #222;font-size:14px;font-weight:800;color:#222;text-transform:uppercase}
+.bwsec{margin:20px 12px 0;font-size:21px;font-weight:800;color:#1d1d1d;text-transform:uppercase;letter-spacing:-.2px}
 body.pagev .dh{margin-left:10px;margin-right:10px}
-.bwc{margin:6px 10px 0;background:#fff;border:1px solid #c3c6c9;border-bottom-color:#b3b4b6;box-shadow:0 1px 1px rgba(0,0,0,.08)}
-.dh + .bwc{margin-top:6px}
-.bwc + .bwc{margin-top:10px}
-.bwc[data-gid]{cursor:pointer}
-.bwt{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:9px 10px 2px}
-.bwt b{font-size:13.5px;font-weight:700;color:#222;line-height:1.25}
-.bwt span{flex:none;font-size:12px;font-weight:700;color:#555;text-transform:uppercase}
-.bwv{padding:0 10px 7px;font-size:12px;color:#8a8a8a}
-.bwm{border-top:1px solid #d7d7d7}
-.bwtm{display:flex;align-items:center;gap:11px;height:46px;padding:0 10px}
-.bwtm[data-team]{cursor:pointer}
-.bwtm img,.bwtm .ph{width:32px;height:32px;object-fit:contain;flex:none}
-.bwtm .ph{border-radius:50%;background:#e6e6e6}
-.bwtm span{flex:1;min-width:0;font-size:16px;font-weight:700;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bwtm em{font-style:normal;font-weight:400;font-size:13px;color:#8a8a8a;margin-right:5px}
-.bwtm small{font-size:13px;color:#888}
-.bwtm .bwsc{font-size:22px;font-weight:700;color:#222}
-.bwtm .bwsc.lose{color:#a3a3a3}
-.bwsep{height:0;border-top:1px solid #ececec;position:relative}
-.bwsep{font-size:0}
+.bwlist{margin:8px 10px 0;background:#fff;border:1px solid #c9cbce;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.bwr{display:flex;align-items:center;gap:13px;padding:13px 12px;border-bottom:1px solid #d9d9d9}
+.bwr:last-child{border-bottom:0}
+.bwr[data-gid]{cursor:pointer}
+.bwr[data-gid]:active{background:#f6f6f6}
+.bwx{flex:1;min-width:0;line-height:1.3}
+.bwx b{display:block;font-size:16.5px;font-weight:800;color:#1d1d1d;line-height:1.2;margin-bottom:3px}
+.bwx span{display:block;font-size:14px;color:#555}
+.bwx strong{display:block;margin-top:5px;font-size:14.5px;font-weight:800;color:#1d1d1d}
+.bwb{flex:none;width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--bc) 70%, #fff), var(--bc) 62%);
+  border:3px double #fff;outline:1px solid #c8c8c8;box-shadow:0 1px 3px rgba(0,0,0,.3);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.45)}
+.bwb b{font:12px/1 "CFB Slab",Rockwell,Georgia,serif;letter-spacing:0;max-width:52px;overflow:hidden;white-space:nowrap}
+.bwb i{font-style:normal;font-size:7.5px;font-weight:800;letter-spacing:1.2px;margin-top:3px;opacity:.9}
 
 /* ================= game screen ================= */
 #game{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);
@@ -2227,23 +2220,48 @@ function parseProjections(html){
   return out;
 }
 
-/* -- rendering -- */
-function bowlTeamRow(raw){
+/* -- rendering: one list row per bowl (badge, name, location, date | time, matchup) -- */
+const BADGE_COLORS = ['#7a1f2b', '#1f3f7a', '#1d5c3a', '#6b4a12', '#4b2a6e', '#7a3a12', '#0f5560', '#5c1f5c', '#2e3a46', '#8a6d1a'];
+function bowlShort(title){
+  if (/playoff|cfp|first round|quarterfinal|semifinal|championship/i.test(title) && !/ bowl\b/i.test(title)) return 'CFP';
+  const m = String(title).replace(/\s+(presented|powered|brought)\s+by\b.*$/i, '').match(/([A-Za-z0-9'&.-]+)\s+Bowl\b/i);
+  return (m ? m[1] : String(title).split(/\s+/)[0] || 'BOWL').replace(/^(the|a)$/i, 'BOWL').toUpperCase().slice(0, 11);
+}
+function bowlBadge(title){
+  const short = bowlShort(title);
+  let h = 0; for (const ch of short) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const c = short === 'CFP' ? '#1a1a1a' : BADGE_COLORS[h % BADGE_COLORS.length];
+  const fs = short.length > 9 ? 7.6 : short.length > 7 ? 9 : short.length > 5 ? 10.5 : 12.5;
+  return `<span class="bwb" style="--bc:${c}"><b style="font-size:${fs}px">${esc(short)}</b><i>${short === 'CFP' ? 'PLAYOFF' : 'BOWL'}</i></span>`;
+}
+const MONTHS = {jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, sept: 8, oct: 9, nov: 10, dec: 11};
+function projDateTime(dateText, metaTime){
+  const m = String(dateText || '').match(/([A-Z][a-z]{2,8})\.?\s+(\d{1,2})/);
+  let d = '';
+  if (m && MONTHS[m[1].slice(0, 4).toLowerCase()] != null || m && MONTHS[m[1].slice(0, 3).toLowerCase()] != null) {
+    const mi = MONTHS[m[1].slice(0, 4).toLowerCase()] ?? MONTHS[m[1].slice(0, 3).toLowerCase()];
+    const yr = (S.season || new Date().getFullYear()) + (mi < 6 ? 1 : 0);
+    d = new Date(yr, mi, +m[2]).toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'});
+  }
+  let t = String(metaTime || '').split(',')[0].trim();
+  if (/^noon$/i.test(t)) t = '12:00 PM';
+  else if (/^midnight$/i.test(t)) t = '12:00 AM';
+  else t = t.replace(/^(\d{1,2})(?::(\d{2}))?\s*([ap])\.?m\.?$/i, (_, h, mm, ap) => `${h}:${mm || '00'} ${ap.toUpperCase()}M`);
+  return [d, /\d|TBA|TBD/i.test(t) ? t : ''].filter(Boolean).join(' | ');
+}
+function placeOf(venue){
+  const m = String(venue || '').match(/\(([^)]+)\)\s*$/);
+  return m ? m[1] : String(venue || '');
+}
+function teamWithRecord(raw){
   const m = String(raw || '').trim().match(/^(?:No\.\s*(\d+)\s+)?(.+)$/);
   const seed = m?.[1], name = (m?.[2] || '').trim();
   const t = findTeam(name);
-  const lg = t ? logoOf(t) : '';
-  return `<div class="bwtm"${t ? ` data-team="${esc(t.id)}"` : ''}>${lg ? `<img src="${esc(lg)}" alt="">` : '<i class="ph"></i>'}<span>${seed ? `<em>${esc(seed)}</em>` : ''}${esc(name)}</span></div>`;
+  const rec = t ? BOWL.rec?.[String(t.id)] : '';
+  return `${seed ? `#${seed} ` : ''}${name}${rec ? ` (${rec})` : ''}`;
 }
-function splitMatchup(p){
-  const m = String(p || '').match(/^(.+?)\s+(vs\.?|at)\s+(.+)$/i);
-  return m ? [m[1], m[3], m[2].toLowerCase().startsWith('at') ? '@' : 'vs'] : [p, '', ''];
-}
-function bowlCard(title, metaLines, a, b, sep, extra = ''){
-  const venue = metaLines.find(x => /\(/.test(x) && !/\b(a\.m\.|p\.m\.|noon|tba|tbd)\b/i.test(x)) || '';
-  const time = metaLines.find(x => x !== venue) || '';
-  return `<div class="bwc"${extra}>${title || time ? `<div class="bwt"><b>${esc(title)}</b><span>${esc(time)}</span></div>` : ''}${venue ? `<div class="bwv">${esc(venue)}</div>` : ''}
-    <div class="bwm">${a}${b ? `<div class="bwsep">${esc(sep)}</div>${b}` : ''}</div></div>`;
+function bowlRow(title, place, when, matchup, extra = ''){
+  return `<div class="bwr"${extra}>${bowlBadge(title)}<div class="bwx"><b>${esc(title)}</b>${place ? `<span>${esc(place)}</span>` : ''}${when ? `<span>${esc(when)}</span>` : ''}<strong>${esc(matchup)}</strong></div></div>`;
 }
 function projectionsHTML(art, P){
   const an = P.analysts;
@@ -2252,37 +2270,70 @@ function projectionsHTML(art, P){
   let html = `<div class="bwhead"><b>${esc(art.headline || 'Bowl Projections')}</b><span>${esc([art.byline, date && 'Updated ' + date].filter(Boolean).join(' · '))}</span>
     ${art.web ? `<a href="${esc(art.web)}" target="_blank" rel="noopener">Read on ESPN.com ›</a>` : ''}</div>`;
   if (an.length > 1) html += `<div class="pseg">${an.map((n, i) => `<button data-an="${i}"${i === idx ? ' class="on"' : ''}>${esc(n)}</button>`).join('')}</div>`;
+  let open = false, curDate = '', round = '';
+  const close = () => { if (open) { html += '</div>'; open = false; } };
   P.items.forEach(it => {
-    if (it.type === 'section') html += `<div class="bwsec">${esc(it.text)}</div>`;
-    else if (it.type === 'round') html += `<div class="dh">${esc(it.text)}</div>`;
-    else if (it.type === 'date') html += `<div class="dh">${esc(it.text)}</div>`;
-    else {
-      const pk = it.picks[who] || Object.values(it.picks)[0];
-      const [a, b, sep] = splitMatchup(pk);
-      html += bowlCard(it.title, it.meta, bowlTeamRow(a), b ? bowlTeamRow(b) : '', sep);
-    }
+    if (it.type === 'section') { close(); html += `<div class="bwsec">${esc(it.text)}</div>`; round = ''; curDate = ''; return; }
+    if (it.type === 'round') { round = it.text; curDate = ''; return; }
+    if (it.type === 'date') { curDate = it.text; return; }
+    if (!open) { html += '<div class="bwlist">'; open = true; }
+    const pk = it.picks[who] || Object.values(it.picks)[0] || '';
+    const parts = String(pk).match(/^(.+?)\s+(?:vs\.?|at)\s+(.+)$/i);
+    const matchup = parts ? `${teamWithRecord(parts[1])}, ${teamWithRecord(parts[2])}` : pk;
+    const venue = it.meta.find(x => /\(/.test(x) && !/\b(a\.m\.|p\.m\.|noon|tba|tbd)\b/i.test(x)) || '';
+    const time = it.meta.find(x => x !== venue) || '';
+    const title = it.title || (round ? `CFP ${round}` : 'College Football Playoff');
+    const place = venue ? placeOf(venue) : (/first round/i.test(round) ? 'Campus site' : '');
+    html += bowlRow(title, place, projDateTime(curDate, time), matchup);
   });
+  close();
   return html;
 }
 function slateHTML(evs){
-  let html = `<div class="bwhead"><b>${esc(String(S.season || ''))} Bowl Schedule</b><span>Official bowl matchups</span></div>`, last = '';
-  evs.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(e => {
-    const comp = e.competitions?.[0] || {}, d = new Date(e.date), st = evState(e);
-    const k = dateKey(d);
-    if (k !== last) { html += `<div class="dh">${esc(k)}</div>`; last = k; }
-    const title = comp.notes?.[0]?.headline || e.name || '';
-    const v = comp.venue, venue = v ? `${v.fullName}${v.address?.city ? ` (${[v.address.city, v.address.state].filter(Boolean).join(', ')})` : ''}` : '';
-    const time = st === 'pre' ? `${comp.timeValid === false ? 'TBA' : timeStr(d)}${netOf(comp) ? ', ' + netOf(comp) : ''}`
-               : st === 'in' ? liveStatus(comp.status || e.status) : 'Final';
-    const {away, home} = sides(e);
-    const row = c => {
-      const t = c.team || {}, lg = logoOf(t), rk = rankOf(c);
-      const sc = st !== 'pre' && c.score != null ? `<b class="bwsc${st === 'post' && c.winner === false ? ' lose' : ''}">${esc(c.score)}</b>` : `<small>${esc((c.records || [])[0]?.summary || '')}</small>`;
-      return `<div class="bwtm">${lg ? `<img src="${esc(lg)}" alt="">` : '<i class="ph"></i>'}<span>${rk ? `<em>${rk}</em>` : ''}${esc(t.location || t.shortDisplayName || t.displayName || 'TBD')}</span>${sc}</div>`;
-    };
-    html += bowlCard(title, [venue, time].filter(Boolean), row(away), row(home), 'vs', ` data-gid="${esc(e.id)}"`);
+  let html = `<div class="bwhead"><b>${esc(String(S.season || ''))} Bowl Schedule</b><span>Official bowl matchups</span></div>`;
+  const isCFP = e => /playoff|cfp|national championship/i.test(e.competitions?.[0]?.notes?.[0]?.headline || '');
+  const groups = [['College Football Playoff', evs.filter(isCFP)], ['Bowl Games', evs.filter(e => !isCFP(e))]];
+  groups.forEach(([label, list]) => {
+    if (!list.length) return;
+    html += `<div class="bwsec">${label}</div><div class="bwlist">`;
+    list.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(e => {
+      const comp = e.competitions?.[0] || {}, d = new Date(e.date), st = evState(e);
+      const title = (comp.notes?.[0]?.headline || e.name || '').replace(/\s*-\s*College Football Playoff.*$/i, m => m);
+      const a = comp.venue?.address || {};
+      const place = [a.city, a.state].filter(Boolean).join(', ') || comp.venue?.fullName || '';
+      const when = `${d.toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'})}${comp.timeValid === false ? '' : ' | ' + timeStr(d)}`;
+      const {away, home} = sides(e);
+      const nm = c => c.team?.location || c.team?.shortDisplayName || c.team?.displayName || 'TBD';
+      const rec = c => (c.records || [])[0]?.summary;
+      let line;
+      if (st === 'pre') line = `${nm(away)}${rec(away) ? ` (${rec(away)})` : ''}, ${nm(home)}${rec(home) ? ` (${rec(home)})` : ''}`;
+      else {
+        const [w, l] = (home.winner === true || (st === 'in' && +home.score > +away.score)) ? [home, away] : [away, home];
+        line = `${nm(w)} ${w.score ?? ''}, ${nm(l)} ${l.score ?? ''}${st === 'in' ? ' · ' + liveStatus(comp.status || e.status) : ''}`;
+      }
+      html += bowlRow(title, place, when, line, ` data-gid="${esc(e.id)}"`);
+    });
+    html += '</div>';
   });
   return html;
+}
+// current records for projected teams (FBS + FCS standings)
+async function recordMap(){
+  if (BOWL.rec) return BOWL.rec;
+  const map = {}, yr = S.season || new Date().getFullYear();
+  await Promise.all(['80', '81'].map(async g => {
+    try {
+      const d = await getJSON(`https://site.api.espn.com/apis/v2/sports/football/college-football/standings?group=${g}&season=${yr}`);
+      const walk = n => { (n?.standings?.entries || []).forEach(e => {
+        const x = (e.stats || []).find(st => /^(total|overall)$/i.test(st.type || st.name || ''));
+        const W = (e.stats || []).find(st => st.name === 'wins'), L = (e.stats || []).find(st => st.name === 'losses');
+        const r = x?.summary || x?.displayValue || (W && L ? `${W.value}-${L.value}` : '');
+        if (e.team?.id && r) map[String(e.team.id)] = r;
+      }); (n?.children || []).forEach(walk); };
+      walk(d);
+    } catch (e) {}
+  }));
+  return (BOWL.rec = map);
 }
 const isRealTeam = c => c?.team?.id && Number(c.team.id) > 0 && !/^(tbd|tba)\b/i.test(c.team.displayName || c.team.location || '');
 async function renderBowl(){
@@ -2299,7 +2350,7 @@ async function renderBowl(){
   const real = evs.filter(e => (e.competitions?.[0]?.competitors || []).filter(isRealTeam).length === 2);
   if (evs.length && real.length / evs.length >= 0.6) { content.innerHTML = slateHTML(evs); return; }
   // 2) otherwise the latest projections
-  const [rec] = await Promise.all([latestProjection(), teamCatalog()]);
+  const [rec] = await Promise.all([latestProjection(), teamCatalog(), recordMap()]);
   if (token !== S.token) return;
   const art = await storyBody(rec);
   if (token !== S.token) return;
@@ -2316,10 +2367,8 @@ content.addEventListener('click', e => {
   if (S.view !== 'bowl') return;
   const a = e.target.closest('[data-an]');
   if (a && BOWL.P) { S.analyst = +a.dataset.an; store.set('cfb.analyst', S.analyst); const y = content.scrollTop; content.innerHTML = projectionsHTML(BOWL.art, BOWL.P); content.scrollTop = y; return; }
-  const g = e.target.closest('.bwc[data-gid]');
+  const g = e.target.closest('.bwr[data-gid]');
   if (g) { openGame(g.dataset.gid); return; }
-  const t = e.target.closest('.bwtm[data-team]');
-  if (t) openTeam(t.dataset.team);
 });
 
 /* -- top-level pages from the side menu -- */
