@@ -83,7 +83,7 @@ body.stream #band{display:none}
 #content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(18px + env(safe-area-inset-bottom))}
 
 /* pickers */
-.pickers{display:flex;gap:1px;padding:14px 10px 2px}
+.pickers{display:flex;gap:1px;padding:14px 15px 2px}
 .pk{flex:1;position:relative;height:28px;background:#ebebeb;border:1px solid #d9d9d9;
   display:flex;align-items:center;justify-content:space-between;padding:0 9px 0 10px;font-size:13px;font-weight:700;color:#555;
   text-transform:uppercase;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
@@ -93,15 +93,15 @@ body.stream #band{display:none}
 .pk.btn::after{display:none}
 
 /* date header */
-.dh{margin:14px 10px 0;padding:0 10px;height:25px;line-height:25px;background:#cbcbcb;
+.dh{margin:16px 15px 0;padding:0 11px;height:30px;line-height:30px;background:#cbcbcb;
   font-size:11px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.2px}
 
 /* game card */
-.gc{display:block;margin:11px 10px 0;background:#fff;border:1px solid #e1e1e1;box-shadow:0 1px 2px rgba(0,0,0,.14)}
-.dh + .gc{margin-top:5px}
+.gc{display:block;margin:12px 15px 0;background:#fff;border:1px solid #c3c6c9;border-bottom-color:#b3b4b6;box-shadow:0 1px 1px rgba(0,0,0,.08)}
+.dh + .gc{margin-top:6px}
 .venue{padding:9px 10px 0;font-size:12px;font-weight:700;color:#9a9a9a;text-transform:uppercase;letter-spacing:.1px}
 .top{display:flex;justify-content:space-between;align-items:center;padding:4px 10px 6px;font-size:12.5px;font-weight:700;color:#333;
-  border-bottom:1px solid #e6e6e6}
+  border-bottom:1px solid #d7d7d7}
 .venue + .top{padding-top:3px}
 .gc > .top:first-child{padding-top:9px}
 .top .st.live{color:var(--live)}
@@ -115,13 +115,13 @@ body.stream #band{display:none}
 .tm .rec{font-size:15px;color:#555;margin-left:4px}
 .tm .sc{font-size:17px;font-weight:700;color:#333;min-width:28px;text-align:right;flex:none}
 .tm.lose .nm,.tm.lose .sc{color:#999}
-.pv{display:block;border-top:1px solid #e6e6e6;padding:9px 10px 0;height:61px;font-size:12.5px;color:#333}
+.pv{display:block;border-top:1px solid #d7d7d7;padding:9px 10px 0;height:61px;font-size:12.5px;color:#333}
 .pv:active{background:#f4f4f4}
 
 /* live + final cards (tall rows, big scores) */
 .gc.big .teams{padding:0}
 .gc.big .tm{height:auto;min-height:54px;padding:7px 10px;gap:12px}
-.gc.big .tm + .tm{border-top:1px solid #e6e6e6}
+.gc.big .tm + .tm{border-top:1px solid #d7d7d7}
 .gc.big .tm img,.gc.big .tm .ph{width:40px;height:40px}
 .gc.big .tm .txt{white-space:normal;line-height:1.2;padding-left:2px}
 .gc.big .tm .rk{font-size:16px;color:#8a8a8a;margin-right:3px}
@@ -135,8 +135,7 @@ body.stream #band{display:none}
 .sc.flash{animation:flash 2.4s ease-out}
 @keyframes flash{0%,35%{background:#fff1a6;box-shadow:0 0 0 4px #fff1a6}100%{background:transparent;box-shadow:0 0 0 4px transparent}}
 .gc.live{color:inherit}
-.sit{background:#efefef;border-top:1px solid #dfdfdf;padding:7px 10px 6px;font-size:12.5px;font-weight:700;color:#444}
-.sit.rz{color:#c8102e}
+.sit{background:#efefef;border-top:1px solid #d7d7d7;padding:7px 10px 6px;font-size:12.5px;font-weight:700;color:#444}
 .fld{display:flex;height:42px;background:#e0e0e0}
 .ez{width:27px;flex:none;background:#cbcbcb;position:relative;overflow:hidden}
 .ez span{position:absolute;left:50%;top:50%;font-size:13px;font-weight:700;color:#fff;white-space:nowrap;letter-spacing:.3px}
@@ -157,7 +156,7 @@ body.classic .venue{display:none}
 body.classic .gc:not(.big) .top{padding:9px 10px 8px}
 body.classic .gc:not(.big) .teams{padding:0}
 body.classic .gc:not(.big) .tm{height:auto;padding:7px 10px;align-items:center}
-body.classic .gc:not(.big) .tm + .tm{border-top:1px solid #e6e6e6}
+body.classic .gc:not(.big) .tm + .tm{border-top:1px solid #d7d7d7}
 body.classic .gc:not(.big) .tm img,body.classic .gc:not(.big) .tm .ph{width:34px;height:34px}
 body.classic .gc:not(.big) .tm .txt{white-space:normal;padding-left:2px}
 body.classic .gc:not(.big) .tm .rk{font-size:14px}
@@ -433,7 +432,7 @@ function fieldHTML(comp, away, home){
     if (sit.down > 0 && sit.distance > 0 && !/goal/i.test(text)) fd = `<i class="fd" style="left:${clampX(ball + dir * sit.distance)}%"></i>`;
   }
   const lines = [10,20,30,40,50,60,70,80,90].map(x => `<i class="yl" style="left:${x}%"></i><b class="yn" style="left:${x}%">${x > 50 ? 100 - x : x}</b>`).join('');
-  return `<div class="sit${sit.isRedZone ? ' rz' : ''}">${esc(text)}</div>
+  return `<div class="sit">${esc(text)}</div>
     <div class="fld"><div class="ez l"><span>${esc(away.team?.abbreviation || '')}</span></div>
       <div class="pf">${lines}${bars}${fd}</div>
     <div class="ez r"><span>${esc(home.team?.abbreviation || '')}</span></div></div>
@@ -474,15 +473,40 @@ function card(e){
     <a class="pv" href="${esc(href)}" target="_blank" rel="noopener">${esc(loc(away))}-${esc(loc(home))} ${label}</a>
   </div>`;
 }
+// Order: live -> today's upcoming -> today's finals -> later days' upcoming -> earlier days' finals (newest first)
 function renderGames(evs){
   if (!evs.length) return '';
-  evs.sort((a, b) => new Date(a.date) - new Date(b.date));
-  let html = '', last = '';
+  const stateOf = e => (e.competitions[0].status || e.status)?.type?.state || 'pre';
+  const t = e => new Date(e.date).getTime();
+  const dayKey = d => d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+  const today = dayKey(new Date());
+  const live = [], todayUp = [], todayDone = [], later = [], earlier = [];
   evs.forEach(e => {
-    const k = dateKey(new Date(e.date));
-    if (k !== last) { html += `<div class="dh">${esc(k)}</div>`; last = k; }
-    html += card(e);
+    const st = stateOf(e), isToday = dayKey(new Date(e.date)) === today;
+    if (st === 'in') live.push(e);
+    else if (isToday) (st === 'post' ? todayDone : todayUp).push(e);
+    else if (new Date(e.date) > new Date()) later.push(e);
+    else earlier.push(e);
   });
+  live.sort((a, b) => t(a) - t(b));
+  todayUp.sort((a, b) => t(a) - t(b));
+  todayDone.sort((a, b) => t(b) - t(a));
+  later.sort((a, b) => t(a) - t(b));
+  earlier.sort((a, b) => t(b) - t(a));
+  let html = '';
+  const section = (label, list) => { if (list.length) html += `<div class="dh">${esc(label)}</div>` + list.map(card).join(''); };
+  const byDay = (list, suffix) => {
+    let last = '', group = [];
+    const flush = () => { if (group.length) section(last + suffix, group); group = []; };
+    list.forEach(e => { const k = dateKey(new Date(e.date)); if (k !== last) { flush(); last = k; } group.push(e); });
+    flush();
+  };
+  section('In Progress', live);
+  const todayLabel = 'Today, ' + dateKey(new Date());
+  section(todayLabel, todayUp);
+  section(todayLabel + (todayUp.length ? ' · Final' : ''), todayDone);
+  byDay(later, '');
+  byDay(earlier, '');
   return html;
 }
 function pickersHTML(){
