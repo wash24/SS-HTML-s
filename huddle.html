@@ -595,18 +595,21 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .gd-teams button[aria-pressed="true"]{color:#fff;background:var(--tc);border-bottom-color:var(--flame)}
 .gd-teams img{width:26px;height:26px;object-fit:contain}
 /* stat tables: name column stays put while the numbers scroll sideways */
-.gd-tbl{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.gd-tbl table{border-collapse:collapse;min-width:100%;font-family:var(--font-display);font-size:15px;color:#e8e8ea;font-variant-numeric:tabular-nums}
-.gd-tbl th,.gd-tbl td{padding:6px 7px;text-align:right;white-space:nowrap;font-weight:400;border-bottom:1px solid rgba(255,255,255,.06)}
-.gd-tbl th{font-size:13px;color:rgba(255,255,255,.55);font-weight:500;background:#333336}
-.gd-tbl th:first-child,.gd-tbl td:first-child{position:sticky;left:0;text-align:left;background:#3a3a3d;z-index:1;max-width:150px;overflow:hidden;text-overflow:ellipsis;box-shadow:1px 0 0 rgba(255,255,255,.06)}
-.gd-tbl th:first-child{background:#333336;color:#fff;font-size:15px}
+/* stat tables: fixed layout, no sideways scrolling. Every stat column is the same width in every table,
+   so columns line up from table to table; the player name column takes the rest of the row */
+.gd-tbl table{width:100%;table-layout:fixed;border-collapse:collapse;font-family:var(--font-display);font-size:15px;color:#e8e8ea;font-variant-numeric:tabular-nums}
+.gd-tbl col.st{width:44px}
+.gd-tbl th,.gd-tbl td{padding:6px 0;text-align:right;white-space:nowrap;font-weight:400;border-bottom:1px solid rgba(255,255,255,.06);overflow:hidden}
+.gd-tbl th:last-child,.gd-tbl td:last-child{padding-right:10px}
+.gd-tbl col.st:last-child{width:54px}
+.gd-tbl th{font-size:12.5px;color:rgba(255,255,255,.55);font-weight:500;background:#333336}
+.gd-tbl th:first-child,.gd-tbl td:first-child{text-align:left;padding-left:10px;padding-right:6px;text-overflow:ellipsis}
+.gd-tbl th:first-child{color:#fff;font-size:15px}
 .gd-tbl td:first-child small{color:rgba(255,255,255,.5);font-size:12px;margin-left:5px}
-.gd-tbl td.sub:first-child{padding-left:18px}
-.gd-tbl tr.grp td{background:#333336;color:rgba(255,255,255,.55);font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;padding:4px 7px}
-.gd-tbl tr.grp td:first-child{background:#333336}
+.gd-tbl td.sub:first-child{padding-left:20px}
+.gd-tbl tr.grp td{background:#333336;color:rgba(255,255,255,.55);font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;padding:4px 10px;text-align:left}
 .gd-tbl tr.tot td{color:#fff;font-weight:600;border-bottom:0}
-.gd-tbl td.dnp{text-align:left;color:rgba(255,255,255,.45);font-size:13px}
+.gd-tbl td.dnp{text-align:left;color:rgba(255,255,255,.45);font-size:13px;padding-left:6px}
 /* team stats: away | label | home with a split bar */
 .gd-ts{padding:2px 12px}
 .gd-ts-hd{display:flex;justify-content:space-between;align-items:center;padding:8px 0 6px;font-family:var(--font-display);font-size:17px;color:#fff;border-bottom:1px solid rgba(255,255,255,.08)}
@@ -1679,7 +1682,7 @@ function renderGame(){
   const {g, s} = gd, body = $('#gpBody'), y = body.scrollTop;
   $('#gpName').textContent = `${g.a.ab||g.a.name} @ ${g.h.ab||g.h.name}`;
   const started = g.live || g.final;
-  const tabs = started ? [['plays', g.live ? 'Plays' : 'Plays'], ['box','Box Score'], ['team','Team Stats']] : [['info','Preview']];
+  const tabs = started ? [['plays','Plays'], ['box','Player Stats'], ['team','Team Stats']] : [['info','Preview']];
   if(!tabs.some(t=>t[0]===gd.tab)) gd.tab = tabs[0][0];
   let html = `<div class="gd-head">${gameBox(g, {detail:true})}</div>`;
   html += `<div class="gd-tabs" role="tablist">${tabs.map(([k,l]) => `<button class="tp-tab" data-gdtab="${k}" aria-selected="${k===gd.tab}">${l}</button>`).join('')}</div>`;
@@ -1689,7 +1692,43 @@ function renderGame(){
   body.scrollTop = y;
 }
 
-/* ---- Box score: player tables per sport ---- */
+/* ---- Player stats: one fixed set of columns per table (at most 6), same width everywhere ---- */
+const GD_COLS = {
+  hoops:        [['MIN'],['PTS'],['REB'],['AST'],['FG'],['3PT']],
+  batting:      [['AB'],['R'],['H'],['RBI'],['BB'],['K']],
+  pitching:     [['IP'],['H'],['R'],['ER'],['BB'],['K']],
+  passing:      [['C/ATT'],['YDS'],['AVG'],['TD'],['INT'],['RTG','QBR']],
+  rushing:      [['CAR'],['YDS'],['AVG'],['TD'],['LONG','LNG']],
+  receiving:    [['REC'],['YDS'],['AVG'],['TD'],['LONG','LNG'],['TGTS']],
+  fumbles:      [['FUM'],['LOST'],['REC']],
+  defensive:    [['TOT'],['SOLO'],['SACKS','SCK'],['TFL'],['PD'],['QB HTS','QB HUR']],
+  interceptions:[['INT'],['YDS'],['TD']],
+  kickReturns:  [['NO'],['YDS'],['AVG'],['LONG','LNG'],['TD']],
+  puntReturns:  [['NO'],['YDS'],['AVG'],['LONG','LNG'],['TD']],
+  kicking:      [['FG'],['PCT'],['LONG','LNG'],['XP'],['PTS']],
+  punting:      [['NO'],['YDS'],['AVG'],['TB'],['In 20','IN 20'],['LONG','LNG']]
+};
+const GD_SHORT = {'QB HTS':'QBH', 'QB HUR':'QBH', 'In 20':'IN20', 'IN 20':'IN20', 'SACKS':'SCK', 'TGTS':'TGT', 'LONG':'LNG'};
+/* indexes of the wanted columns in ESPN's label list (falls back to the first 6 if none match) */
+function gdCols(labels, kind){
+  const want = GD_COLS[kind];
+  if(!want) return labels.slice(0,6).map((l,i)=>[i,l]);
+  const up = labels.map(l => String(l).toUpperCase());
+  const out = [];
+  want.forEach(alts => { for(const a of alts){ const i = up.indexOf(a.toUpperCase()); if(i>=0){ out.push([i, GD_SHORT[labels[i]] || labels[i]]); break; } } });
+  return out.length ? out : labels.slice(0,6).map((l,i)=>[i,l]);
+}
+function gdTable(head, labels, kind, rows, totals, opts={}){
+  const cols = gdCols(labels, kind);
+  const pick = arr => cols.map(([i]) => `<td>${esc((arr||[])[i] ?? '')}</td>`).join('');
+  const body = rows.map(r => r.grp ? `<tr class="grp"><td colspan="${cols.length+1}">${esc(r.grp)}</td></tr>`
+    : r.dnp ? `<tr><td>${r.name}</td><td class="dnp" colspan="${cols.length}">${esc(r.dnp)}</td></tr>`
+    : `<tr><td class="${r.sub?'sub':''}">${r.name}</td>${pick(r.stats)}</tr>`).join('');
+  const tot = totals && totals.some(x=>String(x).trim()) ? `<tr class="tot"><td>Team</td>${pick(totals)}</tr>` : '';
+  return `<div class="gd-card gd-tbl"><table><colgroup><col>${cols.map(()=>'<col class="st">').join('')}</colgroup>
+    <tr><th>${esc(head)}</th>${cols.map(([,l])=>`<th>${esc(l)}</th>`).join('')}</tr>${body}${tot}</table></div>`;
+}
+const gdNm = (a, pos) => `${esc(athName(a))}${pos ? `<small>${esc(pos)}</small>` : ''}`;
 function gdBox(g, s){
   const P = (s.boxscore && s.boxscore.players) || [];
   if(!P.length) return `<div class="gd-load">No player stats yet.</div>`;
@@ -1701,31 +1740,23 @@ function gdBox(g, s){
   const lg = g.lg;
   if(lg==='nba' || lg==='cbb'){
     const st = groups[0]; if(!st) return html + `<div class="gd-load">No player stats yet.</div></div>`;
-    const labels = st.labels || st.names || [];
     const ath = st.athletes || [];
-    const row = a => a.didNotPlay || !(a.stats||[]).length
-      ? `<tr><td>${esc(athName(a.athlete))}<small>${esc((a.athlete.position||{}).abbreviation||'')}</small></td><td class="dnp" colspan="${labels.length}">${esc(a.didNotPlay ? 'DNP'+(a.reason ? ' – '+cap(a.reason) : '') : '—')}</td></tr>`
-      : `<tr><td>${esc(athName(a.athlete))}<small>${esc((a.athlete.position||{}).abbreviation||'')}</small></td>${a.stats.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`;
+    const row = a => ({name: gdNm(a.athlete, (a.athlete.position||{}).abbreviation),
+      dnp: a.didNotPlay || !(a.stats||[]).length ? (a.didNotPlay ? 'DNP'+(a.reason ? ' – '+cap(a.reason) : '') : '—') : null, stats: a.stats});
     const starters = ath.filter(a=>a.starter), bench = ath.filter(a=>!a.starter);
-    html += `<div class="gd-card gd-tbl"><table><tr><th>${esc(t.ab||'')}</th>${labels.map(l=>`<th>${esc(l)}</th>`).join('')}</tr>
-      ${starters.length ? `<tr class="grp"><td colspan="${labels.length+1}">Starters</td></tr>` + starters.map(row).join('') : ''}
-      ${bench.length ? `<tr class="grp"><td colspan="${labels.length+1}">Bench</td></tr>` + bench.map(row).join('') : ''}
-      ${(st.totals||[]).some(Boolean) ? `<tr class="tot"><td>Team</td>${st.totals.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>` : ''}</table></div>`;
+    const rows = [...(starters.length ? [{grp:'Starters'}] : []), ...starters.map(row), ...(bench.length ? [{grp:'Bench'}] : []), ...bench.map(row)];
+    html += gdTable(t.ab||'', st.labels || st.names || [], 'hoops', rows, st.totals);
   } else if(lg==='mlb'){
     groups.forEach(st => {
-      const labels = st.labels || st.names || [], ath = st.athletes || [];
       const bat = st.type==='batting';
-      html += `<div class="gd-h">${bat ? 'Batting' : 'Pitching'}</div><div class="gd-card gd-tbl"><table><tr><th>${bat?'Hitters':'Pitchers'}</th>${labels.map(l=>`<th>${esc(l)}</th>`).join('')}</tr>
-        ${ath.map(a => `<tr><td class="${bat && !a.starter ? 'sub' : ''}">${esc(athName(a.athlete))}<small>${esc((a.position||a.athlete.position||{}).abbreviation||'')}</small></td>${(a.stats||[]).map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}
-        ${(st.totals||[]).some(x=>String(x).trim()) ? `<tr class="tot"><td>Team</td>${st.totals.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>` : ''}</table></div>`;
+      html += `<div class="gd-h">${bat ? 'Batting' : 'Pitching'}</div>` + gdTable(bat ? 'Hitters' : 'Pitchers', st.labels || st.names || [], bat ? 'batting' : 'pitching',
+        (st.athletes||[]).map(a => ({name: gdNm(a.athlete, (a.position||a.athlete.position||{}).abbreviation), sub: bat && !a.starter, stats: a.stats})), st.totals);
     });
   } else {   /* football: one table per category */
     const name = {passing:'Passing', rushing:'Rushing', receiving:'Receiving', fumbles:'Fumbles', defensive:'Defense', interceptions:'Interceptions', kickReturns:'Kick Returns', puntReturns:'Punt Returns', kicking:'Kicking', punting:'Punting'};
     groups.filter(st => (st.athletes||[]).length).forEach(st => {
-      const labels = st.labels || st.names || [];
-      html += `<div class="gd-h">${esc(name[st.name] || st.text || st.name)}</div><div class="gd-card gd-tbl"><table><tr><th>${esc(t.ab||'')}</th>${labels.map(l=>`<th>${esc(l)}</th>`).join('')}</tr>
-        ${st.athletes.map(a => `<tr><td>${esc(athName(a.athlete))}</td>${(a.stats||[]).map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}
-        ${st.athletes.length > 1 && (st.totals||[]).some(Boolean) ? `<tr class="tot"><td>Team</td>${st.totals.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>` : ''}</table></div>`;
+      html += `<div class="gd-h">${esc(name[st.name] || st.text || st.name)}</div>` + gdTable(t.ab||'', st.labels || st.names || [], st.name,
+        st.athletes.map(a => ({name: gdNm(a.athlete), stats: a.stats})), st.athletes.length > 1 ? st.totals : null);
     });
   }
   return html + '</div>';
@@ -1798,7 +1829,7 @@ function gdPlays(g, s){
       return out; })()}</div>` : '';
   /* play-by-play, newest first */
   const list = gdPlayList(g, s).slice().reverse();
-  const limit = 60 + gd.more*60;
+  const limit = gd.more ? Infinity : 5;   /* latest 5, then every play */
   let pbp = '';
   if(list.length){
     let last = null, lastDrive = null, out = '';
