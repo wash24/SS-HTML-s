@@ -600,6 +600,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .gd-tbl table{width:100%;table-layout:fixed;border-collapse:collapse;font-family:var(--font-display);font-size:15px;color:#e8e8ea;font-variant-numeric:tabular-nums}
 .gd-tbl col.nm{width:136px}   /* name column: same width in every table; the 6 stat slots split the rest evenly */
 .gd-tbl th:last-child,.gd-tbl td:last-child{padding-right:8px}
+.gd-tbl.hoops col.n{width:38px}   /* wide FG/3PT columns split whatever is left */
 .gd-tbl th,.gd-tbl td{padding:6px 0;text-align:right;white-space:nowrap;font-weight:400;border-bottom:1px solid rgba(255,255,255,.06);overflow:hidden}
 .gd-tbl th{font-size:12.5px;color:rgba(255,255,255,.55);font-weight:500;background:#333336}
 .gd-tbl th:first-child,.gd-tbl td:first-child{text-align:left;padding-left:10px;padding-right:6px;text-overflow:ellipsis}
@@ -1696,7 +1697,7 @@ const GD_COLS = {
   hoops:        [['MIN'],['PTS'],['REB'],['AST'],['FG'],['3PT']],
   batting:      [['AB'],['R'],['H'],['RBI'],['BB'],['K']],
   pitching:     [['IP'],['H'],['R'],['ER'],['BB'],['K']],
-  passing:      [['C/ATT'],['YDS'],['AVG'],['TD'],['INT'],['RTG','QBR']],
+  passing:      [['C/ATT'],['YDS'],['AVG'],['TD'],['INT'],['RTG']],
   rushing:      [['CAR'],['YDS'],['AVG'],['TD'],['LONG','LNG']],
   receiving:    [['REC'],['YDS'],['AVG'],['TD'],['LONG','LNG'],['TGTS']],
   fumbles:      [['FUM'],['LOST'],['REC']],
@@ -1726,7 +1727,10 @@ function gdTable(head, labels, kind, rows, totals, opts={}){
     : r.dnp ? `<tr><td>${r.name}</td><td class="dnp" colspan="6">${esc(r.dnp)}</td></tr>`
     : `<tr><td class="${r.sub?'sub':''}">${r.name}</td>${pick(r.stats)}${blanks}</tr>`).join('');
   const tot = totals && totals.some(x=>String(x).trim()) ? `<tr class="tot"><td>Team</td>${pick(totals)}${blanks}</tr>` : '';
-  return `<div class="gd-card gd-tbl"><table><colgroup><col class="nm">${'<col class="st">'.repeat(6)}</colgroup>
+  /* basketball: single-number columns (MIN PTS REB AST) share one narrow width; made-attempted columns (FG 3PT) share one wider width */
+  const hoops = kind==='hoops';
+  const colTags = hoops ? cols.map(([,l]) => `<col class="st ${/^(FG|3PT|FT)$/.test(l) ? 'w' : 'n'}">`).join('') + '<col class="st n">'.repeat(pad) : '<col class="st">'.repeat(6);
+  return `<div class="gd-card gd-tbl${hoops?' hoops':''}"><table><colgroup><col class="nm">${colTags}</colgroup>
     <tr><th>${esc(head)}</th>${cols.map(([,l])=>`<th>${esc(l)}</th>`).join('')}${'<th></th>'.repeat(pad)}</tr>${body}${tot}</table></div>`;
 }
 const gdNm = (a, pos) => `${esc(athName(a))}${pos ? `<small>${esc(pos)}</small>` : ''}`;
