@@ -323,9 +323,9 @@ body.pagev #content:has(.tsw){background:#e3e3e3}
 .tsov{position:absolute;left:0;right:0;bottom:0;padding:26px 10px 8px;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.82));
   color:#fff;font:18px/1.15 "CFB Slab",Rockwell,Georgia,serif;text-transform:uppercase;letter-spacing:.3px;text-shadow:0 1px 2px #000}
 .tsbar{display:grid;grid-template-columns:64px 1fr auto 1fr 64px;align-items:center;height:68px;background:linear-gradient(#2b2b2b,#141414);color:#fff}
-.tst{display:flex;flex-direction:column;align-items:center;gap:2px}
-.tst img{width:32px;height:32px;object-fit:contain}
-.tst b{font-size:12px;font-weight:700;color:#e6e6e6}
+.tsside{display:flex;flex-direction:column;align-items:center;gap:2px}
+.tsside img{width:32px;height:32px;object-fit:contain}
+.tsside b{font-size:12px;font-weight:700;color:#e6e6e6}
 .tsn{display:flex;align-items:center;justify-content:center;gap:6px;font-size:38px;font-weight:700;letter-spacing:-1px}
 .tsn .ball{width:22px;height:13px;opacity:.85}
 .tsm{text-align:center;padding:0 4px;white-space:nowrap}
@@ -363,6 +363,15 @@ body.pagev #content:has(.tsw){background:#e3e3e3}
 .rkrow.me{box-shadow:inset 4px 0 0 var(--tc)}
 .rkempty{padding:14px 12px;font-size:15px;color:#444}
 body.teamv .pickers{padding:0 8px 2px}
+
+/* stat tables sit in cards with the app's standard side margins */
+.scard{margin:14px 10px 0;background:#fff;border:1px solid #c9cbce;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden}
+.scard .sbar{margin:0;border-top:0}
+.scard .pst tr:last-child td{border-bottom:0}
+.pseg + .scard{margin-top:12px}
+.scard + .sfoot{padding-left:12px;padding-right:12px}
+body.teamv .scard{margin-left:8px;margin-right:8px}
+body.teamv .scard:first-child{margin-top:0}
 
 /* ================= game screen ================= */
 #game{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);
@@ -456,17 +465,24 @@ body.ingame #app{transform:translateX(-28%)}
 .clip span{display:block;font-size:12px;color:#8a8a8a;margin-top:3px}
 
 /* team stats */
-.tst{width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px;color:#333}
-.tst th{height:44px;background:#f4f4f4;border-bottom:1px solid #d6d6d6;font-size:13px;font-weight:700}
-.tst th img{width:24px;height:24px;object-fit:contain;vertical-align:middle;margin-right:5px}
-.tst td{padding:9px 6px;border-bottom:1px solid #e6e6e6;text-align:center;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tst td.l{white-space:normal;line-height:1.2;font-size:12.5px;font-weight:700;color:#8a8a8a;text-transform:uppercase}
-.tst tr:nth-child(even) td{background:#fafafa}
-.tst td.sub{font-weight:400;color:#666}
-.tst td.l.sub{font-weight:700;color:#a5a5a5;padding-left:22px}
+/* team stats: a card in the same style as standings */
+.tscard{margin:14px 10px 0;background:#fff;border:1px solid #c9cbce;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.tshd,.tsr{display:grid;grid-template-columns:27% 1fr 27%;align-items:center}
+.tshd{height:44px;padding:0 12px;background:linear-gradient(#e2e2e2,#d2d2d2);border-bottom:1px solid #bcbcbc;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+.tsh{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:#333}
+.tsh.r{justify-content:flex-end}
+.tsh img{width:26px;height:26px;object-fit:contain}
+.tsr{min-height:42px;padding:6px 12px;border-bottom:1px solid #e3e3e3}
+.tsr:last-child{border-bottom:0}
+.tsr b{font-size:16px;font-weight:700;color:#222;white-space:nowrap}
+.tsr b:last-child{text-align:right}
+.tsr span{text-align:center;font-size:12px;font-weight:700;color:#8a8a8a;text-transform:uppercase;letter-spacing:.2px;line-height:1.2;padding:0 6px}
+.tsr.sub{min-height:34px;padding-top:4px;padding-bottom:4px;background:#fafafa}
+.tsr.sub b{font-size:14px;font-weight:400;color:#555}
+.tsr.sub span{font-size:11px;color:#a3a3a3}
 
 /* player stats */
-.pseg{display:flex;margin:12px 12px 2px;border:1px solid #a7a7a7;border-radius:6px;overflow:hidden;box-shadow:0 1px 0 #fff}
+.pseg{display:flex;margin:14px 10px 2px;border:1px solid #a7a7a7;border-radius:6px;overflow:hidden;box-shadow:0 1px 0 #fff}
 .pseg button{flex:1;height:32px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px;font-weight:700;color:#666;
   background:linear-gradient(#fff,#e9e9e9);text-shadow:0 1px 0 #fff}
 .pseg button + button{border-left:1px solid #a7a7a7}
@@ -476,8 +492,8 @@ body.ingame #app{transform:translateX(-28%)}
 /* fixed grid: every stat table uses the same name column and the same stat column width, so columns line up across categories, teams and games */
 .pst,.lsc{border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:13px;color:#333;white-space:nowrap}
 .pst col.cn{width:var(--nw,98px)}
-.pst col.c1{width:54px}
-.pst col.cs{width:42px}
+.pst col.c1{width:52px}
+.pst col.cs{width:40px}
 .lsc col.cn{width:var(--nw,98px)}
 .lsc col.cs{width:42px}
 .pst th,.lsc th{font-size:11px;font-weight:700;color:#888;text-align:right;padding:7px 5px 6px 0;border-bottom:1px solid #d6d6d6;text-transform:uppercase;background:#f4f4f4;overflow:hidden}
@@ -1324,21 +1340,32 @@ function teamStatsHTML(g){
   if (!has) return `<div class="gempty"><b>Team stats</b>${gStateOf(g) === 'pre' ? 'Team stats will be available once the game kicks off.' : 'Team stats are not available for this game yet.'}</div>`;
   const awayId = String(g.away.team?.id), find = side => teams.find(t => t.homeAway === side) || teams.find(t => (String(t.team?.id) === awayId) === (side === 'away'));
   const A = find('away') || teams[0], H = find('home') || teams[1] || {};
-  const hs = t => `${t.team?.logo ? `<img src="${esc(t.team.logo)}" alt="">` : ''}${esc(t.team?.abbreviation || '')}`;
   const hv = {}; (H.statistics || []).forEach(x => { hv[x.name] = x.displayValue; });
   const sub = /^(netPassingYards|rushingYards|completionAttempts|yardsPerPass|rushingAttempts|yardsPerRushAttempt|interceptions|fumblesLost)$/;
-  return `<table class="tst"><colgroup><col style="width:29%"><col style="width:42%"><col style="width:29%"></colgroup><tr><th>${hs(A)}</th><th></th><th>${hs(H)}</th></tr>${(A.statistics || []).map(x =>
-    `<tr><td class="${sub.test(x.name) ? 'sub' : ''}">${esc(x.displayValue)}</td><td class="l${sub.test(x.name) ? ' sub' : ''}">${esc(String(x.label || '').replace(/\s+thrown$/i, '').replace(/^points allowed per game$/i, 'PPG Allowed').replace(/^points allowed per\b.*$/i, 'PPG Allowed'))}</td><td class="${sub.test(x.name) ? 'sub' : ''}">${esc(hv[x.name] ?? '')}</td></tr>`).join('')}</table>`;
+  const label = x => String(x.label || '').replace(/\s+thrown$/i, '').replace(/^points allowed per\b.*$/i, 'PPG Allowed');
+  const tm = (t, right) => {
+    const lg = t.team?.logo || logoOf(t.team);
+    const img = lg ? `<img src="${esc(lg)}" alt="">` : '';
+    return `<span class="tsh${right ? ' r' : ''}">${right ? '' : img}<b>${esc(t.team?.abbreviation || '')}</b>${right ? img : ''}</span>`;
+  };
+  const rows = (A.statistics || []).map(x => {
+    const s2 = sub.test(x.name);
+    return `<div class="tsr${s2 ? ' sub' : ''}"><b>${esc(x.displayValue)}</b><span>${esc(label(x))}</span><b>${esc(hv[x.name] ?? '')}</b></div>`;
+  }).join('');
+  return `<div class="tscard"><div class="tshd">${tm(A)}<span></span>${tm(H, true)}</div>${rows}</div>`;
 }
 
 /* -- player stats -- */
 function statTable(title, labels, body, first = 'Player', fluid = false){
+  return `<div class="scard">${statTableInner(title, labels, body, first, fluid)}</div>`;
+}
+function statTableInner(title, labels, body, first, fluid){
   const head = title ? `<div class="sbar">${esc(title)}</div>` : '';
   if (fluid) {   // team lists: fixed stat columns, the name column takes the rest of the row
     return `${head}<div class="pwrap"><table class="pst" style="width:100%"><colgroup><col>${labels.map((_, i) => `<col class="${i ? 'cs' : 'c1'}">`).join('')}</colgroup>
       <tr><th>${esc(first)}</th>${labels.map(l => `<th>${esc(l)}</th>`).join('')}</tr>${body}</table></div>`;
   }
-  const w = 54 + 42 * Math.max(0, labels.length - 1);
+  const w = 52 + 40 * Math.max(0, labels.length - 1);
   return `${head}<div class="pwrap"><table class="pst" style="width:max(100%, calc(var(--nw, 98px) + ${w}px))"><colgroup><col class="cn">${labels.map((_, i) => `<col class="${i ? 'cs' : 'c1'}">`).join('')}<col></colgroup>
     <tr><th>${esc(first)}</th>${labels.map(l => `<th>${esc(l)}</th>`).join('')}<th></th></tr>${body.replace(/<\/tr>/g, '<td></td></tr>')}</table></div>`;
 }
@@ -1472,8 +1499,9 @@ function playerStatsHTML(g){
 }
 
 function sizeStatGrid(){
-  const w = (gBody.clientWidth || window.innerWidth);
-  document.documentElement.style.setProperty('--nw', Math.max(92, w - (54 + 42 * 4) - 20) + 'px');
+  // name column fills what the card leaves after five fixed stat columns (card = screen minus side margins and borders)
+  const w = (gBody.clientWidth || content.clientWidth || window.innerWidth) - 22;
+  document.documentElement.style.setProperty('--nw', Math.max(86, w - (52 + 40 * 4) - 12) + 'px');
 }
 window.addEventListener('resize', sizeStatGrid);
 function renderGameBody(keepScroll){
@@ -1772,6 +1800,7 @@ function scheduleHTML(){
   return html + '</div>';
 }
 function renderTeam(keepScroll){
+  sizeStatGrid();
   teamHeader();
   if (!T.events) { content.innerHTML = '<div class="spin" style="margin-top:70px"></div>'; return; }
   const y = content.scrollTop;
@@ -1944,7 +1973,7 @@ function topStoriesHTML(articles, events){
     const lg = c => c.team?.logo || logoOf(c.team);
     const poss = String(comp.situation?.possession || '');
     const clock = st.type?.name === 'STATUS_HALFTIME' ? 'HALF' : /END_PERIOD/.test(st.type?.name || '') ? 'END ' + ordOf(st.period) : `${st.displayClock || ''} ${ordOf(st.period || 0)}`.trim();
-    const side = c => `<div class="tst"><img src="${esc(lg(c))}" alt=""><b>${esc(c.team?.abbreviation || '')}</b></div>`;
+    const side = c => `<div class="tsside"><img src="${esc(lg(c))}" alt=""><b>${esc(c.team?.abbreviation || '')}</b></div>`;
     const sc = c => `<span class="tsn">${String(c.team?.id) === poss ? BALL : ''}<span>${esc(c.score ?? '')}</span></span>`;
     html += `<div class="ts tsg" data-gid="${esc(e.id)}">
       <div class="tsimg" style="background:linear-gradient(115deg, ${ac} 0%, ${shade(ac, -0.35)} 49.8%, ${shade(hc, -0.35)} 50.2%, ${hc} 100%)">
