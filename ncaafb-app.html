@@ -395,13 +395,20 @@ body.pagev .dh{margin-left:10px;margin-right:10px}
 .bwr[data-gid]{cursor:pointer}
 .bwr[data-gid]:active{background:#f6f6f6}
 .bwx{flex:1;min-width:0;line-height:1.3}
-.bwx b{display:block;font-size:16.5px;font-weight:800;color:#1d1d1d;line-height:1.2;margin-bottom:3px}
+.bwx b{display:block;font-size:15px;font-weight:800;color:#1d1d1d;line-height:1.2;margin-bottom:3px}
 .bwx span{display:block;font-size:14px;color:#555}
 .bwx strong{display:block;margin-top:5px;font-size:14.5px;font-weight:800;color:#1d1d1d}
 .bwb{flex:none;width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--bc) 70%, #fff), var(--bc) 62%);
   border:3px double #fff;outline:1px solid #c8c8c8;box-shadow:0 1px 3px rgba(0,0,0,.3);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.45)}
 .bwb b{font:12px/1 "CFB Slab",Rockwell,Georgia,serif;letter-spacing:0;max-width:52px;overflow:hidden;white-space:nowrap}
 .bwb i{font-style:normal;font-size:7.5px;font-weight:800;letter-spacing:1.2px;margin-top:3px;opacity:.9}
+
+/* Bowl Bound: one white page, no cards */
+body.bowlv #content{background:#fff}
+body.bowlv .bwhead{margin:0;border:0;border-bottom:1px solid #d9d9d9;box-shadow:none;padding:14px 14px 12px}
+body.bowlv .bwlist{margin:4px 0 0;border:0;box-shadow:none;border-bottom:1px solid #d9d9d9}
+body.bowlv .bwsec{margin:18px 14px 2px}
+body.bowlv .pseg{margin:12px 14px 0}
 
 /* ================= game screen ================= */
 #game{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);
@@ -1014,6 +1021,7 @@ function render(){
   document.body.classList.toggle('teamv', S.view === 'team');
   const PAGES = {news: 'News', standings: 'Standings', rankings: 'Rankings', top: 'Top Stories', video: 'Video', teams: 'Teams', bowl: 'Bowl Bound'};
   document.body.classList.toggle('pagev', !!PAGES[S.view]);
+  document.body.classList.toggle('bowlv', S.view === 'bowl');
   const sel = S.view === 'stream' ? 'news' : S.view;
   $$('#drawer .dr[data-go]').forEach(b => b.classList.toggle('on', b.dataset.go === sel));
   renderMyList();
@@ -2106,25 +2114,23 @@ const BOWL_FALLBACK_ID = '50278962';                 // last known projections s
 S.analyst = store.get('cfb.analyst', 0);
 let BOWL = {art: null, slate: null};
 
-const normName = x => String(x || '').toLowerCase().replace(/\(ohio\)/g, '(oh)').replace(/\(florida\)/g, '(fl)').replace(/[.'’]/g, '')
+const normName = x => String(x || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\(ohio\)/g, '(oh)').replace(/\(florida\)/g, '(fl)').replace(/[.'’]/g, '')
   .replace(/&/g, 'and').replace(/\s+/g, ' ').trim();
+const addToCatalog = (map, t) => {
+  if (!t?.id) return;
+  [t.location, t.displayName, t.shortDisplayName, t.abbreviation, t.nickname, t.name].forEach(k => { const n = normName(k); if (n && !map[n]) map[n] = t; });
+};
 async function teamCatalog(){
   if (BOWL.cat) return BOWL.cat;
-  const map = {};
-  for (const g of ['80', '81']) {
-    try {
-      const d = await getJSON(`${API}/teams?limit=1000&groups=${g}`);
-      (d.sports?.[0]?.leagues?.[0]?.teams || []).forEach(({team: t}) => {
-        if (!t) return;
-        [t.location, t.displayName, t.shortDisplayName, t.abbreviation, t.nickname].forEach(k => { const n = normName(k); if (n && !map[n]) map[n] = t; });
-      });
-    } catch (e) {}
-  }
+  const map = BOWL.catMap || (BOWL.catMap = {});
+  await Promise.all([`${API}/teams?limit=1000&groups=80`, `${API}/teams?limit=1000&groups=81`, `${API}/teams?limit=1000`].map(async u => {
+    try { const d = await getJSON(u); (d.sports?.[0]?.leagues?.[0]?.teams || []).forEach(x => addToCatalog(map, x.team)); } catch (e) {}
+  }));
   return (BOWL.cat = map);
 }
 function findTeam(name){
-  const m = BOWL.cat || {}, n = normName(name);
-  return m[n] || m[n.replace(/ state$/, ' st')] || m[n.replace(/^the /, '')] || null;
+  const m = BOWL.cat || BOWL.catMap || {}, n = normName(name);
+  return m[n] || m[n.replace(/ state$/, ' st')] || m[n.replace(/^the /, '')] || m[n.replace(/ \((oh|fl)\)$/, '')] || null;
 }
 
 /* -- locate and read the newest projections story -- */
@@ -2270,12 +2276,13 @@ function projectionsHTML(art, P){
   let html = `<div class="bwhead"><b>${esc(art.headline || 'Bowl Projections')}</b><span>${esc([art.byline, date && 'Updated ' + date].filter(Boolean).join(' · '))}</span>
     ${art.web ? `<a href="${esc(art.web)}" target="_blank" rel="noopener">Read on ESPN.com ›</a>` : ''}</div>`;
   if (an.length > 1) html += `<div class="pseg">${an.map((n, i) => `<button data-an="${i}"${i === idx ? ' class="on"' : ''}>${esc(n)}</button>`).join('')}</div>`;
-  let open = false, curDate = '', round = '';
+  let open = false, curDate = '', round = '', pending = '';
   const close = () => { if (open) { html += '</div>'; open = false; } };
   P.items.forEach(it => {
-    if (it.type === 'section') { close(); html += `<div class="bwsec">${esc(it.text)}</div>`; round = ''; curDate = ''; return; }
+    if (it.type === 'section') { close(); pending = it.text; round = ''; curDate = ''; return; }
     if (it.type === 'round') { round = it.text; curDate = ''; return; }
     if (it.type === 'date') { curDate = it.text; return; }
+    if (pending) { close(); html += `<div class="bwsec">${esc(pending)}</div>`; pending = ''; }
     if (!open) { html += '<div class="bwlist">'; open = true; }
     const pk = it.picks[who] || Object.values(it.picks)[0] || '';
     const parts = String(pk).match(/^(.+?)\s+(?:vs\.?|at)\s+(.+)$/i);
@@ -2319,22 +2326,45 @@ function slateHTML(evs){
   return html;
 }
 // current records for projected teams (FBS + FCS standings)
+function entryRecord(e){
+  const st = e.stats || [];
+  const x = st.find(z => /^(total|overall)$/i.test(z.type || '') || /^(total|overall)$/i.test(z.name || '') || /^overall$/i.test(z.displayName || ''));
+  const W = st.find(z => z.name === 'wins'), L = st.find(z => z.name === 'losses'), Tt = st.find(z => z.name === 'ties');
+  return x?.summary || (/^\d+-\d+/.test(x?.displayValue || '') ? x.displayValue : '') ||
+         (W && L ? `${W.value ?? W.displayValue}-${L.value ?? L.displayValue}${Tt && +Tt.value ? '-' + Tt.value : ''}` : '');
+}
 async function recordMap(){
   if (BOWL.rec) return BOWL.rec;
   const map = {}, yr = S.season || new Date().getFullYear();
+  const cat = BOWL.catMap || (BOWL.catMap = {});
   await Promise.all(['80', '81'].map(async g => {
     try {
       const d = await getJSON(`https://site.api.espn.com/apis/v2/sports/football/college-football/standings?group=${g}&season=${yr}`);
-      const walk = n => { (n?.standings?.entries || []).forEach(e => {
-        const x = (e.stats || []).find(st => /^(total|overall)$/i.test(st.type || st.name || ''));
-        const W = (e.stats || []).find(st => st.name === 'wins'), L = (e.stats || []).find(st => st.name === 'losses');
-        const r = x?.summary || x?.displayValue || (W && L ? `${W.value}-${L.value}` : '');
-        if (e.team?.id && r) map[String(e.team.id)] = r;
-      }); (n?.children || []).forEach(walk); };
+      const walk = n => { (n?.standings?.entries || []).forEach(e => { addToCatalog(cat, e.team); const r = entryRecord(e); if (e.team?.id && r) map[String(e.team.id)] = r; }); (n?.children || []).forEach(walk); };
       walk(d);
     } catch (e) {}
   }));
   return (BOWL.rec = map);
+}
+// teams in the projections whose record still isn't known: ask ESPN for each team directly
+async function fillRecords(P){
+  const names = new Set();
+  P.items.forEach(it => Object.values(it.picks || {}).forEach(pk => {
+    const m = String(pk).match(/^(.+?)\s+(?:vs\.?|at)\s+(.+)$/i);
+    if (m) [m[1], m[2]].forEach(x => names.add(x.replace(/^No\.\s*\d+\s+/, '').trim()));
+  }));
+  const need = [...names].map(findTeam).filter(t => t && !BOWL.rec[String(t.id)]);
+  const queue = [...new Map(need.map(t => [String(t.id), t])).values()];
+  await Promise.all([0, 1, 2, 3, 4, 5].map(async () => {
+    while (queue.length) {
+      const t = queue.shift();
+      try {
+        const d = await getJSON(`${API}/teams/${t.id}`);
+        const r = (d.team?.record?.items || []).find(x => x.type === 'total')?.summary || d.team?.record?.items?.[0]?.summary;
+        if (r) BOWL.rec[String(t.id)] = r;
+      } catch (e) {}
+    }
+  }));
 }
 const isRealTeam = c => c?.team?.id && Number(c.team.id) > 0 && !/^(tbd|tba)\b/i.test(c.team.displayName || c.team.location || '');
 async function renderBowl(){
@@ -2352,6 +2382,7 @@ async function renderBowl(){
   if (evs.length && real.length / evs.length >= 0.6) { content.innerHTML = slateHTML(evs); return; }
   // 2) otherwise the latest projections
   const [rec] = await Promise.all([latestProjection(), teamCatalog(), recordMap()]);
+  await teamCatalog();
   if (token !== S.token) return;
   const art = await storyBody(rec);
   if (token !== S.token) return;
@@ -2361,6 +2392,8 @@ async function renderBowl(){
       <a href="${esc(rec.web)}" target="_blank" rel="noopener">Read on ESPN.com ›</a></div><div class="msg">The projections couldn't be loaded in the app right now.</div>`;
     return;
   }
+  await fillRecords(P);
+  if (token !== S.token) return;
   BOWL.art = art; BOWL.P = P;
   content.innerHTML = projectionsHTML(art, P);
 }
