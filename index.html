@@ -517,8 +517,9 @@ function normalize(sport, ev){
   }
   if (!blurb && !postseason && c.notes && c.notes[0]) blurb = c.notes[0].headline;
   const scores = teams.map(t => +t.score || 0);
-  const bc = c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names.join('/');
-  const tv = st.state === 'post' ? '' : (bc || (c.geoBroadcasts && c.geoBroadcasts[0] && c.geoBroadcasts[0].media && c.geoBroadcasts[0].media.shortName) || '');
+  // One channel only: the first listed, and nothing after a "/" ("NBA League Pass/ClipperVision" -> "NBA League Pass")
+  const bc = c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names[0];
+  const tv = st.state === 'post' ? '' : String(bc || (c.geoBroadcasts && c.geoBroadcasts[0] && c.geoBroadcasts[0].media && c.geoBroadcasts[0].media.shortName) || '').split('/')[0].trim();
   const odds = c.odds && c.odds[0];
   return { id: ev.id, sport, state: st.state, date, label, blurb, tv, teams, link: gameLink(sport, ev), psLabel, seriesTxt,
     poss: st.state === 'in' && c.situation && c.situation.possession ? String(c.situation.possession) : '',
