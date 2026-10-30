@@ -272,6 +272,24 @@ body.teamv .pseg{margin-left:8px;margin-right:8px}
 body.teamv .sbar{margin-top:0}
 body.teamv .pwrap + .sbar{margin-top:14px}
 
+/* standings (2012 app style) */
+.stand{margin:0 8px;border:1px solid #c9cbce;box-shadow:0 1px 3px rgba(0,0,0,.08);background:#fff}
+.stand .sthd{display:flex;align-items:center;height:38px;padding:0 10px 0 12px;background:linear-gradient(#e2e2e2,#d2d2d2);border-bottom:1px solid #bcbcbc;
+  font-size:13px;font-weight:700;color:#555;text-transform:uppercase;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+.stand .sthd span{flex:1;font-size:14px;color:#444}
+.stand .sthd b,.stand .strow b{width:58px;flex:none;text-align:center}
+.stand .stdiv{height:30px;line-height:30px;padding:0 12px;background:linear-gradient(#cdcdcd,#c3c3c3);border-bottom:1px solid #b5b5b5;
+  font-size:12.5px;font-weight:700;color:#555;text-transform:uppercase;text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.stand .strow{display:flex;align-items:center;height:58px;padding:0 10px 0 12px;border-bottom:1px solid #d9d9d9;cursor:pointer}
+.stand .strow:last-child{border-bottom:0}
+.stand .strow:active{background:#f4f4f4}
+.stand .strow img,.stand .strow .ph{width:32px;height:32px;object-fit:contain;flex:none}
+.stand .strow .ph{border-radius:50%;background:#e6e6e6}
+.stand .strow .nm{flex:1;min-width:0;margin-left:13px;font-size:17px;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stand .strow b{font-size:15px;font-weight:400;color:#444}
+.stand .strow.me{box-shadow:inset 4px 0 0 var(--tc);background:#f7f7f7}
+.stand .strow.me .nm{font-weight:700}
+
 /* ================= game screen ================= */
 #game{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);
   transition:transform .32s cubic-bezier(.2,.7,.3,1);box-shadow:-4px 0 12px rgba(0,0,0,.45);visibility:hidden}
@@ -1654,7 +1672,7 @@ function renderTeam(keepScroll){
   teamHeader();
   if (!T.events) { content.innerHTML = '<div class="spin" style="margin-top:70px"></div>'; return; }
   const y = content.scrollTop;
-  const pad = '<div style="height:22px"></div>';
+  const pad = '<div style="height:38px"></div>';
   content.innerHTML = T.tab === 'sched' ? pad + scheduleHTML()
     : T.tab === 'stats' ? pad + teamStatsTab()
     : T.tab === 'stand' ? pad + standingsTab()
@@ -1713,28 +1731,38 @@ function standingsTab(){
   const conf = T.team?.confId || '';
   const yr = seasonYear();
   const v = lazy('stand', async () => {
-    const g = conf || '18';
-    const d = await getJSON(`https://site.api.espn.com/apis/v2/sports/football/college-football/standings?group=${g}&season=${yr}`);
-    // flatten conference -> division groups
+    const d = await getJSON(`https://site.api.espn.com/apis/v2/sports/football/college-football/standings?group=${conf || '18'}&season=${yr}`);
     const groups = [];
-    const walk = (n, label) => {
-      if (n?.standings?.entries?.length) groups.push({name: n.name || n.abbreviation || label, entries: n.standings.entries});
-      (n?.children || []).forEach(c => walk(c, c.name));
+    const walk = n => {
+      if (n?.standings?.entries?.length) groups.push({name: n.name || '', abbr: n.abbreviation || '', entries: n.standings.entries});
+      (n?.children || []).forEach(walk);
     };
-    walk(d, d.name);
-    return groups;
+    walk(d);
+    return {abbr: d.abbreviation || (groups.length === 1 ? groups[0].abbr : '') || CONF_SHORT[conf] || d.name || '', groups};
   });
   if (v === undefined) return '<div class="spin"></div>';
-  if (!v || !v.length) return '<div class="gempty"><b>Standings</b>Standings are not available right now.</div>';
-  const stat = (e, re) => {
+  if (!v || !v.groups.length) return '<div class="gempty"><b>Standings</b>Standings are not available right now.</div>';
+  const rec = (e, re, w, l) => {
     const x = (e.stats || []).find(st => re.test(st.type || '') || re.test(st.name || ''));
-    return x ? (x.summary || x.displayValue || '') : '';
+    if (x) return x.summary || x.displayValue || '';
+    const W = (e.stats || []).find(st => st.name === w), L = (e.stats || []).find(st => st.name === l);
+    return W && L ? `${W.value}-${L.value}` : '';
   };
-  const wl = (e, w, l) => { const W = (e.stats || []).find(x => x.name === w), L = (e.stats || []).find(x => x.name === l); return W && L ? `${W.value}-${L.value}` : ''; };
-  return v.map(gp => statTable(gp.name, ['Conf', 'Ovr'], gp.entries.map(e => {
-    const me = String(e.team?.id) === T.id;
-    return `<tr class="${me ? 'me' : ''}" data-team="${esc(e.team?.id || '')}"><td>${teamCell(e.team)}</td><td>${esc(stat(e, /^vsconf$|^vsConf$/i) || wl(e, 'vsConf_wins', 'vsConf_losses') || '-')}</td><td>${esc(stat(e, /^total$|^overall$/i) || wl(e, 'wins', 'losses') || '-')}</td></tr>`;
-  }).join(''), 'Team', true)).join('') + (conf ? '' : '<div class="sfoot">FBS Independents</div>');
+  const pct = r => { const [a, b] = String(r).split('-').map(Number); return a + b ? a / (a + b) : 0; };
+  const head = conf ? (CONF_SHORT[conf] && CONF_SHORT[conf] !== 'Ind.' ? CONF_SHORT[conf] : v.abbr) : 'FBS Independents';
+  const multi = v.groups.length > 1;
+  let html = `<div class="stand"><div class="sthd"><span>${esc(head)}</span><b>${conf ? 'Conf' : ''}</b><b>W-L</b></div>`;
+  v.groups.forEach(gp => {
+    if (multi) html += `<div class="stdiv">${esc(gp.name || gp.abbr)}</div>`;
+    const rows = gp.entries.map(e => ({e, c: rec(e, /^vsconf$/i, 'vsConf_wins', 'vsConf_losses'), o: rec(e, /^(total|overall)$/i, 'wins', 'losses')}));
+    // ESPN usually returns these in standings order; keep that, but fall back to conference win% if it doesn't look sorted
+    if (conf && rows.some((r, k) => k && pct(r.c) > pct(rows[k - 1].c) + 1e-9)) rows.sort((a, b) => pct(b.c) - pct(a.c) || pct(b.o) - pct(a.o));
+    rows.forEach(({e, c, o}) => {
+      const t = e.team || {}, me = String(t.id) === T.id, lg = logoOf(t);
+      html += `<div class="strow${me ? ' me' : ''}" data-team="${esc(t.id || '')}">${lg ? `<img src="${esc(lg)}" alt="">` : '<i class="ph"></i>'}<span class="nm">${esc(t.location || t.shortDisplayName || t.displayName || '')}</span><b>${esc(conf ? (c || '-') : '')}</b><b>${esc(o || '-')}</b></div>`;
+    });
+  });
+  return html + '</div>';
 }
 function rankingsTab(){
   const v = lazy('rank', async () => (await getJSON(`${API}/rankings`)).rankings || []);
@@ -1756,7 +1784,7 @@ content.addEventListener('click', e => {
   if (S.view !== 'team') return;
   const p = e.target.closest('[data-poll]');
   if (p) { T.poll = +p.dataset.poll; renderTeam(true); return; }
-  const tr = e.target.closest('tr[data-team]');
+  const tr = e.target.closest('tr[data-team], .strow[data-team]');
   if (tr && tr.dataset.team && tr.dataset.team !== T.id) openTeam(tr.dataset.team);
 });
 
