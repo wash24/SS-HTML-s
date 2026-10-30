@@ -1150,21 +1150,50 @@ async function fetchEvents(sport){
   return (await getJSON(base + qs(''))).events || [];
 }
 // Quiet stretch (offseason, or a gap between seasons):
-// - the last day that had games, if it was within the past 60 days (keeps the World Series final up until the next games)
-// - plus the next day with games, however far out (the season opener shows as soon as the feed lists it)
+// show the last day that had games until it's been longer since then than it is until the next games,
+// then switch to the next games. With no next games known yet, the last games stay up.
 async function offseason(sport, base, qs){
-  const span = (from, to) => ymd(new Date(Date.now() + from * 864e5)) + '-' + ymd(new Date(Date.now() + to * 864e5));
   const params = sport.params.replace(/&?limit=\d+/, '');
-  const grab = async (from, to) => { try { return (await getJSON(base + '?' + [params, 'dates=' + span(from, to), 'limit=1000'].filter(Boolean).join('&'))).events || []; } catch (e) { return []; } };
-  let next = [];
-  for (const [f, t] of [[2, 14], [15, 60], [61, 200]]) { next = await grab(f, t); if (next.length) break; }
-  const past = await grab(-60, -2);
-  const pick = (list, last) => {
-    if (!list.length) return [];
-    const target = last ? Math.max(...list.map(dayOf)) : Math.min(...list.map(dayOf));
-    return list.filter(e => dayOf(e) === target);
-  };
-  return [...pick(past, true), ...pick(next, false)];
+  const url = extra => base + '?' + [params, extra, 'limit=1000'].filter(Boolean).join('&');
+  const day = n => ymd(new Date(Date.now() + n * 864e5));
+  const grab = async (from, to) => { try { return (await getJSON(url('dates=' + day(from) + (to !== from ? '-' + day(to) : '')))).events || []; } catch (e) { return []; } };
+  const today = dayKey(Date.now());
+
+  // The feed's default view usually shows the most recent slate; its calendar lists the season's game dates.
+  let def = [], cal = [];
+  try {
+    const j = await getJSON(url(''));
+    def = j.events || [];
+    const lg = j.leagues && j.leagues[0];
+    (lg && lg.calendar || []).forEach(c => {
+      if (typeof c === 'string') cal.push(dayKey(new Date(c)));
+      else (c.entries || [c]).forEach(e => { if (e.startDate) cal.push(dayKey(new Date(e.startDate))); });
+    });
+  } catch (e) {}
+
+  // Last game day: from the default view, else the calendar, else search back week by week (up to ~4 months).
+  let last = def.filter(e => dayOf(e) < today);
+  if (!last.length) {
+    const pastCal = cal.filter(d => d < today).sort((x, y) => y - x);
+    if (pastCal.length) last = await grab(Math.round((pastCal[0] - today) / 864e5), Math.round((pastCal[0] - today) / 864e5));
+  }
+  for (let w = 0; !last.length && w < 17; w++) last = await grab(-7 * w - 8, -7 * w - 2);
+  if (last.length) { const d = Math.max(...last.map(dayOf)); last = last.filter(e => dayOf(e) === d); }
+
+  // Next game day: the calendar if it reaches ahead, else search forward in growing windows.
+  let next = def.filter(e => dayOf(e) > today);
+  if (!next.length) {
+    const futCal = cal.filter(d => d > today).sort((x, y) => x - y);
+    if (futCal.length) { const n = Math.round((futCal[0] - today) / 864e5); next = await grab(n, n); }
+  }
+  // Only look as far ahead as matters: past the age of the last game, the last game would stay up anyway.
+  const reach = last.length ? Math.round((today - dayOf(last[0])) / 864e5) : 220;
+  for (let f = 2; !next.length && f <= reach; f += 7) next = await grab(f, Math.min(f + 6, reach));
+  if (next.length) { const d = Math.min(...next.map(dayOf)); next = next.filter(e => dayOf(e) === d); }
+
+  if (!last.length || !next.length) return last.length ? last : next;
+  const since = today - dayOf(last[0]), until = dayOf(next[0]) - today;
+  return since > until ? next : last;
 }
 async function loadSport(sport){
   try {
