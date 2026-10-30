@@ -51,11 +51,11 @@ button{font:inherit;border:0;background:none;color:inherit;cursor:pointer}
   background:linear-gradient(90deg,rgba(150,100,10,.2),#d9a520 35%,#ffd36a 55%,#d9a520 75%,rgba(150,100,10,.2));box-shadow:0 -2px 8px rgba(255,180,30,.45)}
 #drawer .dsm{height:42px;font-size:15.5px}
 #drawer .dsm .ic{width:22px;height:22px}
-#drawer .dmy{height:64px;gap:14px;padding:0 14px}
-#drawer .dmy img{width:38px;height:38px;object-fit:contain;flex:none;align-self:center;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+#drawer .dmy{height:58px;gap:14px;padding:0 14px}
+#drawer .dmy img{width:34px;height:34px;object-fit:contain;flex:none;align-self:center;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
 #drawer .dmy span{display:flex;flex-direction:column;justify-content:center;line-height:1.12;text-transform:uppercase;letter-spacing:.3px}
-#drawer .dmy b{font-size:18px;font-weight:500;color:#cfcfcf}
-#drawer .dmy i{font-style:normal;font-size:18px;font-weight:500;color:#e6e6e6}
+#drawer .dmy b{font-size:15.5px;font-weight:500;color:#cfcfcf}
+#drawer .dmy i{font-style:normal;font-size:15.5px;font-weight:500;color:#e6e6e6}
 
 /* ---------- app shell ---------- */
 #app{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg);z-index:2;
@@ -560,7 +560,9 @@ body.ingame #app{transform:translateX(-28%)}
 .pst col.c1{width:52px}
 .pst col.cs{width:40px}
 .lsc col.cn{width:var(--nw,98px)}
-.lsc col.cs{width:42px}
+.lsc col.cs{width:40px}
+.scard .splay:last-child,.scard .plog:last-child,.scard .info div:last-child{border-bottom:0}
+.scard .lsc tr:last-child td{border-bottom:0}
 .pst th,.lsc th{font-size:11px;font-weight:700;color:#888;text-align:right;padding:7px 5px 6px 0;border-bottom:1px solid #d6d6d6;text-transform:uppercase;background:#f4f4f4;overflow:hidden}
 .pst td,.lsc td{background:#fff;text-align:right;padding:8px 5px 8px 0;border-bottom:1px solid #e8e8e8;overflow:hidden;text-overflow:clip;letter-spacing:-.2px}
 .pst th:first-child,.pst td:first-child,.lsc th:first-child,.lsc td:first-child{text-align:left;padding-left:12px;position:sticky;left:0;z-index:1;text-overflow:ellipsis}
@@ -615,13 +617,6 @@ body.ingame #app{transform:translateX(-28%)}
   <button class="dr" data-go="standings"><i class="ic"><svg viewBox="0 0 32 32"><rect x="2" y="5" width="28" height="22" fill="currentColor"/><path d="M5 10h3M5 15h3M5 20h3M10 10h17M10 15h17M10 20h17" stroke="#262626" stroke-width="2.2"/></svg></i><span>Standings</span></button>
   <button class="dr" data-go="teams"><i class="ic"><svg viewBox="0 0 32 32"><path d="M4 18c0-8.3 5.9-14 13.4-14 6.1 0 11 4.3 11.6 10.5l-6.6.8c-.4 2-1.9 3.5-3.9 3.9l1.1 4.6h3.6l2.4 4.5-1.6.9-1.9-3.5h-3.9l-1.3-5.6c-2.3.1-4.1 2.1-4.6 4.3H6.5C5 23.3 4 20.9 4 18z" fill="currentColor"/><text x="8.6" y="17.5" font-size="11" font-weight="900" fill="#262626" font-family="Georgia,serif">U</text></svg></i><span>Teams</span></button>
   <button class="dr" data-go="bowl"><i class="ic ic-logo ic-wide"><img src="bcs-logo-white.png" alt=""></i><span>Bowl Bound</span></button>
-  <div class="dsec">More ESPN</div>
-  <a class="dr dsm" href="nfl-scoreboard.html"><span>NFL Scoreboard</span></a>
-  <a class="dr dsm" href="ncaabb-scoreboard.html"><span>NCAA Basketball Scoreboard</span></a>
-  <a class="dr dsm" href="nba-scoreboard.html"><span>NBA Scoreboard</span></a>
-  <a class="dr dsm" href="mlb-scoreboard.html"><span>MLB Scoreboard</span></a>
-  <a class="dr dsm" href="ncaafb-scoreboard.html"><span>Classic CFB Scoreboard</span></a>
-  <a class="dr dsm" href="huddle.html"><span>Team Stream</span></a>
 </nav>
 
 <div id="app">
@@ -1239,7 +1234,7 @@ function renderGameHead(){
   }
   head.innerHTML = `${tm(away)}${sa}<div class="mid">${mid}</div>${sh}${tm(home)}`;
   const first = state === 'pre' ? 'Preview' : state === 'in' ? 'Box Score' : 'Recap';
-  const tabs = [['story', first], ...(state === 'post' ? [['box', 'Box Score'], ['scoring', 'Scoring']] : []), ['clips', 'Clips'], ['team', 'Team Stats'], ['players', 'Player Stats']];
+  const tabs = [['story', first], ...(state === 'post' ? [['box', 'Box Score']] : []), ['clips', 'Clips'], ['team', 'Team Stats'], ['players', 'Player Stats']];
   if (!tabs.some(t => t[0] === G.tab)) G.tab = 'story';
   $('#gTabs').innerHTML = tabs.map(([k, l]) => `<button data-gt="${k}"${k === G.tab ? ' class="on"' : ''}>${l}</button>`).join('');
 }
@@ -1311,7 +1306,7 @@ function gameInfoHTML(g){
   if (odds?.details && gStateOf(g) === 'pre') rows.push(['Line', odds.details]);
   if (odds?.overUnder && gStateOf(g) === 'pre') rows.push(['Over/Under', String(odds.overUnder)]);
   if (gi.attendance) rows.push(['Attendance', Number(gi.attendance).toLocaleString('en-US')]);
-  return `<div class="sbar">Game Information</div><div class="info">${rows.map(([a, b]) => `<div><span>${esc(a)}</span><span>${esc(b)}</span></div>`).join('')}</div>`;
+  return `<div class="scard"><div class="sbar">Game Information</div><div class="info">${rows.map(([a, b]) => `<div><span>${esc(a)}</span><span>${esc(b)}</span></div>`).join('')}</div></div><div style="height:6px"></div>`;
 }
 function playLogHTML(g){
   const cur = G.data?.drives?.current;
@@ -1321,25 +1316,25 @@ function playLogHTML(g){
   const logo = cur?.team?.logos?.[0]?.href || cur?.team?.logo || '';
   const ord = n => n > 4 ? 'OT' : ['', '1st', '2nd', '3rd', '4th'][n] || '';
   const meta = cur && (cur.description || cur.displayResult) ? `<div class="sbar sub">${esc([cur.team?.shortDisplayName || cur.team?.abbreviation, cur.description].filter(Boolean).join(' · '))}</div>` : '';
-  return `<div class="sbar" style="margin-top:0">Last Plays</div>${meta}` + plays.map((pl, i) => {
+  return `<div class="scard"><div class="sbar">Last Plays</div>${meta}` + plays.map((pl, i) => {
     const when = [pl.period?.number ? ord(pl.period.number) : '', pl.clock?.displayValue || ''].filter(Boolean).join(' ');
     const dd = pl.start?.downDistanceText || pl.start?.shortDownDistanceText || '';
     return `<div class="plog${i === 0 ? ' last' : ''}">${logo ? `<img src="${esc(logo)}" alt="">` : ''}<div>${dd || when ? `<b>${esc(dd.replace(/\s&\s/, ' and '))}${dd && when ? ' · ' : ''}${esc(when)}</b>` : ''}${esc(pl.text || '')}</div></div>`;
-  }).join('');
+  }).join('') + '</div>';
 }
 function lineScoreHTML(g){
   const ls = c => (c.linescores || []).map(x => x.displayValue ?? x.value);
   const A = ls(g.away), H = ls(g.home);
   const n = Math.max(4, A.length, H.length);
   const cols = Array.from({length: n}, (_, i) => i < 4 ? String(i + 1) : (i === 4 ? 'OT' : (i - 3) + 'OT'));
-  const row = (c, v) => `<tr><td>${c.team?.logo ? `<img src="${esc(c.team.logo)}" alt="">` : ''}${esc(c.team?.abbreviation || '')}</td>${cols.map((_, i) => `<td>${esc(v[i] ?? (i < 4 ? '-' : ''))}</td>`).join('')}<td class="t">${esc(c.score ?? '')}</td><td></td></tr>`;
-  return `<div class="sbar">Box Score</div><div class="pwrap"><table class="lsc" style="width:max(100%, calc(var(--nw, 98px) + ${42 * (cols.length + 1)}px))"><colgroup><col class="cn">${cols.map(() => '<col class="cs">').join('')}<col class="cs"><col></colgroup>
-    <tr><th>Team</th>${cols.map(c => `<th>${c}</th>`).join('')}<th>T</th><th></th></tr>${row(g.away, A)}${row(g.home, H)}</table></div>`;
+  const row = (c, v) => `<tr><td>${c.team?.logo ? `<img src="${esc(c.team.logo)}" alt="">` : ''}${esc(c.team?.abbreviation || '')}</td>${cols.map((_, i) => `<td>${esc(v[i] ?? (i < 4 ? '-' : ''))}</td>`).join('')}<td class="t">${esc(c.score ?? '')}</td></tr>`;
+  return `<div class="scard"><div class="sbar">Box Score</div><div class="pwrap"><table class="lsc" style="width:100%"><colgroup><col>${cols.map(() => '<col class="cs">').join('')}<col class="cs"></colgroup>
+    <tr><th>Team</th>${cols.map(c => `<th>${c}</th>`).join('')}<th>T</th></tr>${row(g.away, A)}${row(g.home, H)}</table></div></div>`;
 }
 function scoringHTML(g){
   const plays = G.data?.scoringPlays || [];
   if (!plays.length) return '';
-  let out = `<div class="sbar"><span>Scoring Summary</span><span class="ord">${esc(g.away.team?.abbreviation || '')}-${esc(g.home.team?.abbreviation || '')}</span></div>`, last = null;
+  let out = `<div class="scard"><div class="sbar"><span>Scoring Summary</span><span class="ord">${esc(g.away.team?.abbreviation || '')}-${esc(g.home.team?.abbreviation || '')}</span></div>`, last = null;
   plays.forEach(pl => {
     const q = pl.period?.number;
     if (q !== last) { out += `<div class="sbar" style="margin-top:0;background:#e9e9e9;border-color:#d8d8d8;color:#777">${q > 4 ? (q === 5 ? 'Overtime' : (q - 4) + 'OT') : ['', '1st', '2nd', '3rd', '4th'][q] + ' Quarter'}</div>`; last = q; }
@@ -1348,7 +1343,7 @@ function scoringHTML(g){
       <div><b>${esc(pl.scoringType?.displayName || pl.type?.text || '')} · ${esc(pl.clock?.displayValue || '')}</b>${esc(pl.text || '')}</div>
       <span class="ss">${esc(pl.awayScore)}-${esc(pl.homeScore)}</span></div>`;
   });
-  return out;
+  return out + '</div>';
 }
 function storyHTML(g){
   const state = gStateOf(g), d = G.data || {};
@@ -1579,8 +1574,7 @@ function renderGameBody(keepScroll){
   if (!g) { gBody.innerHTML = '<div class="spin"></div>'; return; }
   const y = gBody.scrollTop;
   if (!G.data && G.tab !== 'story') { gBody.innerHTML = '<div class="spin"></div>'; return; }
-  gBody.innerHTML = G.tab === 'box' ? lineScoreHTML(g).replace('class="sbar"', 'class="sbar" style="margin-top:0"')
-    : G.tab === 'scoring' ? (scoringHTML(g).replace('class="sbar"', 'class="sbar" style="margin-top:0"') || '<div class="gempty"><b>No scoring plays</b>Scoring plays are not available for this game.</div>')
+  gBody.innerHTML = G.tab === 'box' ? lineScoreHTML(g) + (scoringHTML(g) || '')
     : G.tab === 'clips' ? clipsHTML() : G.tab === 'team' ? teamStatsHTML(g) : G.tab === 'players' ? playerStatsHTML(g)
     : (G.data ? storyHTML(g) : (gStateOf(g) === 'in' ? `<div class="glive">${fieldHTML({situation: g.situation}, g.away, g.home)}</div>` : '') + '<div class="spin"></div>');
   if (keepScroll) gBody.scrollTop = y;
