@@ -2217,7 +2217,8 @@ function parseProjections(html){
       cur = push({type: 'game', title: l.text, meta: [], picks: {}, section});
       return;
     }
-    if (l.ital) {
+    const looksMeta = /\([^)]*[A-Za-z][^)]*\)|\b(\d{1,2}(:\d{2})?\s*[ap]\.?m\.?|noon|midnight|tba|tbd)\b/i.test(l.text) && l.text.length < 120;
+    if (l.ital || (looksMeta && cur && !Object.keys(cur.picks).length)) {
       if (!cur || Object.keys(cur.picks).length) cur = push({type: 'game', title: '', meta: [], picks: {}, section});
       cur.meta.push(l.text);
     }
@@ -2241,6 +2242,26 @@ function bowlBadge(title){
   return `<span class="bwb" style="--bc:${c}"><b style="font-size:${fs}px">${esc(short)}</b><i>${short === 'CFP' ? 'PLAYOFF' : 'BOWL'}</i></span>`;
 }
 const MONTHS = {jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, sept: 8, oct: 9, nov: 10, dec: 11};
+const TIME_RE = /\b(\d{1,2}(?::\d{2})?\s*[ap]\.?\s?m\.?|noon|midnight)\b/i;
+function metaPlace(meta){
+  for (const x of meta) {
+    const groups = [...String(x).matchAll(/\(([^()]*[A-Za-z][^()]*)\)/g)].map(m => m[1].trim());
+    const g = groups.reverse().find(v => !/^(oh|ohio|fla?\.?|florida|pa\.?)$/i.test(v));
+    if (g) return g;
+  }
+  return '';
+}
+function metaTime(meta){
+  for (const x of meta) { const m = String(x).match(TIME_RE); if (m) return m[1]; }
+  return meta.some(x => /\b(tba|tbd)\b/i.test(x)) ? 'TBA' : '';
+}
+const bowlKey = t => (String(t || '').replace(/\s+(presented|powered|brought)\s+by\b.*$/i, '').match(/([A-Za-z0-9'&.-]+(?:\s+[A-Za-z0-9'&.-]+)?)\s+Bowl\b/i)?.[1] || '')
+  .toLowerCase().split(/\s+/).pop().replace(/[^a-z0-9&-]/g, '');
+function postEventFor(title, meta){
+  const keys = [bowlKey(title), ...meta.map(bowlKey)].filter(Boolean);
+  if (!keys.length) return null;
+  return (BOWL.post || []).find(e => keys.includes(bowlKey(e.competitions?.[0]?.notes?.[0]?.headline || e.name))) || null;
+}
 function projDateTime(dateText, metaTime){
   const m = String(dateText || '').match(/([A-Z][a-z]{2,8})\.?\s+(\d{1,2})/);
   let d = '';
@@ -2249,11 +2270,11 @@ function projDateTime(dateText, metaTime){
     const yr = (S.season || new Date().getFullYear()) + (mi < 6 ? 1 : 0);
     d = new Date(yr, mi, +m[2]).toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'});
   }
-  let t = String(metaTime || '').split(',')[0].trim();
+  let t = String(metaTime || '').trim();
   if (/^noon$/i.test(t)) t = '12:00 PM';
   else if (/^midnight$/i.test(t)) t = '12:00 AM';
-  else t = t.replace(/^(\d{1,2})(?::(\d{2}))?\s*([ap])\.?m\.?$/i, (_, h, mm, ap) => `${h}:${mm || '00'} ${ap.toUpperCase()}M`);
-  return [d, /\d|TBA|TBD/i.test(t) ? t : ''].filter(Boolean).join(' | ');
+  else t = t.replace(/^(\d{1,2})(?::(\d{2}))?\s*([ap])\.?\s?m\.?$/i, (_, h, mm, ap) => `${h}:${mm || '00'} ${ap.toUpperCase()}M`);
+  return `${d || 'TBA'} | ${/\d/.test(t) ? t : 'TBA'}`;
 }
 function placeOf(venue){
   const m = String(venue || '').match(/\(([^)]+)\)\s*$/);
@@ -2286,12 +2307,20 @@ function projectionsHTML(art, P){
     if (!open) { html += '<div class="bwlist">'; open = true; }
     const pk = it.picks[who] || Object.values(it.picks)[0] || '';
     const parts = String(pk).match(/^(.+?)\s+(?:vs\.?|at)\s+(.+)$/i);
-    const matchup = parts ? `${teamWithRecord(parts[1])}, ${teamWithRecord(parts[2])}` : pk;
-    const venue = it.meta.find(x => /\(/.test(x) && !/\b(a\.m\.|p\.m\.|noon|tba|tbd)\b/i.test(x)) || '';
-    const time = it.meta.find(x => x !== venue) || '';
+    const matchup = parts ? `${teamWithRecord(parts[1])} vs. ${teamWithRecord(parts[2])}` : pk;
     const title = it.title || (round ? `CFP ${round}` : 'College Football Playoff');
-    const place = venue ? placeOf(venue) : (/first round/i.test(round) ? 'Campus site' : '');
-    html += bowlRow(title, place, projDateTime(curDate, time), matchup);
+    const ev = postEventFor(title, it.meta);
+    const a = ev?.competitions?.[0]?.venue?.address || {};
+    const evPlace = [a.city, STATES[a.state] || a.state].filter(Boolean).join(', ');
+    const place = metaPlace(it.meta) || evPlace || (/first round/i.test(round) ? 'Campus site' : '');
+    let when = projDateTime(curDate, metaTime(it.meta));
+    if (ev && /TBA/.test(when)) {               // fill whatever the article left open from ESPN's bowl schedule
+      const d = new Date(ev.date), [dd, tt] = when.split(' | ');
+      const evD = d.toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'});
+      const evT = ev.competitions?.[0]?.timeValid === false ? 'TBA' : timeStr(d);
+      when = `${dd === 'TBA' ? evD : dd} | ${tt === 'TBA' ? evT : tt}`;
+    }
+    html += bowlRow(title, place, when, matchup);
   });
   close();
   return html;
@@ -2309,12 +2338,12 @@ function slateHTML(evs){
       const title = (comp.notes?.[0]?.headline || e.name || '').replace(/\s*-\s*College Football Playoff.*$/i, m => m);
       const a = comp.venue?.address || {};
       const place = [a.city, STATES[a.state] || a.state].filter(Boolean).join(', ');
-      const when = `${d.toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'})}${comp.timeValid === false ? '' : ' | ' + timeStr(d)}`;
+      const when = `${d.toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'})} | ${comp.timeValid === false ? 'TBA' : timeStr(d)}`;
       const {away, home} = sides(e);
       const nm = c => c.team?.location || c.team?.shortDisplayName || c.team?.displayName || 'TBD';
       const rec = c => (c.records || [])[0]?.summary;
       let line;
-      if (st === 'pre') line = `${nm(away)}${rec(away) ? ` (${rec(away)})` : ''}, ${nm(home)}${rec(home) ? ` (${rec(home)})` : ''}`;
+      if (st === 'pre') line = `${nm(away)}${rec(away) ? ` (${rec(away)})` : ''} vs. ${nm(home)}${rec(home) ? ` (${rec(home)})` : ''}`;
       else {
         const [w, l] = (home.winner === true || (st === 'in' && +home.score > +away.score)) ? [home, away] : [away, home];
         line = `${nm(w)} ${w.score ?? ''}, ${nm(l)} ${l.score ?? ''}${st === 'in' ? ' · ' + liveStatus(comp.status || e.status) : ''}`;
@@ -2379,6 +2408,7 @@ async function renderBowl(){
   } catch (e) {}
   if (token !== S.token) return;
   const real = evs.filter(e => (e.competitions?.[0]?.competitors || []).filter(isRealTeam).length === 2);
+  BOWL.post = evs;
   if (evs.length && real.length / evs.length >= 0.6) { content.innerHTML = slateHTML(evs); return; }
   // 2) otherwise the latest projections
   const [rec] = await Promise.all([latestProjection(), teamCatalog(), recordMap()]);
