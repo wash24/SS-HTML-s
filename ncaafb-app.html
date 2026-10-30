@@ -605,7 +605,6 @@ body.ingame #app{transform:translateX(-28%)}
   <div class="dhead"><b>ESPN</b><span>College Football</span></div>
   <div class="dsec">My Teams</div>
   <div id="myList"></div>
-  <button class="dr dsm" data-go="myteams"><i class="ic"><svg viewBox="0 0 32 32"><path d="M16 6v20M6 16h20" stroke="currentColor" stroke-width="3"/></svg></i><span>Edit My Teams</span><small id="myCount"></small></button>
   <div class="dsec">Featured</div>
   <button class="dr" data-go="top"><i class="ic ic-logo"><img src="cfb-logo-white.png" alt=""></i><span>Top Stories</span></button>
   <button class="dr" data-go="scores"><i class="ic"><svg viewBox="0 0 32 32"><rect x="3" y="5" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/><rect x="12.5" y="5" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/><rect x="22" y="5" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/><rect x="3" y="13" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/><rect x="12.5" y="13" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/><rect x="22" y="13" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/><rect x="3" y="21" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/><rect x="12.5" y="21" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/><rect x="22" y="21" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/></svg></i><span>Scores</span></button>
@@ -1067,7 +1066,6 @@ function render(){
   document.body.classList.toggle('classic', S.layout === 'classic');
   $$('.seg button').forEach(b => b.classList.toggle('on', b.dataset.view === S.view));
   $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === S.tab));
-  $('#myCount').textContent = S.my.length ? S.my.length : '';
   content.scrollTop = 0;
   if (S.view === 'stream') renderStream(); else { centerTab(); renderScores(); }
 }
@@ -1101,7 +1099,7 @@ async function openPicker(){
         teams = Object.values(seen);
       } catch (e) {}
     }
-    allTeams = teams.map(t => ({id: String(t.id), name: t.location || t.displayName, nick: t.name || '', full: t.displayName || '', logo: t.logo || t.logos?.[0]?.href || ''}))
+    allTeams = teams.map(t => ({id: String(t.id), name: t.location || t.displayName, nick: nickOf(t), full: t.displayName || '', logo: t.logo || t.logos?.[0]?.href || ''}))
                     .sort((a, b) => a.name.localeCompare(b.name));
   }
   drawPicker('');
@@ -1901,20 +1899,34 @@ function renderMyList(){
   }).join('');
   fillNicknames();
 }
-// older My Teams entries were saved without a nickname; look it up once
-let nickBusy = false;
+// older My Teams entries were saved without a nickname: find it from whichever ESPN source answers
+const nickOf = t => t?.name && t.name !== t.location ? t.name
+  : (t?.displayName && t?.location && t.displayName.startsWith(t.location) ? t.displayName.slice(t.location.length).trim() : '');
+let nickBusy = false, nickTried = false;
 async function fillNicknames(){
-  if (nickBusy) return;
-  const need = S.my.filter(t => !t.nick && !t.nickTried);
-  if (!need.length) return;
+  if (nickBusy || nickTried || !S.my.some(t => !t.nick)) return;
   nickBusy = true;
-  for (const t of need) {
-    try { const d = await getJSON(`${API}/teams/${t.id}`); t.nick = d.team?.name || d.team?.nickname || ''; if (!t.name) t.name = d.team?.location || ''; } catch (e) {}
-    t.nickTried = true;
+  const found = {};
+  const take = t => { if (t?.id && !found[String(t.id)]) { const n = nickOf(t); if (n) found[String(t.id)] = n; } };
+  const missing = () => S.my.filter(t => !t.nick && !found[String(t.id)]);
+  // 1) teams already in memory (scoreboard games, team page)
+  Object.values(S.ev || {}).forEach(e => (e.competitions?.[0]?.competitors || []).forEach(c => take(c.team)));
+  if (T.team) take(T.team);
+  // 2) ESPN's team list   3) FBS standings   4) each team's own page
+  if (missing().length) { try { const d = await getJSON(`${API}/teams?limit=1000`); (d.sports?.[0]?.leagues?.[0]?.teams || []).forEach(x => take(x.team)); } catch (e) {} }
+  if (missing().length) {
+    try {
+      const d = await getJSON(`https://site.api.espn.com/apis/v2/sports/football/college-football/standings?group=80&season=${S.season || new Date().getFullYear()}`);
+      const walk = n => { (n?.standings?.entries || []).forEach(e => take(e.team)); (n?.children || []).forEach(walk); };
+      walk(d);
+    } catch (e) {}
   }
+  for (const t of missing()) { try { const d = await getJSON(`${API}/teams/${t.id}`); take(d.team); } catch (e) {} }
+  let changed = false;
+  S.my.forEach(t => { if (!t.nick && found[String(t.id)]) { t.nick = found[String(t.id)]; changed = true; } delete t.nickTried; });
   store.set('cfb.my', S.my);
-  nickBusy = false;
-  renderMyList();
+  nickTried = true; nickBusy = false;
+  if (changed) renderMyList();
 }
 let hudT;
 function hud(msg){ const h = $('#hud'); h.textContent = msg; h.classList.add('show'); clearTimeout(hudT); hudT = setTimeout(() => h.classList.remove('show'), 1300); }
@@ -1922,7 +1934,7 @@ $('#bell').addEventListener('click', () => {
   if (S.view !== 'team' || !T.id) return;
   const i = S.my.findIndex(m => String(m.id) === T.id), t = T.team || {};
   if (i >= 0) { S.my.splice(i, 1); hud('Removed from My Teams'); }
-  else { S.my.push({id: T.id, name: t.location || t.displayName || t.abbreviation, nick: t.name && t.name !== t.location ? t.name : (t.nickname || ''), logo: logoOf(t)}); hud('Added to My Teams'); }
+  else { S.my.push({id: T.id, name: t.location || t.displayName || t.abbreviation, nick: nickOf(t) || t.nickname || '', logo: logoOf(t)}); hud('Added to My Teams'); }
   store.set('cfb.my', S.my); renderMyList();
   $('#bell').classList.toggle('on', i < 0);
 });
