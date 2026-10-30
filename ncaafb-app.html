@@ -410,6 +410,26 @@ body.bowlv .bwlist{margin:4px 0 0;border:0;box-shadow:none;border-bottom:1px sol
 body.bowlv .bwsec{margin:18px 14px 2px}
 body.bowlv .pseg{margin:12px 14px 0}
 
+/* Teams directory (dark, 2013 app style) */
+body.teamsv #content{background:#262626}
+.dtabs{position:sticky;top:0;z-index:2;display:flex;background:linear-gradient(#2e2e2e,#232323);border-bottom:1px solid #111}
+.dtabs button{flex:1;height:44px;position:relative;font-size:15.5px;font-weight:700;color:#9a9a9a;text-shadow:0 -1px 0 #000}
+.dtabs button.on{color:#fff}
+.dtabs button.on::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(#d8d8d8,#a9a9a9)}
+.dlist{padding:6px 10px 24px}
+.dlab{padding:14px 4px 6px;font-size:13px;font-weight:700;color:#9a9a9a;text-shadow:0 -1px 0 #000}
+.dgap{height:16px}
+.drow{display:flex;align-items:center;gap:12px;width:100%;min-height:46px;margin:0 0 7px;padding:0 14px;border-radius:3px;text-align:left;
+  background:linear-gradient(#353535,#2c2c2c);border:1px solid #1a1a1a;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 0 rgba(255,255,255,.03);
+  color:#f2f2f2;font-size:16.5px;font-weight:700;text-shadow:0 -1px 0 #000}
+.drow span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drow::after{content:"";flex:none;border:6px solid transparent;border-left:8px solid #cfcfcf;border-right:0;margin-left:6px}
+.drow:active{background:linear-gradient(#262626,#202020)}
+.drow img{width:30px;height:30px;object-fit:contain;flex:none;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+.drow.dback{min-height:38px;font-size:14px;color:#cfcfcf;gap:6px;background:none;border:0;box-shadow:none;padding-left:4px;margin-top:6px}
+.drow.dback::after{display:none}
+.dmsg{padding:40px 20px;text-align:center;color:#aaa}
+
 /* ================= game screen ================= */
 #game{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);
   transition:transform .32s cubic-bezier(.2,.7,.3,1);box-shadow:-4px 0 12px rgba(0,0,0,.45);visibility:hidden}
@@ -1022,6 +1042,7 @@ function render(){
   const PAGES = {news: 'News', standings: 'Standings', rankings: 'Rankings', top: 'Top Stories', video: 'Video', teams: 'Teams', bowl: 'Bowl Bound'};
   document.body.classList.toggle('pagev', !!PAGES[S.view]);
   document.body.classList.toggle('bowlv', S.view === 'bowl');
+  document.body.classList.toggle('teamsv', S.view === 'teams');
   const sel = S.view === 'stream' ? 'news' : S.view;
   $$('#drawer .dr[data-go]').forEach(b => b.classList.toggle('on', b.dataset.go === sel));
   renderMyList();
@@ -2435,6 +2456,76 @@ content.addEventListener('click', e => {
   if (g) { openGame(g.dataset.gid); return; }
 });
 
+
+/* ================= Teams directory ================= */
+const CONF_NAMES = {1: 'ACC', 151: 'American Athletic', 4: 'Big 12', 5: 'Big Ten', 12: 'Conference USA', 18: 'FBS Independents',
+  15: 'Mid-American', 17: 'Mountain West', 9: 'Pac-12', 8: 'SEC', 37: 'Sun Belt'};
+S.dirTab = 'conf'; S.dirConf = null;
+let DIR = null;
+async function loadDirectory(){
+  if (DIR) return DIR;
+  const yr = S.season || new Date().getFullYear();
+  const confs = [];
+  try {
+    const d = await getJSON(`https://site.api.espn.com/apis/v2/sports/football/college-football/standings?group=80&season=${yr}`);
+    (d.children || []).forEach(c => {
+      const teams = [];
+      const walk = n => { (n?.standings?.entries || []).forEach(e => e.team?.id && teams.push(e.team)); (n?.children || []).forEach(walk); };
+      walk(c);
+      if (teams.length) confs.push({id: String(c.id || ''), name: CONF_NAMES[c.id] || c.shortName || c.abbreviation || c.name, teams});
+    });
+  } catch (e) {}
+  if (!confs.length) {                      // fallback: ESPN's team list per conference
+    await Promise.all(Object.entries(CONF_NAMES).map(async ([id, name]) => {
+      try {
+        const d = await getJSON(`${API}/teams?groups=${id}&limit=200`);
+        const teams = (d.sports?.[0]?.leagues?.[0]?.teams || []).map(x => x.team).filter(Boolean);
+        if (teams.length) confs.push({id, name, teams});
+      } catch (e) {}
+    }));
+  }
+  const nm = t => t.location || t.shortDisplayName || t.displayName || '';
+  confs.forEach(c => c.teams.sort((a, b) => nm(a).localeCompare(nm(b))));
+  confs.sort((a, b) => a.name.localeCompare(b.name));
+  const all = [...new Map(confs.flatMap(c => c.teams).map(t => [String(t.id), t])).values()].sort((a, b) => nm(a).localeCompare(nm(b)));
+  return (DIR = {confs, all, nm});
+}
+async function renderTeamsDir(){
+  const token = ++S.token;
+  const tabs = `<div class="dtabs"><button data-dt="conf"${S.dirTab === 'conf' ? ' class="on"' : ''}>By Conference</button><button data-dt="name"${S.dirTab === 'name' ? ' class="on"' : ''}>By Name</button></div>`;
+  if (!DIR) content.innerHTML = tabs + '<div class="spin" style="margin-top:50px"></div>';
+  const d = await loadDirectory();
+  if (token !== S.token) return;
+  if (!d.confs.length) { content.innerHTML = tabs + '<div class="dmsg">Teams are not available right now.</div>'; return; }
+  const teamRow = t => `<button class="drow dteam" data-team="${esc(t.id)}">${logoOf(t) ? `<img src="${esc(logoOf(t))}" alt="">` : ''}<span>${esc(d.nm(t))}</span></button>`;
+  let body = '';
+  if (S.dirTab === 'name') {
+    let letter = '';
+    d.all.forEach(t => {
+      const L = (d.nm(t)[0] || '#').toUpperCase();
+      if (L !== letter) { body += `<div class="dlab">${esc(L)}</div>`; letter = L; }
+      body += teamRow(t);
+    });
+  } else if (S.dirConf) {
+    const c = S.dirConf === 'all' ? {name: 'All Bowl Subdivision', teams: d.all} : d.confs.find(x => x.id === S.dirConf);
+    body = `<button class="drow dback" data-dconf="">‹ <span>Conferences</span></button><div class="dlab">${esc(c?.name || '')}</div>` + (c?.teams || []).map(teamRow).join('');
+  } else {
+    body = `<div class="dlab">Bowl Subdivision</div><button class="drow" data-dconf="all"><span>All Bowl Subdivision</span></button><div class="dgap"></div>` +
+      d.confs.map(c => `<button class="drow" data-dconf="${esc(c.id)}"><span>${esc(c.name)}</span></button>`).join('');
+  }
+  content.innerHTML = tabs + `<div class="dlist">${body}</div>`;
+  $('#navTitle').textContent = S.dirTab === 'conf' && S.dirConf ? (S.dirConf === 'all' ? 'All Bowl Subdivision' : (d.confs.find(x => x.id === S.dirConf)?.name || 'Teams')) : 'Teams';
+}
+content.addEventListener('click', e => {
+  if (S.view !== 'teams') return;
+  const t = e.target.closest('[data-dt]');
+  if (t) { S.dirTab = t.dataset.dt; S.dirConf = null; content.scrollTop = 0; renderTeamsDir(); return; }
+  const c = e.target.closest('[data-dconf]');
+  if (c) { S.dirConf = c.dataset.dconf || null; content.scrollTop = 0; renderTeamsDir(); return; }
+  const tm = e.target.closest('.dteam[data-team]');
+  if (tm) openTeam(tm.dataset.team);
+});
+
 /* -- top-level pages from the side menu -- */
 const STAND_CONFS = CONFS.filter(c => !/^(top25|80)$/.test(c[0]));
 S.sconf = store.get('cfb.sconf', '8'); S.poll = 0;
@@ -2457,6 +2548,8 @@ async function renderPage(){
     content.innerHTML = rankingsHTML(v, null);
   } else if (view === 'news') {
     renderStream();
+  } else if (view === 'teams') {
+    renderTeamsDir();
   } else if (view === 'bowl') {
     renderBowl();
   } else if (view === 'video') {
