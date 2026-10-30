@@ -47,7 +47,11 @@ button{font:inherit;border:0;background:none;color:inherit;cursor:pointer}
   background:linear-gradient(90deg,rgba(150,100,10,.2),#d9a520 35%,#ffd36a 55%,#d9a520 75%,rgba(150,100,10,.2));box-shadow:0 -2px 8px rgba(255,180,30,.45)}
 #drawer .dsm{height:42px;font-size:15.5px}
 #drawer .dsm .ic{width:22px;height:22px}
-#drawer #myList .dr img{width:24px;height:24px;object-fit:contain;flex:none}
+#drawer .dmy{height:64px;gap:14px;padding:0 14px}
+#drawer .dmy img{width:38px;height:38px;object-fit:contain;flex:none;align-self:center;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+#drawer .dmy span{display:flex;flex-direction:column;justify-content:center;line-height:1.12;text-transform:uppercase;letter-spacing:.3px}
+#drawer .dmy b{font-size:18px;font-weight:500;color:#cfcfcf}
+#drawer .dmy i{font-style:normal;font-size:18px;font-weight:500;color:#e6e6e6}
 
 /* ---------- app shell ---------- */
 #app{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg);z-index:2;
@@ -596,6 +600,9 @@ body.ingame #app{transform:translateX(-28%)}
 
 <nav id="drawer" aria-label="Menu">
   <div class="dhead"><b>ESPN</b><span>College Football</span></div>
+  <div class="dsec">My Teams</div>
+  <div id="myList"></div>
+  <button class="dr dsm" data-go="myteams"><i class="ic"><svg viewBox="0 0 32 32"><path d="M16 6v20M6 16h20" stroke="currentColor" stroke-width="3"/></svg></i><span>Edit My Teams</span><small id="myCount"></small></button>
   <div class="dsec">Featured</div>
   <button class="dr" data-go="top"><i class="ic"><svg viewBox="0 0 32 32"><path d="M16 2.5c4.2 2.2 8.4 3 12.5 2.8v9.4c0 7.4-5.1 12.3-12.5 15-7.4-2.7-12.5-7.6-12.5-15V5.3C7.6 5.5 11.8 4.7 16 2.5z" fill="#f2f2f2" stroke="#9a9a9a" stroke-width="1.2"/><path d="M9.5 9.5h13M9.5 13h13" stroke="#3b3b3b" stroke-width="2"/><path d="M13 19.5c1.8-1.4 4.2-1.4 6 0-1.8 1.4-4.2 1.4-6 0z" fill="#3b3b3b"/></svg></i><span>Top Stories</span></button>
   <button class="dr" data-go="scores"><i class="ic"><svg viewBox="0 0 32 32"><rect x="3" y="5" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/><rect x="12.5" y="5" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/><rect x="22" y="5" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/><rect x="3" y="13" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/><rect x="12.5" y="13" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/><rect x="22" y="13" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/><rect x="3" y="21" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/><rect x="12.5" y="21" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/><rect x="22" y="21" width="7" height="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.6 1.2"/></svg></i><span>Scores</span></button>
@@ -605,9 +612,6 @@ body.ingame #app{transform:translateX(-28%)}
   <button class="dr" data-go="standings"><i class="ic"><svg viewBox="0 0 32 32"><rect x="2" y="5" width="28" height="22" fill="currentColor"/><path d="M5 10h3M5 15h3M5 20h3M10 10h17M10 15h17M10 20h17" stroke="#262626" stroke-width="2.2"/></svg></i><span>Standings</span></button>
   <button class="dr" data-go="teams"><i class="ic"><svg viewBox="0 0 32 32"><path d="M4 18c0-8.3 5.9-14 13.4-14 6.1 0 11 4.3 11.6 10.5l-6.6.8c-.4 2-1.9 3.5-3.9 3.9l1.1 4.6h3.6l2.4 4.5-1.6.9-1.9-3.5h-3.9l-1.3-5.6c-2.3.1-4.1 2.1-4.6 4.3H6.5C5 23.3 4 20.9 4 18z" fill="currentColor"/><text x="8.6" y="17.5" font-size="11" font-weight="900" fill="#262626" font-family="Georgia,serif">U</text></svg></i><span>Teams</span></button>
   <button class="dr" data-go="bowl"><i class="ic"><svg viewBox="0 0 32 32"><ellipse cx="16" cy="9.5" rx="6.2" ry="7.2" transform="rotate(-25 16 9.5)" fill="currentColor"/><path d="M14 16.5h4l.6 4h3.4v3H10v-3h3.4z" fill="currentColor"/><rect x="8" y="24.5" width="16" height="4.5" fill="currentColor"/></svg></i><span>Bowl Bound</span></button>
-  <div class="dsec">My Teams</div>
-  <div id="myList"></div>
-  <button class="dr dsm" data-go="myteams"><i class="ic"><svg viewBox="0 0 32 32"><path d="M16 6v20M6 16h20" stroke="currentColor" stroke-width="3"/></svg></i><span>Edit My Teams</span><small id="myCount"></small></button>
   <div class="dsec">More ESPN</div>
   <a class="dr dsm" href="nfl-scoreboard.html"><span>NFL Scoreboard</span></a>
   <a class="dr dsm" href="ncaabb-scoreboard.html"><span>NCAA Basketball Scoreboard</span></a>
@@ -1094,7 +1098,7 @@ async function openPicker(){
         teams = Object.values(seen);
       } catch (e) {}
     }
-    allTeams = teams.map(t => ({id: String(t.id), name: t.location || t.displayName, full: t.displayName || '', logo: t.logo || t.logos?.[0]?.href || ''}))
+    allTeams = teams.map(t => ({id: String(t.id), name: t.location || t.displayName, nick: t.name || '', full: t.displayName || '', logo: t.logo || t.logos?.[0]?.href || ''}))
                     .sort((a, b) => a.name.localeCompare(b.name));
   }
   drawPicker('');
@@ -1149,7 +1153,7 @@ $('#mlist').addEventListener('click', e => {
   const b = e.target.closest('.tr'); if (!b) return;
   const id = b.dataset.id, i = S.my.findIndex(t => String(t.id) === id);
   if (i >= 0) S.my.splice(i, 1);
-  else { const t = allTeams.find(x => x.id === id); S.my.push({id, name: t.name, logo: t.logo}); }
+  else { const t = allTeams.find(x => x.id === id); S.my.push({id, name: t.name, nick: t.nick || '', logo: t.logo}); }
   store.set('cfb.my', S.my);
   renderMyList();
   b.classList.toggle('on');
@@ -1887,7 +1891,27 @@ function openTeam(id, fromHistory){
 }
 function renderMyList(){
   const el = $('#myList'); if (!el) return;
-  el.innerHTML = S.my.map(t => `<button class="dr dsm${S.view === 'team' && T.id === String(t.id) ? ' on' : ''}" data-team="${esc(t.id)}">${t.logo ? `<img src="${esc(t.logo)}" alt="">` : ''}<span>${esc(t.name || '')}</span></button>`).join('');
+  el.innerHTML = S.my.map(t => {
+    const dark = `https://a.espncdn.com/i/teamlogos/ncaa/500-dark/${t.id}.png`;
+    const img = `<img src="${esc(dark)}" alt=""${t.logo ? ` onerror="this.onerror=null;this.src='${esc(t.logo)}'"` : ''}>`;
+    return `<button class="dr dmy${S.view === 'team' && T.id === String(t.id) ? ' on' : ''}" data-team="${esc(t.id)}">${img}<span><b>${esc(t.name || '')}</b>${t.nick ? `<i>${esc(t.nick)}</i>` : ''}</span></button>`;
+  }).join('');
+  fillNicknames();
+}
+// older My Teams entries were saved without a nickname; look it up once
+let nickBusy = false;
+async function fillNicknames(){
+  if (nickBusy) return;
+  const need = S.my.filter(t => !t.nick && !t.nickTried);
+  if (!need.length) return;
+  nickBusy = true;
+  for (const t of need) {
+    try { const d = await getJSON(`${API}/teams/${t.id}`); t.nick = d.team?.name || d.team?.nickname || ''; if (!t.name) t.name = d.team?.location || ''; } catch (e) {}
+    t.nickTried = true;
+  }
+  store.set('cfb.my', S.my);
+  nickBusy = false;
+  renderMyList();
 }
 let hudT;
 function hud(msg){ const h = $('#hud'); h.textContent = msg; h.classList.add('show'); clearTimeout(hudT); hudT = setTimeout(() => h.classList.remove('show'), 1300); }
@@ -1895,7 +1919,7 @@ $('#bell').addEventListener('click', () => {
   if (S.view !== 'team' || !T.id) return;
   const i = S.my.findIndex(m => String(m.id) === T.id), t = T.team || {};
   if (i >= 0) { S.my.splice(i, 1); hud('Removed from My Teams'); }
-  else { S.my.push({id: T.id, name: t.location || t.displayName || t.abbreviation, logo: logoOf(t)}); hud('Added to My Teams'); }
+  else { S.my.push({id: T.id, name: t.location || t.displayName || t.abbreviation, nick: t.name && t.name !== t.location ? t.name : (t.nickname || ''), logo: logoOf(t)}); hud('Added to My Teams'); }
   store.set('cfb.my', S.my); renderMyList();
   $('#bell').classList.toggle('on', i < 0);
 });
