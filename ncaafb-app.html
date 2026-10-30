@@ -199,7 +199,7 @@ body.teamv #tlogo{display:block}
 #tlogo::after{right:0;bottom:0;border-bottom:12px solid var(--tc);border-left:12px solid transparent}
 body.teamv #content{background:linear-gradient(#f4f5f7,#eef0f3 60%,#eceef1)}
 .trank{padding:24px 10px 10px 84px;min-height:64px;font-size:16px;line-height:20px;color:#222;display:flex;align-items:baseline;gap:5px;white-space:nowrap}
-.trank b{font-size:17px;font-weight:700;color:#111;letter-spacing:-.2px}
+.trank b{font:19px/20px "CFB Slab",Rockwell,Georgia,serif;font-weight:400;color:#111;letter-spacing:.3px}
 .tcard{margin:6px 8px 0;background:#fff;border:1px solid #cfd1d4;border-bottom:0;box-shadow:0 1px 3px rgba(0,0,0,.08);cursor:pointer}
 .tcard .ttop{display:flex;justify-content:space-between;align-items:center;height:40px;padding:0 10px;border-bottom:1px solid #d7d7d7;
   font-size:12px;font-weight:700;color:#3a3a3a;text-transform:uppercase}
@@ -1547,7 +1547,8 @@ function recordLine(){
   // conference record: vsconf summary, else counted from conference games
   let conf = items.find(x => /vsconf|conf/i.test(x.type || ''))?.summary || t.confRec || (flagged || !evs.some(e => evState(e) === 'post') ? `${cw}-${cl}` : '');
   const cn = CONF_SHORT[t.confId] || ((t.standingSummary || '').match(/\bin (.+?)(?:\s+-\s+|$)/) || [])[1] || '';
-  const confTxt = cn && !/^Ind/i.test(cn) && conf ? `, ${conf} ${cn}` : '';
+  const indep = /^Ind/i.test(cn) || String(t.confId) === '18' || /independent/i.test(t.standingSummary || '');
+  const confTxt = indep ? ' Independent' : (cn && conf ? `, ${conf} ${cn}` : '');
   // rank: the poll rank ESPN shows on this team's current or next game, else the team's listed rank
   let rk = null;
   const cur = evs.find(e => evState(e) === 'in') || evs.find(e => evState(e) === 'pre');
