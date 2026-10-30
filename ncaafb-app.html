@@ -196,8 +196,8 @@ body.teamv #tlogo{display:block}
 #tlogo::before{left:0;top:0;border-top:10px solid var(--tc);border-right:10px solid transparent}
 #tlogo::after{right:0;bottom:0;border-bottom:10px solid var(--tc);border-left:10px solid transparent}
 body.teamv #content{background:linear-gradient(#f4f5f7,#eef0f3 60%,#eceef1)}
-.trank{padding:20px 10px 10px 76px;min-height:58px;font-size:15px;color:#2b2b2b;display:flex;align-items:baseline;gap:6px}
-.trank b{font-size:16.5px;font-weight:800;color:#111}
+.trank{padding:20px 10px 10px 76px;min-height:58px;font-size:16px;line-height:20px;color:#222;display:flex;align-items:baseline;gap:5px;white-space:nowrap}
+.trank b{font-size:17px;font-weight:700;color:#111;letter-spacing:-.2px}
 .tcard{margin:6px 8px 0;background:#fff;border:1px solid #cfd1d4;border-bottom:0;box-shadow:0 1px 3px rgba(0,0,0,.08);cursor:pointer}
 .tcard .ttop{display:flex;justify-content:space-between;align-items:center;height:40px;padding:0 10px;border-bottom:1px solid #d7d7d7;
   font-size:12px;font-weight:700;color:#3a3a3a;text-transform:uppercase}
@@ -1454,6 +1454,33 @@ function timeLine(e){
 }
 const netOf2 = comp => comp.broadcasts?.[0]?.media?.shortName || comp.broadcasts?.[0]?.names?.[0] || comp.geoBroadcasts?.[0]?.media?.shortName || '';
 
+// Team details can come from several ESPN feeds; merge whatever arrives so the header never ends up blank.
+async function mergeTeamInfo(id, a, b, events){
+  const out = {id};
+  const take = src => { if (!src) return; for (const [k, v] of Object.entries(src)) if (v != null && v !== '' && out[k] == null) out[k] = v; };
+  take(a); take(b);
+  // the team's own entry in its games (abbreviation, logos, rank)
+  const mine = [];
+  (events || []).forEach(e => (e.competitions?.[0]?.competitors || []).forEach(c => { if (String(c.team?.id) === id) mine.push(c); }));
+  Object.values(S.ev || {}).forEach(e => (e.competitions?.[0]?.competitors || []).forEach(c => { if (String(c.team?.id) === id) mine.push(c); }));
+  mine.forEach(c => take(c.team));
+  if (!out.abbreviation || !hexOk(out.color)) {
+    try {
+      const d = await getJSON(`${API}/teams?limit=1000`);
+      const hit = (d.sports?.[0]?.leagues?.[0]?.teams || []).map(x => x.team).find(x => String(x?.id) === id);
+      take(hit);
+    } catch (e) {}
+  }
+  const my = S.my.find(m => String(m.id) === id);
+  if (my) { out.location ??= my.name; out.logo ??= my.logo; }
+  if (!out.logo && !(out.logos || []).length) out.logo = `https://a.espncdn.com/i/teamlogos/ncaa/500/${id}.png`;
+  out.abbreviation ??= out.shortDisplayName || out.location || '';
+  // conference id: groups.id, or conferenceId from scoreboard entries
+  out.confId = out.groups?.isConference === false ? null : (out.groups?.id || mine.find(c => c.team?.conferenceId)?.team?.conferenceId || null);
+  out.curRank = (() => { const c = mine.find(x => rankOf(x)); return c ? rankOf(c) : null; })();
+  out.confRec = (() => { for (const c of mine) { const r = (c.records || []).find(x => /vsconf/i.test(x.type || '')); if (r) return r.summary; } return null; })();
+  return out;
+}
 async function loadTeam(silent){
   clearTimeout(T.timer);
   const id = T.id, token = ++T.token;
@@ -1461,7 +1488,8 @@ async function loadTeam(silent){
     getJSON(`${API}/teams/${id}`, silent), getJSON(`${API}/teams/${id}/schedule`, silent),
     getJSON(`${API}/teams/${id}/schedule?seasontype=3`, silent), getJSON(`${API}/news?team=${id}&limit=12`, silent)]);
   if (token !== T.token || id !== T.id) return;
-  T.team = t.value?.team || T.team || {};
+  T.team = await mergeTeamInfo(id, t.value?.team, s2.value?.team, [...(s2.value?.events || []), ...(s3.value?.events || [])]);
+  if (token !== T.token || id !== T.id) return;
   const seen = {}, evs = [];
   [...(s2.value?.events || []), ...(s3.value?.events || [])].forEach(e => { if (e?.id && !seen[e.id]) { seen[e.id] = 1; evs.push(e); } });
   evs.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -1490,7 +1518,8 @@ function teamHeader(){
   const t = T.team || {};
   applyTeamColors(t);
   $('#navTitle').textContent = t.abbreviation || t.shortDisplayName || '';
-  $('#tlogo').innerHTML = logoOf(t) ? `<img src="${esc(logoOf(t))}" alt="">` : '';
+  const lg = logoOf(t) || (T.id ? `https://a.espncdn.com/i/teamlogos/ncaa/500/${T.id}.png` : '');
+  $('#tlogo').innerHTML = lg ? `<img src="${esc(lg)}" alt="" onerror="this.style.visibility='hidden'">` : '';
   $('#bell').classList.toggle('on', S.my.some(m => String(m.id) === T.id));
   $$('#ttabs button').forEach(b => b.classList.toggle('on', b.dataset.ttab === T.tab));
   const on = $('#ttabs .on'), g = $('#tglow');
@@ -1498,21 +1527,26 @@ function teamHeader(){
 }
 function recordLine(){
   const t = T.team || {}, evs = T.events || [];
-  let w = 0, l = 0, cw = 0, cl = 0;
-  evs.filter(e => evState(e) === 'post').forEach(e => {
-    const r = result(e).wl, conf = evComp(e).conferenceCompetition;
-    if (r === 'W') { w++; if (conf) cw++; } else if (r === 'L') { l++; if (conf) cl++; }
-  });
+  // overall record: ESPN's own summary first, then count this season's finals
   const items = t.record?.items || [];
-  const tot = evs.length ? `${w}-${l}` : (items.find(i => i.type === 'total')?.summary || '');
-  const cn = CONF_SHORT[t.groups?.id] || ((t.standingSummary || '').match(/in (.+?)(?: - |$)/) || [])[1] || '';
-  const conf = cn && cn !== 'Ind.' ? `, ${cw}-${cl} ${cn}` : '';
-  let rk = t.rank;
-  if (!(rk >= 1 && rk <= 25)) {
-    const up = evs.find(e => evState(e) !== 'post') || evs[evs.length - 1];
-    rk = up ? rankOf(sides2(up).us) : null;
-  }
-  return `<div class="trank">${rk >= 1 && rk <= 25 ? `<b>#${rk}</b>` : ''}<span>${esc(tot)}${esc(conf)}</span></div>`;
+  let tot = items.find(x => x.type === 'total')?.summary || t.recordSummary || '';
+  let w = 0, l = 0, cw = 0, cl = 0, flagged = false;
+  evs.filter(e => evState(e) === 'post').forEach(e => {
+    const r = result(e).wl, cc = evComp(e).conferenceCompetition;
+    if (cc != null) flagged = true;
+    if (r === 'W') { w++; if (cc) cw++; } else if (r === 'L') { l++; if (cc) cl++; }
+  });
+  if (!tot) tot = `${w}-${l}`;
+  // conference record: vsconf summary, else counted from conference games
+  let conf = items.find(x => /vsconf|conf/i.test(x.type || ''))?.summary || t.confRec || (flagged || !evs.some(e => evState(e) === 'post') ? `${cw}-${cl}` : '');
+  const cn = CONF_SHORT[t.confId] || ((t.standingSummary || '').match(/\bin (.+?)(?:\s+-\s+|$)/) || [])[1] || '';
+  const confTxt = cn && !/^Ind/i.test(cn) && conf ? `, ${conf} ${cn}` : '';
+  // rank: the poll rank ESPN shows on this team's current or next game, else the team's listed rank
+  let rk = null;
+  const cur = evs.find(e => evState(e) === 'in') || evs.find(e => evState(e) === 'pre');
+  if (cur) rk = rankOf(sides2(cur).us);
+  if (!rk) rk = t.curRank || (t.rank >= 1 && t.rank <= 25 ? t.rank : null);
+  return `<div class="trank">${rk ? `<b>#${rk}</b>` : ''}<span>${esc(tot)}${esc(confTxt)}</span></div>`;
 }
 function featuredHTML(){
   const evs = T.events || [];
