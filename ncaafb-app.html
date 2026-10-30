@@ -71,12 +71,12 @@ body.drawer-open #scrim{display:block}
 #glow{position:absolute;bottom:3px;height:20px;left:0;width:0;z-index:0;pointer-events:none;
   background:radial-gradient(50% 100% at 50% 100%,rgba(255,226,90,1) 0%,rgba(255,196,0,.95) 18%,rgba(250,160,0,.5) 45%,rgba(220,120,0,0) 80%);
   transition:left .25s ease,width .25s ease}
-#tabs button{flex:none;position:relative;z-index:1;padding:2px 9px 0;font:21.5px/47px "CFB Slab",Rockwell,Georgia,serif;letter-spacing:.2px;
+#tabs button,#ttabs button{flex:none;position:relative;z-index:1;padding:2px 9px 0;font:21.5px/47px "CFB Slab",Rockwell,Georgia,serif;letter-spacing:.2px;
   text-transform:uppercase;white-space:nowrap;
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2.4 0 0 0 -1.62'/%3E%3C/filter%3E%3Crect width='80' height='80' filter='url(%23n)'/%3E%3C/svg%3E"),linear-gradient(#c9c9c9,#a3a3a3 55%,#8f8f8f);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;
   filter:drop-shadow(0 1px 0 #000) drop-shadow(0 0 1px rgba(0,0,0,.9))}
-#tabs button.on{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2.4 0 0 0 -1.62'/%3E%3C/filter%3E%3Crect width='80' height='80' filter='url(%23n)'/%3E%3C/svg%3E"),linear-gradient(#fff,#f4f4f4 60%,#e2e2e2);-webkit-background-clip:text;background-clip:text}
+#tabs button.on,#ttabs button.on{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2.4 0 0 0 -1.62'/%3E%3C/filter%3E%3Crect width='80' height='80' filter='url(%23n)'/%3E%3C/svg%3E"),linear-gradient(#fff,#f4f4f4 60%,#e2e2e2);-webkit-background-clip:text;background-clip:text}
 body.stream #band{display:none}
 
 /* content */
@@ -169,6 +169,93 @@ body.stream #band{display:none}
 .sh h3{font-size:14px;line-height:1.25;color:#1d1d1d}
 .sh p{font-size:12px;line-height:1.3;color:#666;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .sh time{display:block;font-size:11px;color:var(--red);font-weight:700;margin-top:4px;text-transform:uppercase}
+
+/* ================= team page ================= */
+#navTitle,#bell,#ttabs,#tlogo{display:none}
+body.teamv .seg{display:none}
+body.teamv #nav{background:var(--tnav)}
+body.teamv #navTitle{display:block;position:absolute;left:64px;right:64px;text-align:center;font-size:20px;font-weight:700;color:#fff;
+  text-shadow:0 -1px 0 rgba(0,0,0,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bell{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:40px;height:40px;align-items:center;justify-content:center}
+#bell svg{width:23px;height:23px;fill:none;stroke:#fff;stroke-width:1.6;filter:drop-shadow(0 -1px 0 rgba(0,0,0,.5))}
+#bell.on svg{fill:#fff}
+body.teamv #bell{display:flex}
+body.teamv #tabs{display:none}
+#ttabs button{font-size:20px;padding-left:8px;padding-right:8px}
+body.teamv #band{overflow:visible;z-index:5}
+body.teamv #band::before,body.teamv #band::after{z-index:4}
+#ttabs{position:relative;height:100%;padding-left:72px;gap:0;overflow:hidden}
+body.teamv #ttabs{display:flex}
+#tglow{position:absolute;bottom:3px;height:22px;left:0;width:0;z-index:0;pointer-events:none;
+  background:radial-gradient(50% 100% at 50% 100%,var(--tcg1) 0%,var(--tcg2) 30%,transparent 80%);transition:left .25s ease,width .25s ease}
+#tlogo{position:absolute;left:10px;top:12px;width:51px;height:51px;padding:4px;background:#fff;border:1px solid #a5a5a5;z-index:6;
+  box-shadow:0 1px 3px rgba(0,0,0,.35);overflow:hidden}
+body.teamv #tlogo{display:block}
+#tlogo img{width:100%;height:100%;object-fit:contain}
+#tlogo::before,#tlogo::after{content:"";position:absolute;width:0;height:0}
+#tlogo::before{left:0;top:0;border-top:10px solid var(--tc);border-right:10px solid transparent}
+#tlogo::after{right:0;bottom:0;border-bottom:10px solid var(--tc);border-left:10px solid transparent}
+body.teamv #content{background:linear-gradient(#f4f5f7,#eef0f3 60%,#eceef1)}
+.trank{padding:20px 10px 10px 76px;min-height:58px;font-size:15px;color:#2b2b2b;display:flex;align-items:baseline;gap:6px}
+.trank b{font-size:16.5px;font-weight:800;color:#111}
+.tcard{margin:6px 8px 0;background:#fff;border:1px solid #cfd1d4;border-bottom:0;box-shadow:0 1px 3px rgba(0,0,0,.08);cursor:pointer}
+.tcard .ttop{display:flex;justify-content:space-between;align-items:center;height:40px;padding:0 10px;border-bottom:1px solid #d7d7d7;
+  font-size:12px;font-weight:700;color:#3a3a3a;text-transform:uppercase}
+.tcard .ttop .live{color:var(--live)}
+.tmid{display:grid;grid-template-columns:58px 1fr 30px 1fr 58px;align-items:center;height:78px;padding:0 8px;border-bottom:1px solid #d7d7d7}
+.tmid img,.tmid .ph{width:52px;height:52px;object-fit:contain}
+.tmid .ph{border-radius:50%;background:#e6e6e6}
+.tmid .tt{text-align:center;line-height:1.25}
+.tmid .tt b{display:block;font-size:14px;font-weight:700;color:#333;white-space:nowrap}
+.tmid .tt b em{font-style:normal;font-weight:400;color:#8a8a8a;margin-right:3px}
+.tmid .tt span{font-size:13px;color:#666}
+.tmid .tt .s{display:block;font-size:24px;font-weight:700;color:#222;line-height:1.1}
+.tmid .tt .s.lose{color:#9a9a9a}
+.tmid .at{text-align:center;font-size:14px;color:#777}
+.tven{height:34px;line-height:34px;text-align:center;font-size:12.5px;font-weight:700;color:#3a3a3a;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tmini{display:flex;margin:0 8px;background:linear-gradient(#fff,#f7f7f7);border:1px solid #cfd1d4;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+.tmini > div{flex:1;min-width:0;display:flex;align-items:center;gap:9px;padding:8px 9px;height:54px;cursor:pointer}
+.tmini > div + div{border-left:1px solid #d7d7d7}
+.tmini .mp{justify-content:flex-end;text-align:right}
+.tmini img,.tmini .ph{width:34px;height:34px;object-fit:contain;flex:none}
+.tmini .ph{border-radius:50%;background:#e6e6e6}
+.tmini .tx{min-width:0;line-height:1.2;font-size:11.5px;color:#666;white-space:nowrap}
+.tmini .tx b{display:block;font-size:11.5px;color:#333;text-transform:uppercase}
+.tmini .tx em{font-style:normal}
+.tmini .W{color:#2f8a2f;font-style:normal}
+.tmini .L{color:#d0021b;font-style:normal}
+.tmini .none{flex:1;text-align:center;font-size:12px;color:#999}
+.tnews{margin:22px 8px 0}
+.tnews h3{font-size:13px;font-weight:700;color:var(--tcd);padding:0 0 7px;border-bottom:3px solid var(--tcd);text-transform:uppercase}
+.tnews a{display:block;padding:12px 0;font-size:15px;line-height:1.3;color:#333;border-bottom:1px solid #cfd0d3}
+.tnews a:active{background:rgba(0,0,0,.04)}
+.tnews time{display:block;font-size:11px;color:#999;margin-top:3px;text-transform:uppercase}
+/* schedule */
+.srow{display:flex;align-items:center;gap:10px;padding:0 10px;height:58px;background:#fff;border-bottom:1px solid #dcdcdc;cursor:pointer}
+.srow:active{background:#f5f5f5}
+.srow .sd{width:44px;flex:none;text-align:center;line-height:1.15}
+.srow .sd b{display:block;font-size:13px;color:#333;text-transform:uppercase}
+.srow .sd small{font-size:11px;color:#999;text-transform:uppercase}
+.srow img,.srow .ph{width:32px;height:32px;object-fit:contain;flex:none}
+.srow .ph{border-radius:50%;background:#e6e6e6}
+.srow .so{flex:1;min-width:0;line-height:1.25}
+.srow .so b{display:block;font-size:14.5px;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .so b em{font-style:normal;font-weight:400;color:#8a8a8a}
+.srow .so small{display:block;font-size:11.5px;color:#999;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .sr{text-align:right;flex:none;line-height:1.25}
+.srow .sr b{display:block;font-size:14px;color:#333}
+.srow .sr small{display:block;font-size:11.5px;color:#999}
+.srow .W{color:#2f8a2f;font-style:normal}
+.srow .L{color:#d0021b;font-style:normal}
+.srow.live .sr b{color:var(--live)}
+.tsched .sbar{margin-top:0}
+.tsched .sbar:not(:first-child){margin-top:14px}
+#myList .di img{width:24px;height:24px;object-fit:contain;margin-right:10px}
+#myList .di{justify-content:flex-start}
+#hud{position:fixed;left:50%;top:45%;transform:translate(-50%,-50%) scale(.9);z-index:200;padding:14px 18px;border-radius:10px;background:rgba(0,0,0,.75);
+  color:#fff;font-size:14px;font-weight:700;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+#hud.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.ghead .tmh{cursor:pointer}
 
 /* ================= game screen ================= */
 #game{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);
@@ -332,6 +419,8 @@ body.ingame #app{transform:translateX(-28%)}
   <h4>College Football</h4>
   <button class="di" data-go="scores">Scores</button>
   <button class="di" data-go="stream">Stream</button>
+  <h4>My Teams</h4>
+  <div id="myList"></div>
   <button class="di" data-go="myteams">Edit My Teams <small id="myCount"></small></button>
   <h4>Scoreboards</h4>
   <a class="di" href="ncaafb-scoreboard.html">College Football</a>
@@ -352,13 +441,21 @@ body.ingame #app{transform:translateX(-28%)}
         <button data-view="scores" class="on">Scores</button>
         <button data-view="stream">Stream</button>
       </div>
+      <h1 id="navTitle"></h1>
+      <button id="bell" aria-label="Add to My Teams"><svg viewBox="0 0 24 24"><path d="M12 2.2c.8 0 1.4.6 1.4 1.4v.7c2.9.7 4.8 3.2 4.8 6.4v4.4l1.9 2.3c.4.5.1 1.2-.6 1.2H4.5c-.7 0-1-.7-.6-1.2l1.9-2.3v-4.4c0-3.2 1.9-5.7 4.8-6.4v-.7c0-.8.6-1.4 1.4-1.4zM9.6 19.6h4.8c0 1.3-1.1 2.3-2.4 2.3s-2.4-1-2.4-2.3z"/></svg></button>
     </div>
   </header>
   <div id="band"><div id="tabs"><span id="glow"></span>
     <button data-tab="top">Top Games</button>
     <button data-tab="all">All Games</button>
     <button data-tab="my">My Teams</button>
-  </div></div>
+  </div>
+  <div id="ttabs"><span id="tglow"></span>
+    <button data-ttab="club">Clubhouse</button>
+    <button data-ttab="sched">Schedule</button>
+  </div>
+  <div id="tlogo"></div></div>
+  <div id="hud" aria-live="polite"></div>
   <main id="content"></main>
 </div>
 
@@ -753,6 +850,11 @@ async function renderStream(){
 
 function render(){
   document.body.classList.toggle('stream', S.view === 'stream');
+  document.body.classList.toggle('teamv', S.view === 'team');
+  renderMyList();
+  if (S.view === 'team') { clearTimeout(S.timer); S.token++; content.scrollTop = 0; renderTeam(); return; }
+  clearTimeout(T.timer);
+  if (/^#team\//.test(location.hash)) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
   document.body.classList.toggle('classic', S.layout === 'classic');
   $$('.seg button').forEach(b => b.classList.toggle('on', b.dataset.view === S.view));
   $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === S.tab));
@@ -821,6 +923,7 @@ $$('#tabs button').forEach(b => b.addEventListener('click', () => setTab(b.datas
 $('#drawer').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.go === 'myteams') return openPicker();
+  if (b.dataset.team) { closeDrawer(); openTeam(b.dataset.team); return; }
   if (b.dataset.go) { S.view = b.dataset.go; closeDrawer(); render(); }
 });
 content.addEventListener('change', e => {
@@ -842,6 +945,7 @@ $('#mlist').addEventListener('click', e => {
   if (i >= 0) S.my.splice(i, 1);
   else { const t = allTeams.find(x => x.id === id); S.my.push({id, name: t.name, logo: t.logo}); }
   store.set('cfb.my', S.my);
+  renderMyList();
   b.classList.toggle('on');
 });
 
@@ -860,6 +964,7 @@ content.addEventListener('touchend', e => {
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) return;
   if (G.id) loadGame(true);
+  else if (S.view === 'team' && T.id) loadTeam(true);
   else if (S.view === 'scores' && S.weeks.length) renderScores(true);
 });
 
@@ -904,7 +1009,7 @@ function renderGameHead(){
     `linear-gradient(#2a2728, #1d1b1c)`;
   const tm = c => {
     const rk = rankOf(c), logo = darkLogo(c.team);
-    return `<div class="tmh">${logo ? `<img src="${esc(logo)}" alt="">` : '<div class="ph"></div>'}<b>${rk ? `<em>${rk}</em>` : ''}${esc(c.team?.abbreviation || '')}</b></div>`;
+    return `<div class="tmh" data-tid="${esc(c.team?.id || '')}">${logo ? `<img src="${esc(logo)}" alt="">` : '<div class="ph"></div>'}<b>${rk ? `<em>${rk}</em>` : ''}${esc(c.team?.abbreviation || '')}</b></div>`;
   };
   let mid, sa, sh;
   if (state === 'pre') {
@@ -1290,6 +1395,8 @@ window.addEventListener('popstate', () => {
   const m = location.hash.match(/^#game\/(\d+)/);
   if (m && m[1] !== G.id) openGame(m[1], true);
   else if (!m) closeGame(true);
+  const t = location.hash.match(/^#team\/(\d+)/);
+  if (t && (S.view !== 'team' || T.id !== t[1])) openTeam(t[1], true);
 });
 // edge swipe right to go back, like a UINavigationController
 let gx = 0, gy = 0;
@@ -1298,6 +1405,217 @@ $('#game').addEventListener('touchend', e => {
   const t = e.changedTouches[0];
   if (gx < 40 && t.clientX - gx > 80 && Math.abs(t.clientY - gy) < 60) closeGame();
 }, {passive: true});
+
+/* ================= team page ================= */
+const T = {id: null, tab: 'club', team: null, events: null, news: null, token: 0, timer: null};
+const hexOk = h => /^[0-9a-f]{6}$/i.test(h || '');
+function shade(hex, f){
+  const n = parseInt(hex.replace('#', ''), 16);
+  const ch = v => Math.max(0, Math.min(255, Math.round(f < 0 ? v * (1 + f) : v + (255 - v) * f)));
+  return '#' + [n >> 16, (n >> 8) & 255, n & 255].map(v => ch(v).toString(16).padStart(2, '0')).join('');
+}
+function rgba(hex, a){ const n = parseInt(hex.replace('#', ''), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; }
+function applyTeamColors(t){
+  const c = teamColor(t);                                   // brand color with too-dark/too-light guard
+  const lum = (() => { const n = parseInt(c.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; })();
+  const base = lum > 0.45 ? shade(c, -0.45) : c;
+  const st = document.body.style;
+  st.setProperty('--tc', c);
+  st.setProperty('--tcd', lum > 0.55 ? shade(c, -0.5) : c);
+  st.setProperty('--tnav', `linear-gradient(${shade(base, -0.3)} 0%, ${shade(base, -0.5)} 55%, ${shade(base, -0.68)} 100%)`);
+  st.setProperty('--tcg1', rgba(lum < 0.2 ? shade(c, 0.35) : c, 1));
+  st.setProperty('--tcg2', rgba(lum < 0.2 ? shade(c, 0.35) : c, .55));
+}
+const evComp = e => e.competitions?.[0] || {};
+const evState = e => evComp(e).status?.type?.state || e.status?.type?.state || 'pre';
+const scoreOf = c => c?.score == null ? '' : typeof c.score === 'object' ? (c.score.displayValue ?? c.score.value ?? '') : c.score;
+const recDisp = c => { const r = (c?.record || c?.records || [])[0]; return r ? (r.displayValue || r.summary || '') : ''; };
+const logoOf = t => t?.logo || t?.logos?.[0]?.href || '';
+const mDay = d => d.toLocaleDateString('en-US', {month: 'short', day: 'numeric'}).toUpperCase();
+function sides2(e){
+  const cs = evComp(e).competitors || [];
+  const us = cs.find(c => String(c.team?.id) === T.id) || cs[0] || {};
+  const them = cs.find(c => c !== us) || {};
+  return {us, them, home: cs.find(c => c.homeAway === 'home') || cs[0] || {}, away: cs.find(c => c.homeAway === 'away') || cs[1] || {}};
+}
+const vsAt = e => { const {us} = sides2(e); return evComp(e).neutralSite ? 'vs' : us.homeAway === 'away' ? '@' : 'vs'; };
+const oppLabel = c => { const r = rankOf(c); return `${r ? `<em>${r}</em> ` : ''}${esc(c.team?.abbreviation || c.team?.shortDisplayName || '')}`; };
+function result(e){
+  const {us, them} = sides2(e);
+  const a = parseFloat(scoreOf(us)), b = parseFloat(scoreOf(them));
+  const win = us.winner === true || (us.winner == null && a > b);
+  const tie = !win && them.winner !== true && a === b;
+  const hi = Math.max(a, b), lo = Math.min(a, b);
+  return {wl: tie ? 'T' : win ? 'W' : 'L', line: isNaN(hi) ? '' : `${hi} - ${lo}`};
+}
+function timeLine(e){
+  const comp = evComp(e), d = new Date(e.date);
+  return comp.timeValid === false || evComp(e).status?.type?.detail === 'TBD' ? `${mDay(d)}, TBA` : `${mDay(d)}, ${timeStr(d)}`;
+}
+const netOf2 = comp => comp.broadcasts?.[0]?.media?.shortName || comp.broadcasts?.[0]?.names?.[0] || comp.geoBroadcasts?.[0]?.media?.shortName || '';
+
+async function loadTeam(silent){
+  clearTimeout(T.timer);
+  const id = T.id, token = ++T.token;
+  const [t, s2, s3, n] = await Promise.allSettled([
+    getJSON(`${API}/teams/${id}`, silent), getJSON(`${API}/teams/${id}/schedule`, silent),
+    getJSON(`${API}/teams/${id}/schedule?seasontype=3`, silent), getJSON(`${API}/news?team=${id}&limit=12`, silent)]);
+  if (token !== T.token || id !== T.id) return;
+  T.team = t.value?.team || T.team || {};
+  const seen = {}, evs = [];
+  [...(s2.value?.events || []), ...(s3.value?.events || [])].forEach(e => { if (e?.id && !seen[e.id]) { seen[e.id] = 1; evs.push(e); } });
+  evs.sort((a, b) => new Date(a.date) - new Date(b.date));
+  T.events = evs;
+  T.news = (n.value?.articles || []).filter(a => a.headline);
+  T.prior = null;
+  if (!evs.some(e => evState(e) === 'post')) {
+    const yr = (s2.value?.season?.year || S.season || new Date().getFullYear()) - 1;
+    for (const st of [3, 2]) {
+      try {
+        const d = await getJSON(`${API}/teams/${id}/schedule?season=${yr}&seasontype=${st}`);
+        const done = (d.events || []).filter(e => evState(e) === 'post').sort((a, b) => new Date(a.date) - new Date(b.date));
+        if (done.length) { T.prior = done[done.length - 1]; break; }
+      } catch (e) {}
+    }
+    if (token !== T.token || id !== T.id) return;
+  }
+  if (!T.team.id && !evs.length) {
+    content.innerHTML = `<div class="msg"><b>Unable to load team</b>Check your connection and try again.<br><button class="cta" id="tRetry">Retry</button></div>`;
+    return;
+  }
+  renderTeam(silent);
+  if (evs.some(e => evState(e) === 'in')) T.timer = setTimeout(() => { if (S.view === 'team' && !document.hidden) loadTeam(true); }, 30000);
+}
+function teamHeader(){
+  const t = T.team || {};
+  applyTeamColors(t);
+  $('#navTitle').textContent = t.abbreviation || t.shortDisplayName || '';
+  $('#tlogo').innerHTML = logoOf(t) ? `<img src="${esc(logoOf(t))}" alt="">` : '';
+  $('#bell').classList.toggle('on', S.my.some(m => String(m.id) === T.id));
+  $$('#ttabs button').forEach(b => b.classList.toggle('on', b.dataset.ttab === T.tab));
+  const on = $('#ttabs .on'), g = $('#tglow');
+  if (on) { const w = on.offsetWidth * 0.85; g.style.width = w + 'px'; g.style.left = (on.offsetLeft + (on.offsetWidth - w) / 2) + 'px'; }
+}
+function recordLine(){
+  const t = T.team || {}, evs = T.events || [];
+  let w = 0, l = 0, cw = 0, cl = 0;
+  evs.filter(e => evState(e) === 'post').forEach(e => {
+    const r = result(e).wl, conf = evComp(e).conferenceCompetition;
+    if (r === 'W') { w++; if (conf) cw++; } else if (r === 'L') { l++; if (conf) cl++; }
+  });
+  const items = t.record?.items || [];
+  const tot = evs.length ? `${w}-${l}` : (items.find(i => i.type === 'total')?.summary || '');
+  const cn = CONF_SHORT[t.groups?.id] || ((t.standingSummary || '').match(/in (.+?)(?: - |$)/) || [])[1] || '';
+  const conf = cn && cn !== 'Ind.' ? `, ${cw}-${cl} ${cn}` : '';
+  let rk = t.rank;
+  if (!(rk >= 1 && rk <= 25)) {
+    const up = evs.find(e => evState(e) !== 'post') || evs[evs.length - 1];
+    rk = up ? rankOf(sides2(up).us) : null;
+  }
+  return `<div class="trank">${rk >= 1 && rk <= 25 ? `<b>#${rk}</b>` : ''}<span>${esc(tot)}${esc(conf)}</span></div>`;
+}
+function featuredHTML(){
+  const evs = T.events || [];
+  if (!evs.length) return '<div class="msg"><b>No games scheduled</b></div>';
+  let fi = evs.findIndex(e => evState(e) === 'in');
+  if (fi < 0) fi = evs.findIndex(e => evState(e) === 'pre');
+  if (fi < 0) fi = evs.length - 1;
+  const e = evs[fi], comp = evComp(e), st = evState(e), {home, away} = sides2(e);
+  const status = st === 'in' ? `<span class="live">${esc(liveStatus(comp.status || e.status))}</span>` : st === 'post' ? esc((comp.status?.type?.shortDetail || 'Final').toUpperCase()) : esc(timeLine(e));
+  const side = c => {
+    const fin = st === 'post', lose = fin && (c.winner === false);
+    const r = rankOf(c);
+    const sub = st === 'pre' ? `<span>(${esc(recDisp(c) || '0-0')})</span>` : `<span class="s${lose ? ' lose' : ''}">${esc(scoreOf(c))}</span>`;
+    return `<div class="tt"><b>${r ? `<em>${r}</em>` : ''}${esc(c.team?.abbreviation || '')}</b>${sub}</div>`;
+  };
+  const img = c => logoOf(c.team) ? `<img src="${esc(logoOf(c.team))}" alt="">` : '<i class="ph"></i>';
+  const venue = comp.venue?.fullName || 'TBD';
+  const card = `<div class="tcard" data-gid="${esc(e.id)}">
+    <div class="ttop"><span>${status}</span><span>${esc(netOf2(comp))}</span></div>
+    <div class="tmid">${img(away)}${side(away)}<div class="at">${comp.neutralSite ? 'vs' : '@'}</div>${side(home)}${img(home)}</div>
+    <div class="tven">${esc(venue)}</div></div>`;
+  const prevIdx = (() => { for (let i = fi - 1; i >= 0; i--) if (evState(evs[i]) === 'post') return i; return st === 'post' && fi > 0 ? fi - 1 : -1; })();
+  const prev = prevIdx >= 0 ? evs[prevIdx] : (T.prior || null), next = evs[fi + 1] || null;
+  const mini = (ev, kind) => {
+    if (!ev) return `<div class="${kind}"><span class="none">${kind === 'mp' ? 'No previous game' : 'Season complete'}</span></div>`;
+    const {them} = sides2(ev), lg = logoOf(them.team);
+    const logo = lg ? `<img src="${esc(lg)}" alt="">` : '<i class="ph"></i>';
+    let lines;
+    if (evState(ev) === 'post') { const r = result(ev); lines = `<b>${esc(mDay(new Date(ev.date)))}</b>${vsAt(ev)} ${oppLabel(them)}<br><i class="${r.wl}">${r.wl}</i> ${esc(r.line)}`; }
+    else if (evState(ev) === 'in') { lines = `<b class="live" style="color:var(--live)">${esc(liveStatus(evComp(ev).status))}</b>${vsAt(ev)} ${oppLabel(them)}<br>${esc(scoreOf(sides2(ev).us))} - ${esc(scoreOf(them))}`; }
+    else lines = `<b>${esc(timeLine(ev))}</b>${vsAt(ev)} ${oppLabel(them)}<br>(${esc(recDisp(them) || '0-0')})`;
+    const tx = `<div class="tx">${lines}</div>`;
+    return `<div class="${kind}" data-gid="${esc(ev.id)}">${kind === 'mp' ? tx + logo : logo + tx}</div>`;
+  };
+  return card + `<div class="tmini">${mini(prev, 'mp')}${mini(next, 'mn')}</div>`;
+}
+function newsHTML(){
+  const n = T.news || [];
+  if (!n.length) return '';
+  return `<div class="tnews"><h3>News</h3>${n.slice(0, 10).map(a => `<a href="${esc(a.links?.web?.href || a.links?.mobile?.href || '#')}" target="_blank" rel="noopener">${esc(a.headline)}${a.published ? `<time>${esc(ago(a.published))}</time>` : ''}</a>`).join('')}</div>`;
+}
+function scheduleHTML(){
+  const evs = T.events || [];
+  if (!evs.length) return '<div class="msg"><b>No games scheduled</b></div>';
+  let html = '<div class="tsched">', lastGroup = '';
+  evs.forEach(e => {
+    const grp = (e.seasonType?.type === 3 || /post/i.test(e.seasonType?.name || '')) ? 'Postseason' : 'Regular Season';
+    if (grp !== lastGroup) { html += `<div class="sbar">${grp}</div>`; lastGroup = grp; }
+    const comp = evComp(e), st = evState(e), {them} = sides2(e), d = new Date(e.date), lg = logoOf(them.team);
+    let right;
+    if (st === 'post') { const r = result(e); right = `<b><i class="${r.wl}">${r.wl}</i> ${esc(r.line)}</b><small>${esc((comp.status?.type?.shortDetail || 'Final').replace(/^Final$/i, 'Final'))}</small>`; }
+    else if (st === 'in') right = `<b>${esc(scoreOf(sides2(e).us))} - ${esc(scoreOf(them))}</b><small style="color:var(--live)">${esc(liveStatus(comp.status))}</small>`;
+    else right = `<b>${comp.timeValid === false ? 'TBA' : esc(timeStr(d))}</b><small>${esc(netOf2(comp))}</small>`;
+    html += `<div class="srow${st === 'in' ? ' live' : ''}" data-gid="${esc(e.id)}">
+      <div class="sd"><b>${esc(mDay(d))}</b><small>${esc(d.toLocaleDateString('en-US', {weekday: 'short'}))}</small></div>
+      ${lg ? `<img src="${esc(lg)}" alt="">` : '<i class="ph"></i>'}
+      <div class="so"><b>${vsAt(e)} ${oppLabel(them)}</b><small>${esc(them.team?.displayName || '')}${comp.venue?.fullName ? ' · ' + esc(comp.venue.fullName) : ''}</small></div>
+      <div class="sr">${right}</div></div>`;
+  });
+  return html + '</div>';
+}
+function renderTeam(keepScroll){
+  teamHeader();
+  if (!T.events) { content.innerHTML = '<div class="spin" style="margin-top:70px"></div>'; return; }
+  const y = content.scrollTop;
+  content.innerHTML = T.tab === 'sched' ? `<div style="height:22px"></div>${scheduleHTML()}` : recordLine() + featuredHTML() + newsHTML();
+  if (keepScroll) content.scrollTop = y;
+}
+function openTeam(id, fromHistory){
+  if (G.id) closeGame(true);
+  const same = T.id === String(id);
+  T.id = String(id); T.tab = 'club';
+  if (!same) { T.team = null; T.events = null; T.news = null; const m = S.my.find(x => String(x.id) === T.id); if (m) T.team = {id: T.id, logo: m.logo, abbreviation: ''}; }
+  S.view = 'team';
+  try { history.replaceState(null, '', '#team/' + T.id); } catch (e) {}
+  render();
+  loadTeam();
+}
+function renderMyList(){
+  const el = $('#myList'); if (!el) return;
+  el.innerHTML = S.my.map(t => `<button class="di" data-team="${esc(t.id)}">${t.logo ? `<img src="${esc(t.logo)}" alt="">` : ''}${esc(t.name || '')}</button>`).join('');
+}
+let hudT;
+function hud(msg){ const h = $('#hud'); h.textContent = msg; h.classList.add('show'); clearTimeout(hudT); hudT = setTimeout(() => h.classList.remove('show'), 1300); }
+$('#bell').addEventListener('click', () => {
+  if (S.view !== 'team' || !T.id) return;
+  const i = S.my.findIndex(m => String(m.id) === T.id), t = T.team || {};
+  if (i >= 0) { S.my.splice(i, 1); hud('Removed from My Teams'); }
+  else { S.my.push({id: T.id, name: t.location || t.displayName || t.abbreviation, logo: logoOf(t)}); hud('Added to My Teams'); }
+  store.set('cfb.my', S.my); renderMyList();
+  $('#bell').classList.toggle('on', i < 0);
+});
+$('#ttabs').addEventListener('click', e => {
+  const b = e.target.closest('button[data-ttab]'); if (!b || b.dataset.ttab === T.tab) return;
+  T.tab = b.dataset.ttab; content.scrollTop = 0; renderTeam();
+});
+$('#gHead').addEventListener('click', e => { const t = e.target.closest('[data-tid]'); if (t && t.dataset.tid) openTeam(t.dataset.tid); });
+content.addEventListener('click', e => {
+  if (S.view !== 'team') return;
+  if (e.target.closest('#tRetry')) { loadTeam(); return; }
+  const g = e.target.closest('[data-gid]');
+  if (g && !g.classList.contains('gc')) openGame(g.dataset.gid);
+});
 
 /* ---------------- home-screen icon ---------------- */
 function makeIcon(){
@@ -1317,6 +1635,7 @@ function makeIcon(){
 
 /* ---------------- boot ---------------- */
 async function boot(){
+  const startHash = location.hash;
   content.innerHTML = '<div class="spin"></div>';
   document.body.classList.toggle('classic', S.layout === 'classic');
   $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === S.tab));
@@ -1331,9 +1650,11 @@ async function boot(){
     if (S.weekKey === cur) S.cache[sbURL('80')] = S.cache[url]; // reuse the first response
   } catch (e) {}
   document.body.classList.remove('loading');
-  render();
-  const m = location.hash.match(/^#game\/(\d+)/);
-  if (m) openGame(m[1], true);
+  if (!/^#team\//.test(startHash)) render();
+  const tm = startHash.match(/^#team\/(\d+)/);
+  if (tm) openTeam(tm[1], true);
+  const m = startHash.match(/^#game\/(\d+)/);
+  if (m) { try { history.replaceState(null, '', startHash); } catch (e) {} openGame(m[1], true); }
 }
 boot();
 if (document.fonts) document.fonts.ready.then(() => { if (S.view === 'scores') centerTab(); });
