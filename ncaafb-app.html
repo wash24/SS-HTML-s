@@ -129,7 +129,8 @@ body.stream #band{display:none}
 .gc.big .tm .rk{font-size:16px;color:#8a8a8a;margin-right:3px}
 .gc.big .tm .nm{font-size:16px}
 .gc.big .tm .rec{display:block;margin:1px 0 0;font-size:15px;color:#4a4a4a}
-.gc.big .tm .sc{font-size:34px;line-height:1;font-weight:600;letter-spacing:-1px;min-width:46px;color:#333;padding-right:1px}
+.gc.big .tm .sc{display:flex;align-items:center;justify-content:flex-end;gap:5px;font-size:34px;line-height:1;font-weight:600;letter-spacing:-1px;min-width:46px;color:#333;padding-right:1px}
+.gc.big .tm .sc .ball{margin-top:2px}
 .gc.big .tm.lose .nm{color:#333}
 .gc.big .tm.lose .sc{color:#a3a3a3}
 .gc.big .top{padding:9px 10px 8px}
@@ -272,13 +273,13 @@ body.ingame #app{transform:translateX(-28%)}
 .pseg img{width:20px;height:20px;object-fit:contain}
 .pwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 /* fixed grid: every stat table uses the same name column and the same stat column width, so columns line up across categories, teams and games */
-.pst,.lsc{border-collapse:collapse;table-layout:fixed;font-size:13px;color:#333;white-space:nowrap}
-.pst col.cn{width:98px}
+.pst,.lsc{border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:13px;color:#333;white-space:nowrap}
+.pst col.cn{width:var(--nw,98px)}
 .pst col.c1{width:54px}
 .pst col.cs{width:42px}
-.lsc col.cn{width:98px}
+.lsc col.cn{width:var(--nw,98px)}
 .lsc col.cs{width:42px}
-.pst th,.lsc th{font-size:11px;font-weight:700;color:#888;text-align:right;padding:7px 5px 6px 0;border-bottom:1px solid #d6d6d6;background:#f4f4f4;overflow:hidden}
+.pst th,.lsc th{font-size:11px;font-weight:700;color:#888;text-align:right;padding:7px 5px 6px 0;border-bottom:1px solid #d6d6d6;text-transform:uppercase;background:#f4f4f4;overflow:hidden}
 .pst td,.lsc td{text-align:right;padding:8px 5px 8px 0;border-bottom:1px solid #e8e8e8;overflow:hidden;text-overflow:clip;letter-spacing:-.2px}
 .pst th:first-child,.pst td:first-child,.lsc th:first-child,.lsc td:first-child{text-align:left;padding-left:12px;position:sticky;left:0;z-index:1;text-overflow:ellipsis}
 .pst th:first-child,.lsc th:first-child{background:#f4f4f4}
@@ -508,7 +509,7 @@ function teamRow(c, state, possId, eid){
   return `<div class="tm${lose ? ' lose' : ''}">
     ${logo ? `<img src="${esc(logo)}" alt="" loading="lazy">` : '<div class="ph"></div>'}
     <div class="txt">${rk ? `<span class="rk">${rk}</span>` : ''}<span class="nm">${esc(teamName(t))}</span>${rec ? `<span class="rec">${esc(rec)}</span>` : ''}</div>
-    ${poss ? BALL : ''}${showScore ? `<span class="sc">${esc(c.score)}</span>` : ''}
+    ${showScore ? `<span class="sc">${poss ? BALL : ''}<span>${esc(c.score)}</span></span>` : (poss ? BALL : '')}
   </div>`;
 }
 
@@ -919,26 +920,57 @@ function renderGameHead(){
 }
 
 /* -- story (preview / recap) -- */
-const KEEP = {P:1, BR:1, B:1, STRONG:1, I:1, EM:1, A:1, UL:1, OL:1, LI:1, H2:1, H3:1, BLOCKQUOTE:1};
+/* ESPN stories arrive as loose text with newline breaks, as HTML, or a mix, with placeholder tags
+   (<photo1>, <video1>, <inline1>...) between paragraphs. Normalize everything into clean <p> blocks. */
+const S_INLINE = {B: 1, STRONG: 1, I: 1, EM: 1, A: 1, SPAN: 1, U: 1, SMALL: 1, SUP: 1, SUB: 1};
+const S_BLOCK = {UL: 1, OL: 1, H2: 1, H3: 1, BLOCKQUOTE: 1};
+const S_DROP = /^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|FORM|INPUT|BUTTON|SVG|VIDEO|AUDIO|IMG|PICTURE|FIGURE|ASIDE|NOSCRIPT|TABLE|HR)$/;
 function cleanStory(html){
   if (!html) return '';
-  if (!/<[a-z]/i.test(html)) html = html.split(/\n{1,}/).filter(x => x.trim()).map(x => `<p>${esc(x.trim())}</p>`).join('');
+  html = String(html).replace(/\r\n?/g, '\n');
+  const htmlMode = /<p[\s>]/i.test(html);           // real <p> markup: a lone newline is just whitespace
   const doc = new DOMParser().parseFromString(`<div>${html}</div>`, 'text/html');
+  const root = doc.body.firstChild;
+  const BRK = ' ';                                   // internal paragraph-break marker
+  const brk = () => doc.createTextNode(BRK);
+  // 1) sanitize: keep inline formatting and lists/headings; everything else becomes text or a break
   const walk = n => [...n.childNodes].forEach(c => {
     if (c.nodeType === 3) return;
     if (c.nodeType !== 1) { c.remove(); return; }
-    if (/^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|FORM|INPUT|BUTTON|SVG|VIDEO|AUDIO|IMG|PICTURE|FIGURE|ASIDE|NOSCRIPT|TABLE)$/.test(c.tagName)) { c.remove(); return; }
+    const tag = c.tagName;
+    if (S_DROP.test(tag)) { c.replaceWith(brk()); return; }
     walk(c);
-    if (!KEEP[c.tagName]) { c.replaceWith(...c.childNodes); return; }
-    [...c.attributes].forEach(a => { if (!(c.tagName === 'A' && a.name === 'href')) c.removeAttribute(a.name); });
-    if (c.tagName === 'A') {
-      if (!/^https?:/i.test(c.getAttribute('href') || '')) c.removeAttribute('href');
-      c.setAttribute('target', '_blank'); c.setAttribute('rel', 'noopener');
+    if (tag === 'BR') { c.replaceWith(brk()); return; }
+    if (tag === 'P' || tag === 'DIV' || tag === 'SECTION' || tag === 'ARTICLE' || tag === 'LI' && !c.closest('ul,ol')) {
+      c.replaceWith(brk(), ...c.childNodes, brk()); return;
     }
+    if (S_INLINE[tag] || S_BLOCK[tag] || tag === 'LI') {
+      [...c.attributes].forEach(a => { if (!(tag === 'A' && a.name === 'href')) c.removeAttribute(a.name); });
+      if (tag === 'SPAN' || tag === 'U' || tag === 'SMALL') { c.replaceWith(...c.childNodes); return; }
+      if (tag === 'A') {
+        if (!/^https?:/i.test(c.getAttribute('href') || '')) { c.replaceWith(...c.childNodes); return; }
+        c.setAttribute('target', '_blank'); c.setAttribute('rel', 'noopener');
+      }
+      if (S_BLOCK[tag]) c.replaceWith(brk(), c, brk());
+      return;
+    }
+    // unknown tag: empty placeholders mark a paragraph boundary; wrappers just unwrap
+    if (!c.textContent.trim()) c.replaceWith(brk()); else c.replaceWith(brk(), ...c.childNodes, brk());
   });
-  const root = doc.body.firstChild; walk(root);
-  [...root.querySelectorAll('p')].forEach(p => { if (!p.textContent.trim()) p.remove(); });
-  return root.innerHTML;
+  walk(root);
+  // 2) rebuild: top-level newlines and break markers split paragraphs; inline elements stay inside them
+  const out = []; let cur = '';
+  const flush = () => { const t = cur.replace(/[ \t\n ]+/g, ' ').replace(/\s+([,.;:!?])/g, '$1').trim(); if (t) out.push(`<p>${t}</p>`); cur = ''; };
+  root.normalize();
+  [...root.childNodes].forEach(n => {
+    if (n.nodeType === 3) {
+      n.textContent.split(new RegExp(htmlMode ? `${BRK}|\\n\\s*\\n` : `${BRK}|\\n`)).forEach((part, k) => { if (k) flush(); cur += esc(part); });
+    } else if (S_BLOCK[n.tagName]) { flush(); out.push(n.outerHTML.replace(new RegExp(BRK, 'g'), ' ')); }
+    else cur += n.outerHTML.replace(new RegExp(BRK, 'g'), ' ');
+  });
+  flush();
+  // tidy spacing around inline tags without merging words
+  return out.join('');
 }
 function gameInfoHTML(g){
   const d = G.data || {}, gi = d.gameInfo || {}, v = gi.venue || g.comp.venue || {};
@@ -962,8 +994,8 @@ function lineScoreHTML(g){
   const n = Math.max(4, A.length, H.length);
   const cols = Array.from({length: n}, (_, i) => i < 4 ? String(i + 1) : (i === 4 ? 'OT' : (i - 3) + 'OT'));
   const row = (c, v) => `<tr><td>${c.team?.logo ? `<img src="${esc(c.team.logo)}" alt="">` : ''}${esc(c.team?.abbreviation || '')}</td>${cols.map((_, i) => `<td>${esc(v[i] ?? (i < 4 ? '-' : ''))}</td>`).join('')}<td class="t">${esc(c.score ?? '')}</td><td></td></tr>`;
-  return `<div class="sbar">Box Score</div><div class="pwrap"><table class="lsc" style="width:max(100%, ${98 + 42 * (cols.length + 1)}px)"><colgroup><col class="cn">${cols.map(() => '<col class="cs">').join('')}<col class="cs"><col></colgroup>
-    <tr><th></th>${cols.map(c => `<th>${c}</th>`).join('')}<th>T</th><th></th></tr>${row(g.away, A)}${row(g.home, H)}</table></div>`;
+  return `<div class="sbar">Box Score</div><div class="pwrap"><table class="lsc" style="width:max(100%, calc(var(--nw, 98px) + ${42 * (cols.length + 1)}px))"><colgroup><col class="cn">${cols.map(() => '<col class="cs">').join('')}<col class="cs"><col></colgroup>
+    <tr><th>Team</th>${cols.map(c => `<th>${c}</th>`).join('')}<th>T</th><th></th></tr>${row(g.away, A)}${row(g.home, H)}</table></div>`;
 }
 function scoringHTML(g){
   const plays = G.data?.scoringPlays || [];
@@ -1041,9 +1073,9 @@ function teamStatsHTML(g){
 
 /* -- player stats -- */
 function statTable(title, labels, body){
-  const w = 98 + 54 + 42 * Math.max(0, labels.length - 1);
-  return `<div class="sbar">${esc(title)}</div><div class="pwrap"><table class="pst" style="width:max(100%, ${w}px)"><colgroup><col class="cn">${labels.map((_, i) => `<col class="${i ? 'cs' : 'c1'}">`).join('')}<col></colgroup>
-    <tr><th></th>${labels.map(l => `<th>${esc(l)}</th>`).join('')}<th></th></tr>${body.replace(/<\/tr>/g, '<td></td></tr>')}</table></div>`;
+  const w = 54 + 42 * Math.max(0, labels.length - 1);
+  return `<div class="sbar">${esc(title)}</div><div class="pwrap"><table class="pst" style="width:max(100%, calc(var(--nw, 98px) + ${w}px))"><colgroup><col class="cn">${labels.map((_, i) => `<col class="${i ? 'cs' : 'c1'}">`).join('')}<col></colgroup>
+    <tr><th>Player</th>${labels.map(l => `<th>${esc(l)}</th>`).join('')}<th></th></tr>${body.replace(/<\/tr>/g, '<td></td></tr>')}</table></div>`;
 }
 function teamSeg(teams, idx){
   return `<div class="pseg">${teams.map((t, i) => `<button data-ps="${i}"${i === idx ? ' class="on"' : ''}>${t.logo ? `<img src="${esc(t.logo)}" alt="">` : ''}${esc(t.abbreviation || '')}</button>`).join('')}</div>`;
@@ -1165,7 +1197,13 @@ function playerStatsHTML(g){
   return seg + (cats || '<div class="gempty">No player stats yet.</div>');
 }
 
+function sizeStatGrid(){
+  const w = (gBody.clientWidth || window.innerWidth);
+  document.documentElement.style.setProperty('--nw', Math.max(98, w - (54 + 42 * 4)) + 'px');
+}
+window.addEventListener('resize', sizeStatGrid);
 function renderGameBody(keepScroll){
+  sizeStatGrid();
   const g = gameComp();
   if (!g) { gBody.innerHTML = '<div class="spin"></div>'; return; }
   const y = gBody.scrollTop;
