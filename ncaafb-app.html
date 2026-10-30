@@ -373,6 +373,14 @@ body.teamv .pickers{padding:0 8px 2px}
 body.teamv .scard{margin-left:8px;margin-right:8px}
 body.teamv .scard:first-child{margin-top:0}
 
+/* Video page */
+.vcard{margin:14px 10px 0;background:#fff;border:1px solid #c9cbce;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden}
+.vcard:last-child{margin-bottom:6px}
+.vcard .sbar{margin:0;border-top:0}
+.vcard .clip:last-child{border-bottom:0}
+.vgame{display:flex;justify-content:space-between;cursor:pointer}
+.vgame i{font-style:normal;color:#777;text-transform:none;font-weight:700}
+
 /* ================= game screen ================= */
 #game{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);
   transition:transform .32s cubic-bezier(.2,.7,.3,1);box-shadow:-4px 0 12px rgba(0,0,0,.45);visibility:hidden}
@@ -982,7 +990,7 @@ async function renderStream(){
 function render(){
   document.body.classList.toggle('stream', S.view === 'stream');
   document.body.classList.toggle('teamv', S.view === 'team');
-  const PAGES = {standings: 'Standings', rankings: 'Rankings', top: 'Top Stories', video: 'Video', teams: 'Teams', bowl: 'Bowl Bound'};
+  const PAGES = {news: 'News', standings: 'Standings', rankings: 'Rankings', top: 'Top Stories', video: 'Video', teams: 'Teams', bowl: 'Bowl Bound'};
   document.body.classList.toggle('pagev', !!PAGES[S.view]);
   const sel = S.view === 'stream' ? 'news' : S.view;
   $$('#drawer .dr[data-go]').forEach(b => b.classList.toggle('on', b.dataset.go === sel));
@@ -1069,7 +1077,7 @@ $('#drawer').addEventListener('click', e => {
   if (b.dataset.team) { closeDrawer(); openTeam(b.dataset.team); return; }
   if (b.dataset.go) {
     const go = b.dataset.go;
-    S.view = go === 'news' ? 'stream' : go;
+    S.view = go;
     closeDrawer(); render();
   }
 });
@@ -1317,9 +1325,13 @@ function storyHTML(g){
 function clipsHTML(){
   const v = G.data?.videos || [];
   if (!v.length) return `<div class="gempty"><b>No clips yet</b>Highlights for this game will show up here as ESPN posts them.</div>`;
-  const dur = n => n ? `${Math.floor(n / 60)}:${String(Math.round(n % 60)).padStart(2, '0')}` : '';
-  return v.map((c, i) => `<button class="clip" data-vi="${i}"><span class="th" style="background-image:url('${esc(c.thumbnail || '')}')"></span>
-    <div><h4>${esc(c.headline || c.title || '')}</h4><span>${esc(dur(c.duration))}</span></div></button>`).join('');
+  return v.map((c, i) => clipRow(c, `data-vi="${i}"`)).join('');
+}
+const clipDur = n => n ? `${Math.floor(n / 60)}:${String(Math.round(n % 60)).padStart(2, '0')}` : '';
+function clipRow(c, attr){
+  const thumb = c.thumbnail || c.posterImages?.default?.href || c.images?.[0]?.url || '';
+  return `<button class="clip" ${attr}><span class="th" style="background-image:url('${esc(thumb)}')"></span>
+    <div><h4>${esc(c.headline || c.title || '')}</h4><span>${esc(clipDur(c.duration))}</span></div></button>`;
 }
 function playVideo(i){ playClip((G.data?.videos || [])[i]); }
 function playClip(c){
@@ -2008,6 +2020,62 @@ content.addEventListener('click', e => {
   }
 });
 
+
+/* -- Video: ESPN's latest college football videos, then highlights from this week's games -- */
+let VIDS = [];
+async function renderVideo(){
+  clearTimeout(S.timer);
+  const token = ++S.token;
+  content.innerHTML = '<div class="spin" style="margin-top:50px"></div>';
+  const [n, sb] = await Promise.allSettled([getJSON(`${API}/news?limit=60`), getJSON(sbURL('80'))]);
+  if (token !== S.token) return;
+  VIDS = [];
+  const seen = new Set();
+  const add = c => {
+    const k = String(c?.id || c?.headline || '');
+    if (!c || !k || seen.has(k)) return false;
+    seen.add(k); VIDS.push(c); return true;
+  };
+  // ESPN-published videos
+  const latest = [];
+  (n.value?.articles || []).forEach(a => (a.video || []).forEach(v => {
+    const c = {...v, thumbnail: v.thumbnail || a.images?.[0]?.url, headline: v.headline || a.headline};
+    if (add(c)) latest.push(VIDS.length - 1);
+  }));
+  // game highlights: live and final games this week, biggest matchups first
+  const evs = (sb.value?.events || []).filter(e => evState(e) !== 'pre');
+  const weight = e => { const {away, home} = sides(e); const r = [rankOf(away), rankOf(home)].filter(Boolean); return (evState(e) === 'in' ? 100 : 0) + (r.length ? 60 - Math.min(...r) : 0) + r.length * 20; };
+  evs.sort((a, b) => weight(b) - weight(a));
+  const games = evs.slice(0, 12);
+  const sums = {};
+  const queue = [...games];
+  await Promise.all([0, 1, 2, 3].map(async () => {
+    while (queue.length) {
+      const e = queue.shift();
+      try { sums[e.id] = await getJSON(`${API}/summary?event=${e.id}`); } catch (err) {}
+    }
+  }));
+  if (token !== S.token) return;
+  let html = '';
+  if (latest.length) html += `<div class="vcard"><div class="sbar">Latest Videos</div>${latest.map(i => clipRow(VIDS[i], `data-vv="${i}"`)).join('')}</div>`;
+  games.forEach(e => {
+    const vids = (sums[e.id]?.videos || []).map(v => add(v) ? VIDS.length - 1 : -1).filter(i => i >= 0);
+    if (!vids.length) return;
+    const {away, home} = sides(e);
+    const st = evState(e) === 'in' ? liveStatus((e.competitions[0].status || e.status)) : 'Final';
+    const title = `${away.team?.abbreviation || ''} ${away.score ?? ''}, ${home.team?.abbreviation || ''} ${home.score ?? ''} · ${st}`;
+    html += `<div class="vcard"><div class="sbar vgame" data-gid="${esc(e.id)}"><span>${esc(title)}</span><i>Gamecast ›</i></div>${vids.map(i => clipRow(VIDS[i], `data-vv="${i}"`)).join('')}</div>`;
+  });
+  content.innerHTML = html || '<div class="msg" style="margin-top:60px"><b>No videos yet</b>Check back soon.</div>';
+}
+content.addEventListener('click', e => {
+  if (S.view !== 'video') return;
+  const v = e.target.closest('[data-vv]');
+  if (v) { playClip(VIDS[+v.dataset.vv]); return; }
+  const g = e.target.closest('.vgame[data-gid]');
+  if (g) openGame(g.dataset.gid);
+});
+
 /* -- top-level pages from the side menu -- */
 const STAND_CONFS = CONFS.filter(c => !/^(top25|80)$/.test(c[0]));
 S.sconf = store.get('cfb.sconf', '8'); S.poll = 0;
@@ -2028,6 +2096,10 @@ async function renderPage(){
     if (token !== S.token) return;
     S.rk = v;
     content.innerHTML = rankingsHTML(v, null);
+  } else if (view === 'news') {
+    renderStream();
+  } else if (view === 'video') {
+    renderVideo();
   } else if (view === 'top') {
     if (!silentTop) content.innerHTML = '<div class="spin" style="margin-top:50px"></div>';
     const [n, sb] = await Promise.allSettled([getJSON(`${API}/news?limit=30`, silentTop), getJSON(`${API}/scoreboard?limit=300&groups=80`, silentTop)]);
@@ -2039,7 +2111,7 @@ async function renderPage(){
     clearTimeout(S.timer);
     S.timer = setTimeout(() => { if (S.view === 'top' && !document.hidden) { silentTop = true; renderPage(); } }, 30000);
   } else {
-    const label = {video: 'Video', teams: 'Teams', bowl: 'Bowl Bound'}[view] || '';
+    const label = {teams: 'Teams', bowl: 'Bowl Bound'}[view] || '';
     content.innerHTML = `<div class="msg" style="margin-top:60px"><b>${esc(label)}</b>Coming soon.</div>`;
   }
 }
