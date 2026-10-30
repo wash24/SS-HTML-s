@@ -390,7 +390,7 @@ body.pagev .bwhead + .pseg{margin-top:12px}
 .bwsec{margin:20px 12px 0;font-size:21px;font-weight:800;color:#1d1d1d;text-transform:uppercase;letter-spacing:-.2px}
 body.pagev .dh{margin-left:10px;margin-right:10px}
 .bwlist{margin:8px 10px 0;background:#fff;border:1px solid #c9cbce;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.bwr{display:flex;align-items:center;gap:13px;padding:13px 12px;border-bottom:1px solid #d9d9d9}
+.bwr{display:flex;align-items:center;gap:13px;padding:12px 14px;border-bottom:1px solid #d9d9d9}
 .bwr:last-child{border-bottom:0}
 .bwr[data-gid]{cursor:pointer}
 .bwr[data-gid]:active{background:#f6f6f6}
@@ -2251,7 +2251,7 @@ function projDateTime(dateText, metaTime){
 }
 function placeOf(venue){
   const m = String(venue || '').match(/\(([^)]+)\)\s*$/);
-  return m ? m[1] : String(venue || '');
+  return m ? m[1] : '';
 }
 function teamWithRecord(raw){
   const m = String(raw || '').trim().match(/^(?:No\.\s*(\d+)\s+)?(.+)$/);
@@ -2261,7 +2261,7 @@ function teamWithRecord(raw){
   return `${seed ? `#${seed} ` : ''}${name}${rec ? ` (${rec})` : ''}`;
 }
 function bowlRow(title, place, when, matchup, extra = ''){
-  return `<div class="bwr"${extra}>${bowlBadge(title)}<div class="bwx"><b>${esc(title)}</b>${place ? `<span>${esc(place)}</span>` : ''}${when ? `<span>${esc(when)}</span>` : ''}<strong>${esc(matchup)}</strong></div></div>`;
+  return `<div class="bwr"${extra}><div class="bwx"><b>${esc(title)}</b>${place ? `<span>${esc(place)}</span>` : ''}${when ? `<span>${esc(when)}</span>` : ''}<strong>${esc(matchup)}</strong></div></div>`;
 }
 function projectionsHTML(art, P){
   const an = P.analysts;
@@ -2289,6 +2289,7 @@ function projectionsHTML(art, P){
   close();
   return html;
 }
+const STATES = {AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming'};
 function slateHTML(evs){
   let html = `<div class="bwhead"><b>${esc(String(S.season || ''))} Bowl Schedule</b><span>Official bowl matchups</span></div>`;
   const isCFP = e => /playoff|cfp|national championship/i.test(e.competitions?.[0]?.notes?.[0]?.headline || '');
@@ -2300,7 +2301,7 @@ function slateHTML(evs){
       const comp = e.competitions?.[0] || {}, d = new Date(e.date), st = evState(e);
       const title = (comp.notes?.[0]?.headline || e.name || '').replace(/\s*-\s*College Football Playoff.*$/i, m => m);
       const a = comp.venue?.address || {};
-      const place = [a.city, a.state].filter(Boolean).join(', ') || comp.venue?.fullName || '';
+      const place = [a.city, STATES[a.state] || a.state].filter(Boolean).join(', ');
       const when = `${d.toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'})}${comp.timeValid === false ? '' : ' | ' + timeStr(d)}`;
       const {away, home} = sides(e);
       const nm = c => c.team?.location || c.team?.shortDisplayName || c.team?.displayName || 'TBD';
