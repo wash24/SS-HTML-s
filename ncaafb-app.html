@@ -381,6 +381,35 @@ body.teamv .scard:first-child{margin-top:0}
 .vgame{display:flex;justify-content:space-between;cursor:pointer}
 .vgame i{font-style:normal;color:#777;text-transform:none;font-weight:700}
 
+/* Bowl Bound */
+.bwhead{margin:14px 10px 0;padding:12px 12px 11px;background:#fff;border:1px solid #c9cbce;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.bwhead b{display:block;font:18px/1.2 "CFB Slab",Rockwell,Georgia,serif;text-transform:uppercase;color:#141414;letter-spacing:.2px}
+.bwhead span{display:block;font-size:12px;color:#888;margin-top:5px}
+.bwhead a{display:inline-block;margin-top:7px;font-size:12.5px;font-weight:700;color:#0b5ea8}
+body.pagev .bwhead + .pseg{margin-top:12px}
+.bwsec{margin:18px 10px 0;padding:0 2px 6px;border-bottom:3px solid #222;font-size:14px;font-weight:800;color:#222;text-transform:uppercase}
+body.pagev .dh{margin-left:10px;margin-right:10px}
+.bwc{margin:6px 10px 0;background:#fff;border:1px solid #c3c6c9;border-bottom-color:#b3b4b6;box-shadow:0 1px 1px rgba(0,0,0,.08)}
+.dh + .bwc{margin-top:6px}
+.bwc + .bwc{margin-top:10px}
+.bwc[data-gid]{cursor:pointer}
+.bwt{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:9px 10px 2px}
+.bwt b{font-size:13.5px;font-weight:700;color:#222;line-height:1.25}
+.bwt span{flex:none;font-size:12px;font-weight:700;color:#555;text-transform:uppercase}
+.bwv{padding:0 10px 7px;font-size:12px;color:#8a8a8a}
+.bwm{border-top:1px solid #d7d7d7}
+.bwtm{display:flex;align-items:center;gap:11px;height:46px;padding:0 10px}
+.bwtm[data-team]{cursor:pointer}
+.bwtm img,.bwtm .ph{width:32px;height:32px;object-fit:contain;flex:none}
+.bwtm .ph{border-radius:50%;background:#e6e6e6}
+.bwtm span{flex:1;min-width:0;font-size:16px;font-weight:700;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bwtm em{font-style:normal;font-weight:400;font-size:13px;color:#8a8a8a;margin-right:5px}
+.bwtm small{font-size:13px;color:#888}
+.bwtm .bwsc{font-size:22px;font-weight:700;color:#222}
+.bwtm .bwsc.lose{color:#a3a3a3}
+.bwsep{height:0;border-top:1px solid #ececec;position:relative}
+.bwsep{font-size:0}
+
 /* ================= game screen ================= */
 #game{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);
   transition:transform .32s cubic-bezier(.2,.7,.3,1);box-shadow:-4px 0 12px rgba(0,0,0,.45);visibility:hidden}
@@ -2076,6 +2105,223 @@ content.addEventListener('click', e => {
   if (g) openGame(g.dataset.gid);
 });
 
+
+/* ================= Bowl Bound =================
+   Before bowl pairings are set: ESPN's weekly bowl projections article (Bonagura / Schlabach).
+   Once ESPN's postseason scoreboard has real matchups: the actual bowl slate. */
+const BOWL_FALLBACK_ID = '50278962';                 // last known projections story (Week 8, 2026)
+S.analyst = store.get('cfb.analyst', 0);
+let BOWL = {art: null, slate: null};
+
+const normName = x => String(x || '').toLowerCase().replace(/\(ohio\)/g, '(oh)').replace(/\(florida\)/g, '(fl)').replace(/[.'’]/g, '')
+  .replace(/&/g, 'and').replace(/\s+/g, ' ').trim();
+async function teamCatalog(){
+  if (BOWL.cat) return BOWL.cat;
+  const map = {};
+  for (const g of ['80', '81']) {
+    try {
+      const d = await getJSON(`${API}/teams?limit=1000&groups=${g}`);
+      (d.sports?.[0]?.leagues?.[0]?.teams || []).forEach(({team: t}) => {
+        if (!t) return;
+        [t.location, t.displayName, t.shortDisplayName, t.abbreviation, t.nickname].forEach(k => { const n = normName(k); if (n && !map[n]) map[n] = t; });
+      });
+    } catch (e) {}
+  }
+  return (BOWL.cat = map);
+}
+function findTeam(name){
+  const m = BOWL.cat || {}, n = normName(name);
+  return m[n] || m[n.replace(/ state$/, ' st')] || m[n.replace(/^the /, '')] || null;
+}
+
+/* -- locate and read the newest projections story -- */
+async function latestProjection(){
+  let best = null;
+  try {
+    const d = await getJSON(`${API}/news?limit=100`);
+    (d.articles || []).filter(a => /bowl projection/i.test(`${a.headline} ${a.description || ''}`)).forEach(a => {
+      if (!best || new Date(a.published) > new Date(best.published)) best = a;
+    });
+  } catch (e) {}
+  const saved = store.get('cfb.bowlArt', null);
+  if (best) {
+    const id = String(best.id || (best.links?.web?.href || '').match(/\/id\/(\d+)/)?.[1] || '');
+    const rec = {id, api: best.links?.api?.news?.href || '', web: best.links?.web?.href || '', published: best.published, headline: best.headline};
+    if (!saved || new Date(rec.published) >= new Date(saved.published || 0)) { store.set('cfb.bowlArt', rec); return rec; }
+  }
+  return saved || {id: BOWL_FALLBACK_ID, web: `https://www.espn.com/college-football/story/_/id/${BOWL_FALLBACK_ID}/2026-week-8-college-football-playoff-bowl-projections`};
+}
+async function storyBody(rec){
+  const urls = [rec.api && rec.api.replace(/^http:/, 'https:'),
+    `https://content.core.api.espn.com/v1/sports/news/${rec.id}`,
+    `https://now.core.api.espn.com/v1/sports/news/${rec.id}`].filter(Boolean);
+  for (const u of urls) {
+    try {
+      const d = await getJSON(u);
+      const h = d.headlines?.[0] || d.feed?.[0] || d;
+      if (h?.story) return {story: h.story, headline: h.headline || rec.headline, published: h.published || rec.published, byline: h.byline || '', web: h.links?.web?.href || rec.web};
+    } catch (e) {}
+  }
+  return null;
+}
+
+/* -- parse the article into sections, dates and games -- */
+function parseProjections(html){
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, 'text/html');
+  const lines = [];
+  doc.body.firstChild.querySelectorAll('p, h1, h2, h3, h4, li').forEach(el => {
+    if (el.closest('li') && el.tagName !== 'LI') return;
+    const isHead = /^H\d$/.test(el.tagName);
+    // split a block on <br> into separate lines, remembering whether each line is all-bold / all-italic
+    let parts = [[]];
+    el.childNodes.forEach(n => { if (n.nodeName === 'BR') parts.push([]); else parts[parts.length - 1].push(n); });
+    parts.forEach(nodes => {
+      const text = nodes.map(n => n.textContent).join('').replace(/\s+/g, ' ').trim();
+      if (!text) return;
+      // a line counts as bold/italic when every bit of its text sits inside <b>/<strong> (or <i>/<em>)
+      const texts = [];
+      nodes.forEach(n => {
+        if (n.nodeType === 3) { if (/\w/.test(n.textContent)) texts.push(n); return; }
+        const w = doc.createTreeWalker(n, NodeFilter.SHOW_TEXT);
+        for (let t = w.nextNode(); t; t = w.nextNode()) if (/\w/.test(t.textContent)) texts.push(t);
+      });
+      const inside = sel => texts.length > 0 && texts.every(t => t.parentElement && t.parentElement.closest(sel) && el.contains(t.parentElement.closest(sel)));
+      const bold = isHead || inside('b,strong');
+      const ital = !bold && inside('i,em');
+      const lab = nodes[0]?.nodeType === 1 && /^(B|STRONG)$/.test(nodes[0].nodeName) ? nodes[0].textContent.trim() : '';
+      lines.push({text, bold, ital, head: isHead, label: /^[A-Z][\w'.-]+:$/.test(lab) ? lab.slice(0, -1) : ''});
+    });
+  });
+  const DATE = /^(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day,?\s+[A-Z][a-z]{2,8}\.?\s+\d{1,2}\b/;
+  const out = {analysts: [], items: []};
+  let cur = null, section = '', started = false;
+  const push = it => { out.items.push(it); return it; };
+  lines.forEach(l => {
+    const pick = l.label ? l.text.slice(l.label.length + 1).trim() : (l.text.match(/^([A-Z][a-z'-]+):\s+(.+)$/) || [])[2];
+    const who = l.label || (l.text.match(/^([A-Z][a-z'-]+):\s+/) || [])[1];
+    if (who && pick && /\b(vs\.?|at)\b/i.test(pick)) {
+      if (!out.analysts.includes(who)) out.analysts.push(who);
+      if (!cur || cur.done) cur = push({type: 'game', title: '', meta: [], picks: {}, section});
+      cur.picks[who] = pick;
+      started = true;
+      return;
+    }
+    if ((l.bold || l.head) && DATE.test(l.text) && l.text.length < 40) { push({type: 'date', text: l.text}); cur = null; return; }
+    if ((l.bold || l.head) && !l.ital) {
+      if (!/\bgame\s*\d/i.test(l.text) && (/playoff|^cfp|first round|quarterfinal|semifinal|championship|bowl season|bowl schedule|bowl games/i.test(l.text) && (l.head || !/bowl$/i.test(l.text) && l.text.length < 60 && !/ bowl\b/i.test(l.text.replace(/bowl (season|schedule|games)/i, ''))))) {
+        section = /playoff|^cfp|first round|quarterfinal|semifinal|championship/i.test(l.text) ? 'College Football Playoff' : 'Bowl Games';
+        if (out.items.filter(x => x.type === 'section').pop()?.text !== section) push({type: 'section', text: section});
+        if (/^(cfp )?(first round|quarterfinals?|semifinals?|national championship)/i.test(l.text)) { push({type: 'round', text: l.text.replace(/\s*\(.*$/, '')}); cur = null; return; }
+        if (out.items.filter(x => x.type === 'section').pop()?.text !== section) push({type: 'section', text: section});
+        cur = null; return;
+      }
+      cur = push({type: 'game', title: l.text, meta: [], picks: {}, section});
+      return;
+    }
+    if (l.ital) {
+      if (!cur || Object.keys(cur.picks).length) cur = push({type: 'game', title: '', meta: [], picks: {}, section});
+      cur.meta.push(l.text);
+    }
+  });
+  out.items = out.items.filter(it => it.type !== 'game' || Object.keys(it.picks).length);
+  return out;
+}
+
+/* -- rendering -- */
+function bowlTeamRow(raw){
+  const m = String(raw || '').trim().match(/^(?:No\.\s*(\d+)\s+)?(.+)$/);
+  const seed = m?.[1], name = (m?.[2] || '').trim();
+  const t = findTeam(name);
+  const lg = t ? logoOf(t) : '';
+  return `<div class="bwtm"${t ? ` data-team="${esc(t.id)}"` : ''}>${lg ? `<img src="${esc(lg)}" alt="">` : '<i class="ph"></i>'}<span>${seed ? `<em>${esc(seed)}</em>` : ''}${esc(name)}</span></div>`;
+}
+function splitMatchup(p){
+  const m = String(p || '').match(/^(.+?)\s+(vs\.?|at)\s+(.+)$/i);
+  return m ? [m[1], m[3], m[2].toLowerCase().startsWith('at') ? '@' : 'vs'] : [p, '', ''];
+}
+function bowlCard(title, metaLines, a, b, sep, extra = ''){
+  const venue = metaLines.find(x => /\(/.test(x) && !/\b(a\.m\.|p\.m\.|noon|tba|tbd)\b/i.test(x)) || '';
+  const time = metaLines.find(x => x !== venue) || '';
+  return `<div class="bwc"${extra}>${title || time ? `<div class="bwt"><b>${esc(title)}</b><span>${esc(time)}</span></div>` : ''}${venue ? `<div class="bwv">${esc(venue)}</div>` : ''}
+    <div class="bwm">${a}${b ? `<div class="bwsep">${esc(sep)}</div>${b}` : ''}</div></div>`;
+}
+function projectionsHTML(art, P){
+  const an = P.analysts;
+  const idx = Math.min(S.analyst, Math.max(0, an.length - 1)), who = an[idx];
+  const date = art.published ? new Date(art.published).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) : '';
+  let html = `<div class="bwhead"><b>${esc(art.headline || 'Bowl Projections')}</b><span>${esc([art.byline, date && 'Updated ' + date].filter(Boolean).join(' · '))}</span>
+    ${art.web ? `<a href="${esc(art.web)}" target="_blank" rel="noopener">Read on ESPN.com ›</a>` : ''}</div>`;
+  if (an.length > 1) html += `<div class="pseg">${an.map((n, i) => `<button data-an="${i}"${i === idx ? ' class="on"' : ''}>${esc(n)}</button>`).join('')}</div>`;
+  P.items.forEach(it => {
+    if (it.type === 'section') html += `<div class="bwsec">${esc(it.text)}</div>`;
+    else if (it.type === 'round') html += `<div class="dh">${esc(it.text)}</div>`;
+    else if (it.type === 'date') html += `<div class="dh">${esc(it.text)}</div>`;
+    else {
+      const pk = it.picks[who] || Object.values(it.picks)[0];
+      const [a, b, sep] = splitMatchup(pk);
+      html += bowlCard(it.title, it.meta, bowlTeamRow(a), b ? bowlTeamRow(b) : '', sep);
+    }
+  });
+  return html;
+}
+function slateHTML(evs){
+  let html = `<div class="bwhead"><b>${esc(String(S.season || ''))} Bowl Schedule</b><span>Official bowl matchups</span></div>`, last = '';
+  evs.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(e => {
+    const comp = e.competitions?.[0] || {}, d = new Date(e.date), st = evState(e);
+    const k = dateKey(d);
+    if (k !== last) { html += `<div class="dh">${esc(k)}</div>`; last = k; }
+    const title = comp.notes?.[0]?.headline || e.name || '';
+    const v = comp.venue, venue = v ? `${v.fullName}${v.address?.city ? ` (${[v.address.city, v.address.state].filter(Boolean).join(', ')})` : ''}` : '';
+    const time = st === 'pre' ? `${comp.timeValid === false ? 'TBA' : timeStr(d)}${netOf(comp) ? ', ' + netOf(comp) : ''}`
+               : st === 'in' ? liveStatus(comp.status || e.status) : 'Final';
+    const {away, home} = sides(e);
+    const row = c => {
+      const t = c.team || {}, lg = logoOf(t), rk = rankOf(c);
+      const sc = st !== 'pre' && c.score != null ? `<b class="bwsc${st === 'post' && c.winner === false ? ' lose' : ''}">${esc(c.score)}</b>` : `<small>${esc((c.records || [])[0]?.summary || '')}</small>`;
+      return `<div class="bwtm">${lg ? `<img src="${esc(lg)}" alt="">` : '<i class="ph"></i>'}<span>${rk ? `<em>${rk}</em>` : ''}${esc(t.location || t.shortDisplayName || t.displayName || 'TBD')}</span>${sc}</div>`;
+    };
+    html += bowlCard(title, [venue, time].filter(Boolean), row(away), row(home), 'vs', ` data-gid="${esc(e.id)}"`);
+  });
+  return html;
+}
+const isRealTeam = c => c?.team?.id && Number(c.team.id) > 0 && !/^(tbd|tba)\b/i.test(c.team.displayName || c.team.location || '');
+async function renderBowl(){
+  clearTimeout(S.timer);
+  const token = ++S.token;
+  content.innerHTML = '<div class="spin" style="margin-top:50px"></div>';
+  // 1) official slate once ESPN's postseason board has real teams
+  let evs = [];
+  try {
+    const d = await getJSON(`${API}/scoreboard?seasontype=3&limit=200${S.season ? `&dates=${S.season}` : ''}`);
+    evs = (d.events || []).filter(e => !/national championship/i.test(e.competitions?.[0]?.notes?.[0]?.headline || '') || true);
+  } catch (e) {}
+  if (token !== S.token) return;
+  const real = evs.filter(e => (e.competitions?.[0]?.competitors || []).filter(isRealTeam).length === 2);
+  if (evs.length && real.length / evs.length >= 0.6) { content.innerHTML = slateHTML(evs); return; }
+  // 2) otherwise the latest projections
+  const [rec] = await Promise.all([latestProjection(), teamCatalog()]);
+  if (token !== S.token) return;
+  const art = await storyBody(rec);
+  if (token !== S.token) return;
+  const P = art ? parseProjections(art.story) : null;
+  if (!P || !P.items.some(i => i.type === 'game')) {
+    content.innerHTML = `<div class="bwhead"><b>${esc(rec.headline || 'Bowl Projections')}</b><span>ESPN's latest College Football Playoff and bowl projections</span>
+      <a href="${esc(rec.web)}" target="_blank" rel="noopener">Read on ESPN.com ›</a></div><div class="msg">The projections couldn't be loaded in the app right now.</div>`;
+    return;
+  }
+  BOWL.art = art; BOWL.P = P;
+  content.innerHTML = projectionsHTML(art, P);
+}
+content.addEventListener('click', e => {
+  if (S.view !== 'bowl') return;
+  const a = e.target.closest('[data-an]');
+  if (a && BOWL.P) { S.analyst = +a.dataset.an; store.set('cfb.analyst', S.analyst); const y = content.scrollTop; content.innerHTML = projectionsHTML(BOWL.art, BOWL.P); content.scrollTop = y; return; }
+  const g = e.target.closest('.bwc[data-gid]');
+  if (g) { openGame(g.dataset.gid); return; }
+  const t = e.target.closest('.bwtm[data-team]');
+  if (t) openTeam(t.dataset.team);
+});
+
 /* -- top-level pages from the side menu -- */
 const STAND_CONFS = CONFS.filter(c => !/^(top25|80)$/.test(c[0]));
 S.sconf = store.get('cfb.sconf', '8'); S.poll = 0;
@@ -2098,6 +2344,8 @@ async function renderPage(){
     content.innerHTML = rankingsHTML(v, null);
   } else if (view === 'news') {
     renderStream();
+  } else if (view === 'bowl') {
+    renderBowl();
   } else if (view === 'video') {
     renderVideo();
   } else if (view === 'top') {
@@ -2111,7 +2359,7 @@ async function renderPage(){
     clearTimeout(S.timer);
     S.timer = setTimeout(() => { if (S.view === 'top' && !document.hidden) { silentTop = true; renderPage(); } }, 30000);
   } else {
-    const label = {teams: 'Teams', bowl: 'Bowl Bound'}[view] || '';
+    const label = {teams: 'Teams'}[view] || '';
     content.innerHTML = `<div class="msg" style="margin-top:60px"><b>${esc(label)}</b>Coming soon.</div>`;
   }
 }
