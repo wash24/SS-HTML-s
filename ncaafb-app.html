@@ -501,7 +501,7 @@ function renderGames(evs){
     list.forEach(e => { const k = dateKey(new Date(e.date)); if (k !== last) { flush(); last = k; } group.push(e); });
     flush();
   };
-  section('In Progress', live);
+  html += live.map(card).join('');   // live games lead, with no header bar
   const todayLabel = 'Today, ' + dateKey(new Date());
   section(todayLabel, todayUp);
   section(todayLabel + (todayUp.length ? ' · Final' : ''), todayDone);
