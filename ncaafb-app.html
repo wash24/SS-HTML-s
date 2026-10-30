@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="ESPN CFB">
 <link rel="apple-touch-icon" sizes="180x180" href="cfb-app-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="cfb-favicon.png">
@@ -605,6 +605,13 @@ body.ingame #app{transform:translateX(-28%)}
 .tr img{width:28px;height:28px;object-fit:contain}
 .tr span{flex:1}
 .tr.on::after{content:"\2713";color:#385487;font-size:20px}
+
+/* Home-screen app fit (same fix as Team Stream): a solid black iOS status bar, so nothing draws under it
+   and iOS doesn't blur the header; full-screen layers are sized by screen height (100vh) rather than
+   anchored to the bottom edge, which iOS standalone mode can report short. */
+html,body{background:#000;overscroll-behavior:none}
+#app,#game,#modal,#vid{top:0;bottom:auto;height:100vh}
+#drawer{top:0;bottom:auto;height:100vh}
 </style>
 </head>
 <body class="loading">
