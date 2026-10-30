@@ -115,7 +115,7 @@ body.stream #band{display:none}
 .tm .rec{font-size:15px;color:#555;margin-left:4px}
 .tm .sc{font-size:17px;font-weight:700;color:#333;min-width:28px;text-align:right;flex:none}
 .tm.lose .nm,.tm.lose .sc{color:#999}
-.pv{display:block;border-top:1px solid #d7d7d7;padding:9px 10px 0;height:61px;font-size:12.5px;color:#333}
+.pv{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;border-top:1px solid #d7d7d7;padding:9px 10px 0;height:61px;font-size:12.5px;line-height:1.35;color:#333}
 .pv:active{background:#f4f4f4}
 
 /* live + final cards (tall rows, big scores) */
@@ -245,7 +245,7 @@ const S = {
   layout: store.get('cfb.layout', 'compact'),
   my: store.get('cfb.my', []),
   weeks: [], weekKey: null, season: null,
-  cache: {}, scores: {}, timer: null, token: 0
+  cache: {}, hl: {}, timer: null, token: 0
 };
 if (!TABS.includes(S.tab)) S.tab = 'all';
 
@@ -418,6 +418,38 @@ function fieldHTML(comp, away, home){
 `;
 }
 
+function findHeadline(list, need){
+  const h = (list || []).find(x => new RegExp(need, 'i').test(x.type || ''));
+  const t = h && (h.shortLinkText || h.description);
+  return t ? {t: t.trim(), u: h.links?.web?.href || h.link?.href} : null;
+}
+async function hydrateHeadlines(){
+  const queue = [...document.querySelectorAll('.pv[data-need]')];
+  const work = async () => {
+    while (queue.length) {
+      const el = queue.shift(), id = el.dataset.eid, need = el.dataset.need, key = id + need;
+      let rec = S.hl[key];
+      if (!rec || (!rec.h && Date.now() - rec.t > 600000)) {
+        let h = null;
+        try {
+          const d = await getJSON(`${API}/summary?event=${id}`);
+          const a = d.article;
+          if (a?.headline && (!a.type || new RegExp(need, 'i').test(a.type)))
+            h = {t: a.headline.trim(), u: a.links?.web?.href || a.links?.mobile?.href};
+          if (!h) h = findHeadline(d.header?.competitions?.[0]?.headlines || d.headlines, need);
+        } catch (err) {}
+        rec = S.hl[key] = {h, t: Date.now()};
+      }
+      if (rec.h && el.isConnected) {
+        el.textContent = rec.h.t;
+        if (rec.h.u) el.href = rec.h.u;
+        el.removeAttribute('data-need');
+      }
+    }
+  };
+  await Promise.all([0, 1, 2, 3].map(work));
+}
+
 function card(e){
   const comp = e.competitions[0];
   const st = comp.status || e.status;
@@ -446,9 +478,13 @@ function card(e){
     const fld = fieldHTML(comp, away, home);
     return `<a class="gc big live" href="${esc(href)}" target="_blank" rel="noopener">${head}${fld || `<div class="sit">${esc(loc(away))}-${esc(loc(home))} Gamecast</div>`}</a>`;
   }
-  const label = state === 'pre' ? 'Preview' : 'Recap';
+  // Preview headline before kickoff, recap headline after; looked up from the game summary if the scoreboard lacks it
+  const need = state === 'pre' ? 'preview' : 'recap';
+  const hl = findHeadline(comp.headlines, need) || S.hl[e.id + need]?.h;
+  const fallback = `${loc(away)}-${loc(home)} ${state === 'pre' ? 'Preview' : 'Recap'}`;
+  const artURL = hl?.u || `https://www.espn.com/college-football/${need}/_/gameId/${e.id}`;
   return `<div class="gc big">${head}
-    <a class="pv" href="${esc(href)}" target="_blank" rel="noopener">${esc(loc(away))}-${esc(loc(home))} ${label}</a>
+    <a class="pv" href="${esc(artURL)}" target="_blank" rel="noopener"${hl ? '' : ` data-eid="${esc(e.id)}" data-need="${need}"`}>${esc(hl?.t || fallback)}</a>
   </div>`;
 }
 // Order: live -> today's upcoming -> today's finals -> later days' upcoming -> earlier days' finals (newest first)
@@ -525,6 +561,7 @@ async function renderScores(silent){
     const empty = tab === 'my' ? '<div class="msg"><b>No games</b>None of your teams play this week.</div>'
                                : '<div class="msg"><b>No games</b>There are no games scheduled for this selection.</div>';
     list.innerHTML = (renderGames(evs) || empty) + `<div class="upd">Updated ${timeStr(new Date())}</div>`;
+    hydrateHeadlines();
     if (silent) content.scrollTop = y;
     const live = evs.some(e => (e.competitions[0].status || e.status)?.type?.state === 'in');
     S.timer = setTimeout(() => { if (S.view === 'scores' && !document.hidden) renderScores(true); }, live ? 30000 : 120000);
