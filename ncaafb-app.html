@@ -1416,15 +1416,20 @@ function shade(hex, f){
 }
 function rgba(hex, a){ const n = parseInt(hex.replace('#', ''), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; }
 function applyTeamColors(t){
-  const c = teamColor(t);                                   // brand color with too-dark/too-light guard
-  const lum = (() => { const n = parseInt(c.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; })();
-  const base = lum > 0.45 ? shade(c, -0.45) : c;
+  // Always lead with the team's primary color (never swap to the alternate, which is often yellow/gold);
+  // only a near-white primary falls back to the alternate so the white header text stays readable.
+  const L = h => { const n = parseInt(h, 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; };
+  let p = hexOk(t?.color) ? t.color : (hexOk(t?.alternateColor) ? t.alternateColor : '555555');
+  if (L(p) > 0.82 && hexOk(t?.alternateColor) && L(t.alternateColor) < 0.82) p = t.alternateColor;
+  const c = '#' + p, lum = L(p);
+  const base = lum > 0.55 ? shade(c, -0.35) : c;              // keep white text legible on light brand colors
   const st = document.body.style;
   st.setProperty('--tc', c);
-  st.setProperty('--tcd', lum > 0.55 ? shade(c, -0.5) : c);
-  st.setProperty('--tnav', `linear-gradient(${shade(base, -0.3)} 0%, ${shade(base, -0.5)} 55%, ${shade(base, -0.68)} 100%)`);
-  st.setProperty('--tcg1', rgba(lum < 0.2 ? shade(c, 0.35) : c, 1));
-  st.setProperty('--tcg2', rgba(lum < 0.2 ? shade(c, 0.35) : c, .55));
+  st.setProperty('--tcd', lum > 0.55 ? shade(c, -0.45) : c);
+  st.setProperty('--tnav', `linear-gradient(${shade(base, 0.08)} 0%, ${base} 50%, ${shade(base, -0.16)} 100%)`);
+  const glow = lum < 0.15 ? shade(c, 0.4) : c;              // near-black teams get a lifted glow so it still shows
+  st.setProperty('--tcg1', rgba(glow, 1));
+  st.setProperty('--tcg2', rgba(glow, .6));
 }
 const evComp = e => e.competitions?.[0] || {};
 const evState = e => evComp(e).status?.type?.state || e.status?.type?.state || 'pre';
@@ -1517,7 +1522,7 @@ async function loadTeam(silent){
 function teamHeader(){
   const t = T.team || {};
   applyTeamColors(t);
-  $('#navTitle').textContent = t.abbreviation || t.shortDisplayName || '';
+  $('#navTitle').textContent = t.location || t.shortDisplayName || t.displayName || t.abbreviation || '';
   const lg = logoOf(t) || (T.id ? `https://a.espncdn.com/i/teamlogos/ncaa/500/${T.id}.png` : '');
   $('#tlogo').innerHTML = lg ? `<img src="${esc(lg)}" alt="" onerror="this.style.visibility='hidden'">` : '';
   $('#bell').classList.toggle('on', S.my.some(m => String(m.id) === T.id));
@@ -1586,7 +1591,7 @@ function featuredHTML(){
 function newsHTML(){
   const n = T.news || [];
   if (!n.length) return '';
-  return `<div class="tnews"><h3>News</h3>${n.slice(0, 10).map(a => `<a href="${esc(a.links?.web?.href || a.links?.mobile?.href || '#')}" target="_blank" rel="noopener">${esc(a.headline)}${a.published ? `<time>${esc(ago(a.published))}</time>` : ''}</a>`).join('')}</div>`;
+  return `<div class="tnews"><h3>News</h3>${n.slice(0, 10).map(a => `<a href="${esc(a.links?.web?.href || a.links?.mobile?.href || '#')}" target="_blank" rel="noopener">${esc(a.headline)}</a>`).join('')}</div>`;
 }
 function scheduleHTML(){
   const evs = T.events || [];
