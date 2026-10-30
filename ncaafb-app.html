@@ -349,6 +349,21 @@ body.pagev #content:has(.tsw){background:#e3e3e3}
 .schr i.T{color:#777}
 .schr .lv{font-style:normal;color:var(--live)}
 
+/* rankings table (standings style, slimmer rows, no logos) */
+.rkt .sthd .rk,.rkrow .rk{width:34px;flex:none;text-align:left}
+.rkt .sthd span{flex:1}
+.rkt .sthd .vt,.rkrow .vt{width:64px;flex:none;text-align:right}
+.rkrow{display:flex;align-items:center;height:40px;padding:0 12px;border-bottom:1px solid #d9d9d9;cursor:pointer}
+.rkrow:last-child{border-bottom:0}
+.rkrow:active{background:#f4f4f4}
+.rkrow .rk{font-size:15px;font-weight:700;color:#555}
+.rkrow .nm{flex:1;min-width:0;font-size:15.5px;font-weight:700;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rkrow .nm small{font-weight:400;color:#888;font-size:13px}
+.rkrow .vt{font-size:14.5px;font-weight:400;color:#444}
+.rkrow.me{box-shadow:inset 4px 0 0 var(--tc)}
+.rkempty{padding:14px 12px;font-size:15px;color:#444}
+body.teamv .pickers{padding:0 8px 2px}
+
 /* ================= game screen ================= */
 #game{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);
   transition:transform .32s cubic-bezier(.2,.7,.3,1);box-shadow:-4px 0 12px rgba(0,0,0,.45);visibility:hidden}
@@ -1612,7 +1627,7 @@ async function mergeTeamInfo(id, a, b, events){
   if (!out.logo && !(out.logos || []).length) out.logo = `https://a.espncdn.com/i/teamlogos/ncaa/500/${id}.png`;
   out.abbreviation ??= out.shortDisplayName || out.location || '';
   // conference id: groups.id, or conferenceId from scoreboard entries
-  out.confId = out.groups?.isConference === false ? null : (out.groups?.id || mine.find(c => c.team?.conferenceId)?.team?.conferenceId || null);
+  out.confId = (out.groups?.isConference === false ? out.groups?.parent?.id : out.groups?.id) || out.groups?.parent?.id || mine.find(c => c.team?.conferenceId)?.team?.conferenceId || null;
   out.curRank = (() => { const c = mine.find(x => rankOf(x)); return c ? rankOf(c) : null; })();
   out.confRec = (() => { for (const c of mine) { const r = (c.records || []).find(x => /vsconf/i.test(x.type || '')); if (r) return r.summary; } return null; })();
   return out;
@@ -1849,31 +1864,70 @@ function standingsHTML(v, conf, hid){
   });
   return html + '</div>';
 }
-function standingsTab(){
-  const conf = T.team?.confId || '';
-  const yr = seasonYear();
-  const v = lazy('stand', () => fetchStandings(conf, yr));
-  if (v === undefined) return '<div class="spin"></div>';
-  return standingsHTML(v, conf, T.id);
+// Load the standings table that actually contains this team (its conference, or Independents).
+async function teamStandings(id, conf, yr){
+  const has = v => v?.groups?.some(g => g.entries.some(e => String(e.team?.id) === String(id)));
+  if (conf) {
+    try { const v = await fetchStandings(conf, yr); if (has(v)) return {v, conf}; } catch (e) {}
+  }
+  // FBS-wide standings: each child is a conference (some with division children)
+  try {
+    const d = await getJSON(`https://site.api.espn.com/apis/v2/sports/football/college-football/standings?group=80&season=${yr}`);
+    for (const c of (d.children || [])) {
+      const groups = [];
+      const walk = n => { if (n?.standings?.entries?.length) groups.push({name: n.name || '', abbr: n.abbreviation || '', entries: n.standings.entries}); (n?.children || []).forEach(walk); };
+      walk(c);
+      const v = {abbr: c.abbreviation || c.shortName || c.name || '', groups};
+      if (has(v)) {
+        const cid = String(c.id || '');
+        if (T.id === String(id) && cid) T.team.confId = cid;
+        // a conference with divisions inside group=80 can be partial; reload it directly when we have its id
+        if (cid) { try { const full = await fetchStandings(cid, yr); if (has(full)) return {v: full, conf: cid}; } catch (e) {} }
+        return {v, conf: cid};
+      }
+    }
+  } catch (e) {}
+  return {v: null, conf};
 }
-function rankingsHTML(list, idx, hid){
+function standingsTab(){
+  const yr = seasonYear();
+  const r = lazy('stand', () => teamStandings(T.id, T.team?.confId || '', yr));
+  if (r === undefined) return '<div class="spin"></div>';
+  return standingsHTML(r?.v, r?.conf || '', T.id);
+}
+S.rkWeek = ''; S.pollName = '';
+const rankURL = wk => {
+  const w = S.weeks.find(x => x.key === wk);
+  return w ? `${API}/rankings?seasontype=${w.st}&week=${w.wk}${S.season ? `&dates=${S.season}` : ''}` : `${API}/rankings`;
+};
+async function fetchRankings(wk){ return (await getJSON(rankURL(wk))).rankings || []; }
+function rankingsHTML(list, hid){
   const polls = (list || []).filter(p => (p.ranks || []).length);
-  if (!polls.length) return '<div class="gempty"><b>Rankings</b>Rankings are not available right now.</div>';
-  idx = Math.min(idx, polls.length - 1); const P = polls[idx];
-  const seg = polls.length > 1 ? `<div class="pseg" style="margin-top:0;margin-bottom:12px">${polls.map((p, i) => `<button data-poll="${i}"${i === idx ? ' class="on"' : ''}>${esc((p.shortName || p.name || '').replace(/ Poll$/i, '').replace(/^AFCA /, ''))}</button>`).join('')}</div>` : '';
-  const trend = r => { const t = String(r.trend ?? ''); return t === '-' || t === '0' || !t ? '–' : t; };
-  const rows = P.ranks.map(r => {
+  let idx = polls.findIndex(p => (p.name || p.shortName) === S.pollName);
+  if (idx < 0) idx = Math.max(0, polls.findIndex(p => /^AP/i.test(p.shortName || p.name || '')));
+  const P = polls[idx];
+  const pollLabel = p => (p.name || p.shortName || '').replace(/^AFCA\s+/i, '').replace(/^AP Top 25$/i, 'AP Top 25');
+  const weekOpts = ['<option value="">Current</option>'].concat(S.weeks.map(w => `<option value="${esc(w.key)}"${w.key === S.rkWeek ? ' selected' : ''}>${esc(w.label)}</option>`)).join('');
+  const wl = S.rkWeek ? ((S.weeks.find(w => w.key === S.rkWeek) || {}).label || 'Week') : (P?.occurrence?.displayValue || 'Current');
+  const pollOpts = polls.length ? polls.map((p, i) => `<option value="${esc(p.name || p.shortName)}"${i === idx ? ' selected' : ''}>${esc(pollLabel(p))}</option>`).join('') : '<option>AP Top 25</option>';
+  const pickers = `<div class="pickers"><label class="pk"><span>${esc(wl)}</span><select id="rkWeekSel">${weekOpts}</select></label><label class="pk"><span>${esc(P ? pollLabel(P) : 'AP Top 25')}</span><select id="rkPollSel">${pollOpts}</select></label></div><div style="height:12px"></div>`;
+  let rows = '';
+  if (!P) rows = '<div class="rkempty">No rankings available.</div>';
+  else rows = P.ranks.map(r => {
     const me = hid && String(r.team?.id) === String(hid);
-    return `<tr class="${me ? 'me' : ''}" data-team="${esc(r.team?.id || '')}"><td>${teamCell(r.team, `<b class="rkn">${esc(r.current)}</b>`)}</td><td>${esc(r.recordSummary || '-')}</td><td>${esc(r.points != null ? Math.round(r.points) : '-')}</td><td class="${/^\+/.test(trend(r)) ? 'up' : /^-\d/.test(trend(r)) ? 'dn' : ''}">${esc(trend(r))}</td></tr>`;
+    const nm = r.team?.location || r.team?.shortDisplayName || r.team?.nickname || r.team?.abbreviation || '';
+    const fpv = r.firstPlaceVotes ? ` <small>(${r.firstPlaceVotes})</small>` : '';
+    return `<div class="rkrow${me ? ' me' : ''}" data-team="${esc(r.team?.id || '')}"><b class="rk">${esc(r.current)}</b><span class="nm">${esc(nm)}${fpv}</span><b class="vt">${esc(r.points != null ? Math.round(r.points).toLocaleString('en-US') : '-')}</b></div>`;
   }).join('');
-  const others = (P.others || []).slice(0, 12).map(o => `${o.team?.abbreviation || o.team?.location || ''} ${Math.round(o.points || 0)}`).join(', ');
-  return seg + statTable(P.headline || P.name || 'Rankings', ['Rec', 'Pts', 'Trend'], rows, 'Team', true) +
+  const others = P ? (P.others || []).slice(0, 15).map(o => `${o.team?.location || o.team?.abbreviation || ''} ${Math.round(o.points || 0)}`).join(', ') : '';
+  return pickers + `<div class="stand rkt"><div class="sthd"><b class="rk">Rk</b><span>Team</span><b class="vt">Votes</b></div>${rows}</div>` +
     (others ? `<div class="sfoot">Others receiving votes: ${esc(others)}</div>` : '');
 }
 function rankingsTab(){
-  const v = lazy('rank', async () => (await getJSON(`${API}/rankings`)).rankings || []);
+  const key = 'rank:' + S.rkWeek;
+  const v = lazy(key, () => fetchRankings(S.rkWeek));
   if (v === undefined) return '<div class="spin"></div>';
-  return rankingsHTML(v, T.poll, T.id);
+  return rankingsHTML(v, T.id);
 }
 
 
@@ -1939,12 +1993,12 @@ async function renderPage(){
     if (token !== S.token) return;
     content.innerHTML = picker + standingsHTML(v, S.sconf, null);
   } else if (view === 'rankings') {
-    content.innerHTML = '<div style="height:14px"></div><div class="spin"></div>';
+    content.innerHTML = '<div class="spin" style="margin-top:50px"></div>';
     let v = null;
-    try { v = (await getJSON(`${API}/rankings`)).rankings || []; } catch (e) {}
+    try { v = await fetchRankings(S.rkWeek); } catch (e) {}
     if (token !== S.token) return;
     S.rk = v;
-    content.innerHTML = '<div style="height:14px"></div>' + rankingsHTML(v, S.poll, null);
+    content.innerHTML = rankingsHTML(v, null);
   } else if (view === 'top') {
     if (!silentTop) content.innerHTML = '<div class="spin" style="margin-top:50px"></div>';
     const [n, sb] = await Promise.allSettled([getJSON(`${API}/news?limit=30`, silentTop), getJSON(`${API}/scoreboard?limit=300&groups=80`, silentTop)]);
@@ -1961,20 +2015,25 @@ async function renderPage(){
   }
 }
 content.addEventListener('change', e => {
+  if (e.target.id === 'rkWeekSel' || e.target.id === 'rkPollSel') {
+    if (e.target.id === 'rkWeekSel') S.rkWeek = e.target.value; else S.pollName = e.target.value;
+    if (S.view === 'team') renderTeam(true); else renderPage();
+    return;
+  }
   if (e.target.id === 'sconfSel') { S.sconf = e.target.value; store.set('cfb.sconf', S.sconf); renderPage(); }
 });
 content.addEventListener('click', e => {
   if (S.view !== 'standings' && S.view !== 'rankings') return;
   const p = e.target.closest('[data-poll]');
-  if (p && S.rk) { S.poll = +p.dataset.poll; content.innerHTML = '<div style="height:14px"></div>' + rankingsHTML(S.rk, S.poll, null); return; }
-  const tr = e.target.closest('tr[data-team], .strow[data-team]');
+
+  const tr = e.target.closest('tr[data-team], .strow[data-team], .rkrow[data-team]');
   if (tr && tr.dataset.team) openTeam(tr.dataset.team);
 });
 content.addEventListener('click', e => {
   if (S.view !== 'team') return;
   const p = e.target.closest('[data-poll]');
-  if (p) { T.poll = +p.dataset.poll; renderTeam(true); return; }
-  const tr = e.target.closest('tr[data-team], .strow[data-team]');
+
+  const tr = e.target.closest('tr[data-team], .strow[data-team], .rkrow[data-team]');
   if (tr && tr.dataset.team && tr.dataset.team !== T.id) openTeam(tr.dataset.team);
 });
 
