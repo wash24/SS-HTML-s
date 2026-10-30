@@ -188,14 +188,14 @@ body.ingame #app{transform:translateX(-28%)}
   border-bottom:1px solid #0d0c0b;box-shadow:inset 0 1px 0 rgba(255,255,255,.05);font-size:13px;font-weight:700;letter-spacing:.3px;
   color:#bcbcbc;text-transform:uppercase;text-shadow:0 -1px 0 #000}
 .gcbar i{position:absolute;right:10px;top:0;bottom:0;width:1px;background:#0e0d0c;box-shadow:1px 0 0 rgba(255,255,255,.06)}
-.ghead{flex:none;position:relative;height:78px;display:grid;grid-template-columns:70px 1fr auto 1fr 70px;align-items:center;
+.ghead{flex:none;position:relative;height:100px;display:grid;grid-template-columns:70px 1fr auto 1fr 70px;align-items:center;
   background-color:#211f20;border-bottom:1px solid #000;overflow:hidden}
-.ghead .tmh{display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;z-index:1}
-.ghead .tmh img{width:40px;height:40px;object-fit:contain;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
-.ghead .tmh .ph{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15)}
+.ghead .tmh{display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;z-index:1}
+.ghead .tmh img{width:48px;height:48px;object-fit:contain;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
+.ghead .tmh .ph{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.15)}
 .ghead .tmh b{font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.6);white-space:nowrap}
 .ghead .tmh b em{font-style:normal;color:#c9c9c9;margin-right:4px}
-.ghead .sc{font-size:32px;font-weight:700;color:#fff;text-align:center;letter-spacing:-1px;text-shadow:0 1px 2px rgba(0,0,0,.6);position:relative;z-index:1}
+.ghead .sc{font-size:36px;font-weight:700;color:#fff;text-align:center;letter-spacing:-1px;text-shadow:0 1px 2px rgba(0,0,0,.6);position:relative;z-index:1}
 .ghead .sc.rec{font-size:17px;letter-spacing:0;color:#d4d4d4}
 .ghead .mid{font-size:15px;font-weight:700;color:#c8c8c8;text-transform:uppercase;text-align:center;padding:0 6px;line-height:1.2;
   text-shadow:0 1px 1px rgba(0,0,0,.6);position:relative;z-index:1;white-space:nowrap}
@@ -254,11 +254,11 @@ body.ingame #app{transform:translateX(-28%)}
 .clip span{display:block;font-size:12px;color:#8a8a8a;margin-top:3px}
 
 /* team stats */
-.tst{width:100%;border-collapse:collapse;font-size:14px;color:#333}
+.tst{width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px;color:#333}
 .tst th{height:44px;background:#f4f4f4;border-bottom:1px solid #d6d6d6;font-size:13px;font-weight:700}
 .tst th img{width:24px;height:24px;object-fit:contain;vertical-align:middle;margin-right:5px}
-.tst td{padding:9px 12px;border-bottom:1px solid #e6e6e6;text-align:center;width:28%;font-weight:700}
-.tst td.l{width:44%;font-size:12.5px;font-weight:700;color:#8a8a8a;text-transform:uppercase}
+.tst td{padding:9px 6px;border-bottom:1px solid #e6e6e6;text-align:center;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tst td.l{font-size:12.5px;font-weight:700;color:#8a8a8a;text-transform:uppercase}
 .tst tr:nth-child(even) td{background:#fafafa}
 .tst td.sub{font-weight:400;color:#666}
 .tst td.l.sub{font-weight:700;color:#a5a5a5;padding-left:22px}
@@ -271,14 +271,25 @@ body.ingame #app{transform:translateX(-28%)}
 .pseg button.on{background:linear-gradient(#cbcbcb,#dedede);color:#222;box-shadow:inset 0 2px 3px rgba(0,0,0,.18)}
 .pseg img{width:20px;height:20px;object-fit:contain}
 .pwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.pst{width:100%;border-collapse:collapse;font-size:13.5px;color:#333;white-space:nowrap}
-.pst th{font-size:11px;font-weight:700;color:#888;text-align:right;padding:7px 8px 6px;border-bottom:1px solid #d6d6d6;background:#f4f4f4}
-.pst td{text-align:right;padding:8px 8px;border-bottom:1px solid #e8e8e8}
-.pst th:first-child,.pst td:first-child{text-align:left;padding-left:12px;position:sticky;left:0;background:inherit}
+/* fixed grid: every stat table uses the same name column and the same stat column width, so columns line up across categories, teams and games */
+.pst,.lsc{border-collapse:collapse;table-layout:fixed;font-size:13px;color:#333;white-space:nowrap}
+.pst col.cn{width:98px}
+.pst col.c1{width:54px}
+.pst col.cs{width:42px}
+.lsc col.cn{width:98px}
+.lsc col.cs{width:42px}
+.pst th,.lsc th{font-size:11px;font-weight:700;color:#888;text-align:right;padding:7px 5px 6px 0;border-bottom:1px solid #d6d6d6;background:#f4f4f4;overflow:hidden}
+.pst td,.lsc td{text-align:right;padding:8px 5px 8px 0;border-bottom:1px solid #e8e8e8;overflow:hidden;text-overflow:clip;letter-spacing:-.2px}
+.pst th:first-child,.pst td:first-child,.lsc th:first-child,.lsc td:first-child{text-align:left;padding-left:12px;position:sticky;left:0;z-index:1;text-overflow:ellipsis}
+.pst th:first-child,.lsc th:first-child{background:#f4f4f4}
 .pst td:first-child{font-weight:700;background:#fff}
+.pst td:first-child small{display:block;font-size:10.5px;font-weight:400;color:#999;margin-top:1px}
 .pst tr.tot td{font-weight:700;background:#f7f7f7;color:#222}
 .pst tr.tot td:first-child{background:#f7f7f7}
-.pst th:last-child,.pst td:last-child{padding-right:12px}
+.lsc td:first-child{font-weight:700;background:#fff}
+.lsc td:first-child img{width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-right:6px}
+.lsc td.t{font-weight:700;color:#222}
+.sfoot{padding:10px 12px;font-size:11.5px;color:#999}
 
 /* video player */
 #vid{position:fixed;inset:0;z-index:120;background:#000;display:none;flex-direction:column}
@@ -845,7 +856,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /* ================= game screen ================= */
-const G = {id: null, tab: 'story', data: null, timer: null, ps: 0, token: 0};
+const G = {id: null, tab: 'story', data: null, timer: null, ps: 0, token: 0, season: null};
 const gBody = $('#gBody');
 
 function teamColor(t){
@@ -902,7 +913,7 @@ function renderGameHead(){
     mid = esc(state === 'in' ? liveStatus(status) : (status?.type?.shortDetail || 'Final'));
   }
   head.innerHTML = `${tm(away)}${sa}<div class="mid">${mid}</div>${sh}${tm(home)}`;
-  const first = state === 'pre' ? 'Preview' : 'Recap';
+  const first = state === 'pre' ? 'Preview' : state === 'in' ? 'Box Score' : 'Recap';
   const tabs = [['story', first], ['clips', 'Clips'], ['team', 'Team Stats'], ['players', 'Player Stats']];
   $('#gTabs').innerHTML = tabs.map(([k, l]) => `<button data-gt="${k}"${k === G.tab ? ' class="on"' : ''}>${l}</button>`).join('');
 }
@@ -945,6 +956,15 @@ function gameInfoHTML(g){
   if (gi.attendance) rows.push(['Attendance', Number(gi.attendance).toLocaleString('en-US')]);
   return `<div class="sbar">Game Information</div><div class="info">${rows.map(([a, b]) => `<div><span>${esc(a)}</span><span>${esc(b)}</span></div>`).join('')}</div>`;
 }
+function lineScoreHTML(g){
+  const ls = c => (c.linescores || []).map(x => x.displayValue ?? x.value);
+  const A = ls(g.away), H = ls(g.home);
+  const n = Math.max(4, A.length, H.length);
+  const cols = Array.from({length: n}, (_, i) => i < 4 ? String(i + 1) : (i === 4 ? 'OT' : (i - 3) + 'OT'));
+  const row = (c, v) => `<tr><td>${c.team?.logo ? `<img src="${esc(c.team.logo)}" alt="">` : ''}${esc(c.team?.abbreviation || '')}</td>${cols.map((_, i) => `<td>${esc(v[i] ?? (i < 4 ? '-' : ''))}</td>`).join('')}<td class="t">${esc(c.score ?? '')}</td><td></td></tr>`;
+  return `<div class="sbar">Box Score</div><div class="pwrap"><table class="lsc" style="width:max(100%, ${98 + 42 * (cols.length + 1)}px)"><colgroup><col class="cn">${cols.map(() => '<col class="cs">').join('')}<col class="cs"><col></colgroup>
+    <tr><th></th>${cols.map(c => `<th>${c}</th>`).join('')}<th>T</th><th></th></tr>${row(g.away, A)}${row(g.home, H)}</table></div>`;
+}
 function scoringHTML(g){
   const plays = G.data?.scoringPlays || [];
   if (!plays.length) return '';
@@ -963,11 +983,12 @@ function storyHTML(g){
   const state = gStateOf(g), d = G.data || {};
   const a = d.article;
   const want = state === 'pre' ? /preview/i : /recap/i;
-  const art = a && (a.story || a.headline) && (!a.type || want.test(a.type) || state === 'post') ? a : null;
+  const art = state !== 'in' && a && (a.story || a.headline) && (!a.type || want.test(a.type) || state === 'post') ? a : null;
   let html = '';
   if (state === 'in') {
     const fld = fieldHTML({situation: g.situation}, g.away, g.home);
     if (fld) html += `<div class="glive">${fld}</div>`;
+    html += lineScoreHTML(g);
   }
   if (art) {
     const img = art.images?.find(i => i.url) || null;
@@ -1014,23 +1035,132 @@ function teamStatsHTML(g){
   const hs = t => `${t.team?.logo ? `<img src="${esc(t.team.logo)}" alt="">` : ''}${esc(t.team?.abbreviation || '')}`;
   const hv = {}; (H.statistics || []).forEach(x => { hv[x.name] = x.displayValue; });
   const sub = /^(netPassingYards|rushingYards|completionAttempts|yardsPerPass|rushingAttempts|yardsPerRushAttempt|interceptions|fumblesLost)$/;
-  return `<table class="tst"><tr><th>${hs(A)}</th><th></th><th>${hs(H)}</th></tr>${(A.statistics || []).map(x =>
+  return `<table class="tst"><colgroup><col style="width:29%"><col style="width:42%"><col style="width:29%"></colgroup><tr><th>${hs(A)}</th><th></th><th>${hs(H)}</th></tr>${(A.statistics || []).map(x =>
     `<tr><td class="${sub.test(x.name) ? 'sub' : ''}">${esc(x.displayValue)}</td><td class="l${sub.test(x.name) ? ' sub' : ''}">${esc(x.label)}</td><td class="${sub.test(x.name) ? 'sub' : ''}">${esc(hv[x.name] ?? '')}</td></tr>`).join('')}</table>`;
 }
 
 /* -- player stats -- */
+function statTable(title, labels, body){
+  const w = 98 + 54 + 42 * Math.max(0, labels.length - 1);
+  return `<div class="sbar">${esc(title)}</div><div class="pwrap"><table class="pst" style="width:max(100%, ${w}px)"><colgroup><col class="cn">${labels.map((_, i) => `<col class="${i ? 'cs' : 'c1'}">`).join('')}<col></colgroup>
+    <tr><th></th>${labels.map(l => `<th>${esc(l)}</th>`).join('')}<th></th></tr>${body.replace(/<\/tr>/g, '<td></td></tr>')}</table></div>`;
+}
+function teamSeg(teams, idx){
+  return `<div class="pseg">${teams.map((t, i) => `<button data-ps="${i}"${i === idx ? ' class="on"' : ''}>${t.logo ? `<img src="${esc(t.logo)}" alt="">` : ''}${esc(t.abbreviation || '')}</button>`).join('')}</div>`;
+}
+
+/* -- season stats (pregame) -- */
+const SEASON_CATS = [
+  {key: 'passing',   title: 'Passing',   re: /^passing(Leader|Yards)$/i,   cols: ['C/ATT', 'YDS', 'AVG', 'TD', 'INT']},
+  {key: 'rushing',   title: 'Rushing',   re: /^rushing(Leader|Yards)$/i,   cols: ['CAR', 'YDS', 'AVG', 'TD']},
+  {key: 'receiving', title: 'Receiving', re: /^receiving(Leader|Yards)$/i, cols: ['REC', 'YDS', 'AVG', 'TD']},
+  {key: 'defense',   title: 'Defense',   re: /^(totalTackles|tackles|sacks|interceptions)$/i, cols: ['TOT', 'SACK', 'INT']},
+];
+// "155/240, 1,980 YDS, 15 TD, 4 INT" -> {C/ATT:'155/240', YDS:'1,980', TD:'15', INT:'4'}
+function parseLine(dv, catName){
+  const out = {};
+  String(dv || '').split(/,\s+/).forEach(tok => {
+    tok = tok.trim();
+    let m;
+    if ((m = tok.match(/^(\d+)[\/-](\d+)$/))) out['C/ATT'] = m[1] + '/' + m[2];
+    else if ((m = tok.match(/^(-?[\d,.]+)\s+([A-Za-z]+)$/))) {
+      const k = m[2].toUpperCase();
+      out[{YARDS: 'YDS', TDS: 'TD', SACKS: 'SACK', ATT: 'CAR', CARRIES: 'CAR', RECEPTIONS: 'REC', LNG: 'LONG', TCKL: 'TOT', TCK: 'TOT', TACKLES: 'TOT', INTS: 'INT'}[k] || k] = m[1];
+    }
+    else if (/^-?[\d,.]+$/.test(tok)) {
+      const k = /tackle/i.test(catName) ? 'TOT' : /sack/i.test(catName) ? 'SACK' : /intercept/i.test(catName) ? 'INT' : 'YDS';
+      out[k] = tok;
+    }
+  });
+  const num = v => parseFloat(String(v).replace(/,/g, ''));
+  if (!out.AVG && out.YDS) {
+    const den = out.CAR || out.REC || (out['C/ATT'] && out['C/ATT'].split('/')[1]);
+    if (den && num(den)) out.AVG = (num(out.YDS) / num(den)).toFixed(1);
+  }
+  return out;
+}
+const fixRef = u => String(u || '').replace(/^http:/, 'https:');
+async function loadSeason(g){
+  const key = G.id;
+  if (G.season?.key === key) return G.season;
+  const yr = S.season || new Date(g.date).getFullYear();
+  const teams = [g.away, g.home].map(c => ({id: String(c.team?.id), abbreviation: c.team?.abbreviation, logo: c.team?.logo || darkLogo(c.team)}));
+  const result = {key, yr, teams, by: {}};
+  for (const t of teams) {
+    let cats = {};
+    try {
+      const d = await getJSON(`https://sports.core.api.espn.com/v2/sports/football/leagues/college-football/seasons/${yr}/types/2/teams/${t.id}/leaders?limit=6`);
+      const want = (d.categories || []).filter(c => SEASON_CATS.some(sc => sc.re.test(c.name || '')));
+      const refs = new Set();
+      want.forEach(c => (c.leaders || []).slice(0, 6).forEach(l => l.athlete?.$ref && refs.add(fixRef(l.athlete.$ref))));
+      const people = {};
+      await Promise.all([...refs].map(async r => { try { people[r] = await getJSON(r); } catch (e) {} }));
+      want.forEach(c => {
+        const sc = SEASON_CATS.find(x => x.re.test(c.name));
+        // prefer the "...Leader" category (full stat line) over the bare yards category
+        if (cats[sc.key]?.fromLeader && !/Leader$/i.test(c.name) && sc.key !== 'defense') return;
+        const rows = (cats[sc.key]?.rows && sc.key === 'defense') ? cats[sc.key].rows : [];
+        (c.leaders || []).slice(0, 6).forEach(l => {
+          const p = people[fixRef(l.athlete?.$ref)];
+          if (!p) return;
+          const name = p.shortName || p.displayName, pos = p.position?.abbreviation || '';
+          const vals = parseLine(l.displayValue, c.name);
+          const ex = rows.find(r => r.name === name);
+          if (ex) Object.assign(ex.vals, vals); else rows.push({name, pos, vals});
+        });
+        cats[sc.key] = {rows, fromLeader: /Leader$/i.test(c.name)};
+      });
+    } catch (e) { cats = {}; }
+    if (!Object.keys(cats).length) {
+      // fallback: season leaders included in the game summary
+      const tl = (G.data?.leaders || []).find(x => String(x.team?.id) === t.id);
+      (tl?.leaders || []).forEach(c => {
+        const sc = SEASON_CATS.find(x => x.re.test(c.name || ''));
+        if (!sc) return;
+        const rows = cats[sc.key]?.rows || [];
+        (c.leaders || []).forEach(l => {
+          const name = l.athlete?.shortName || l.athlete?.displayName; if (!name) return;
+          const vals = parseLine(l.displayValue, c.name);
+          const ex = rows.find(r => r.name === name);
+          if (ex) Object.assign(ex.vals, vals); else rows.push({name, pos: l.athlete?.position?.abbreviation || '', vals});
+        });
+        cats[sc.key] = {rows};
+      });
+    }
+    result.by[t.id] = cats;
+  }
+  if (G.id === key) G.season = result;
+  return result;
+}
+function seasonHTML(se){
+  const idx = Math.min(G.ps, se.teams.length - 1), t = se.teams[idx], cats = se.by[t.id] || {};
+  const body = SEASON_CATS.map(sc => {
+    const rows = (cats[sc.key]?.rows || []);
+    if (!rows.length) return '';
+    if (sc.key === 'defense') rows.sort((a, b) => parseFloat(String(b.vals.TOT || 0).replace(/,/g, '')) - parseFloat(String(a.vals.TOT || 0).replace(/,/g, '')));
+    return statTable(`${se.yr} Season · ${sc.title}`, sc.cols, rows.map(r =>
+      `<tr><td>${esc(r.name)}${r.pos ? `<small>${esc(r.pos)}</small>` : ''}</td>${sc.cols.map(c => `<td>${esc(r.vals[c] ?? '-')}</td>`).join('')}</tr>`).join(''));
+  }).join('');
+  return teamSeg(se.teams, idx) + (body ? body + `<div class="sfoot">Season leaders through the most recent game.</div>` : '<div class="gempty"><b>Season stats</b>Season stats are not available for this team yet.</div>');
+}
+
 function playerStatsHTML(g){
+  if (gStateOf(g) === 'pre') {
+    if (G.season?.key === G.id) return seasonHTML(G.season);
+    loadSeason(g).then(se => { if (G.id === se.key && G.tab === 'players') renderGameBody(true); });
+    return '<div class="spin"></div>';
+  }
   const P = G.data?.boxscore?.players || [];
-  if (!P.length) return `<div class="gempty"><b>Player stats</b>${gStateOf(g) === 'pre' ? 'Player stats will be available once the game kicks off.' : 'Player stats are not available for this game yet.'}</div>`;
+  if (!P.length) return `<div class="gempty"><b>Player stats</b>Player stats are not available for this game yet.</div>`;
   const awayId = String(g.away.team?.id);
   const order = [...P].sort((a, b) => (String(b.team?.id) === awayId) - (String(a.team?.id) === awayId));
   const idx = Math.min(G.ps, order.length - 1), T = order[idx];
-  const seg = `<div class="pseg">${order.map((t, i) => `<button data-ps="${i}"${i === idx ? ' class="on"' : ''}>${t.team?.logo ? `<img src="${esc(t.team.logo)}" alt="">` : ''}${esc(t.team?.abbreviation || t.team?.displayName || '')}</button>`).join('')}</div>`;
+  const seg = teamSeg(order.map(t => ({logo: t.team?.logo, abbreviation: t.team?.abbreviation || t.team?.displayName})), idx);
   const cats = (T.statistics || []).filter(c => (c.athletes || []).length).map(c => {
     const name = (c.text || c.name || '').replace(new RegExp('^' + (T.team?.displayName || T.team?.location || '') + '\\s*', 'i'), '') || c.name;
     const rows = c.athletes.map(a => `<tr><td>${esc(a.athlete?.shortName || a.athlete?.displayName || '')}</td>${(a.stats || []).map(v => `<td>${esc(v)}</td>`).join('')}</tr>`).join('');
     const tot = (c.totals || []).some(x => x !== '' && x != null) ? `<tr class="tot"><td>Team</td>${c.totals.map(v => `<td>${esc(v)}</td>`).join('')}</tr>` : '';
-    return `<div class="sbar">${esc(name)}</div><div class="pwrap"><table class="pst"><tr><th></th>${(c.labels || []).map(l => `<th>${esc(l)}</th>`).join('')}</tr>${rows}${tot}</table></div>`;
+    return statTable(name, c.labels || [], rows + tot);
   }).join('');
   return seg + (cats || '<div class="gempty">No player stats yet.</div>');
 }
@@ -1063,7 +1193,7 @@ async function loadGame(silent){
 }
 
 function openGame(id, fromHistory){
-  G.id = String(id); G.tab = 'story'; G.data = null; G.ps = 0;
+  G.id = String(id); G.tab = 'story'; G.data = null; G.ps = 0; G.season = null;
   gBody.scrollTop = 0;
   renderGameHead(); renderGameBody();
   const el = $('#game'); el.classList.add('open'); el.setAttribute('aria-hidden', 'false');
