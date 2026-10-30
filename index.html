@@ -991,7 +991,10 @@ function stCalc(entries, college){
   });
   return rows;
 }
+// Shorter group names: "American League West" -> "AL West", "Big Ten Conference" -> "Big Ten Conf."
+const stShort = (t, college) => { t = String(t || '').replace(/\bAmerican League\b/g, 'AL').replace(/\bNational League\b/g, 'NL'); return college ? t.replace(/\bConference\b/g, 'Conf.') : t; };
 function stTable(title, entries, college, isMe, sort){
+  title = stShort(title, college);
   const pro = !college;
   let rows = stCalc(entries, college);
   if (sort) rows = rows.sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1) || (b.w ?? 0) - (a.w ?? 0));
