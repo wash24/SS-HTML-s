@@ -132,8 +132,6 @@ body.stream #band{display:none}
 .gc.big .tm.lose .sc{color:#a3a3a3}
 .gc.big .top{padding:9px 10px 8px}
 .ball{width:24px;height:14px;flex:none}
-.sc.flash{animation:flash 2.4s ease-out}
-@keyframes flash{0%,35%{background:#fff1a6;box-shadow:0 0 0 4px #fff1a6}100%{background:transparent;box-shadow:0 0 0 4px transparent}}
 .gc.live{color:inherit}
 .sit{background:#efefef;border-top:1px solid #d7d7d7;padding:7px 10px 6px;font-size:12.5px;font-weight:700;color:#444}
 .fld{display:flex;height:42px;background:#e0e0e0}
@@ -151,19 +149,6 @@ body.stream #band{display:none}
 .pf .lp.l{clip-path:polygon(8px 0,100% 0,100% 100%,8px 100%,0 50%)}
 .pf .lp.r{clip-path:polygon(0 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,0 100%)}
 
-/* classic (fall 2012) layout */
-body.classic .venue{display:none}
-body.classic .gc:not(.big) .top{padding:9px 10px 8px}
-body.classic .gc:not(.big) .teams{padding:0}
-body.classic .gc:not(.big) .tm{height:auto;padding:7px 10px;align-items:center}
-body.classic .gc:not(.big) .tm + .tm{border-top:1px solid #d7d7d7}
-body.classic .gc:not(.big) .tm img,body.classic .gc:not(.big) .tm .ph{width:34px;height:34px}
-body.classic .gc:not(.big) .tm .txt{white-space:normal;padding-left:2px}
-body.classic .gc:not(.big) .tm .rk{font-size:14px}
-body.classic .gc:not(.big) .tm .nm{font-size:15px}
-body.classic .gc:not(.big) .tm .rec{display:block;margin:1px 0 0;font-size:14.5px;color:#777;line-height:1.15}
-body.classic .gc:not(.big) .tm .txt{line-height:1.2}
-body.classic .gc:not(.big) .pv{height:64px;padding-top:10px}
 
 /* states */
 .msg{margin:30px 20px;text-align:center;color:#777;font-size:14px;line-height:1.45;text-shadow:0 1px 0 #fff}
@@ -206,9 +191,6 @@ body.classic .gc:not(.big) .pv{height:64px;padding-top:10px}
   <button class="di" data-go="scores">Scores</button>
   <button class="di" data-go="stream">Stream</button>
   <button class="di" data-go="myteams">Edit My Teams <small id="myCount"></small></button>
-  <h4>Layout</h4>
-  <button class="di" data-layout="compact">Compact <small>Fall 2012 late</small></button>
-  <button class="di" data-layout="classic">Classic <small>Fall 2012 early</small></button>
   <h4>Scoreboards</h4>
   <a class="di" href="ncaafb-scoreboard.html">College Football</a>
   <a class="di" href="nfl-scoreboard.html">NFL</a>
@@ -371,15 +353,12 @@ function teamRow(c, state, possId, eid){
   const big = state !== 'pre';
   const showScore = big && c.score != null;
   const lose = state === 'post' && c.winner === false;
-  const rec = big ? recordBig(c) : recordText(c);
-  const key = eid + ':' + t.id, prev = S.scores[key];
-  const flash = showScore && prev != null && prev !== c.score;
-  if (showScore) S.scores[key] = c.score;
+  const rec = recordBig(c);
   const poss = state === 'in' && possId && String(possId) === String(t.id);
   return `<div class="tm${lose ? ' lose' : ''}">
     ${logo ? `<img src="${esc(logo)}" alt="" loading="lazy">` : '<div class="ph"></div>'}
     <div class="txt">${rk ? `<span class="rk">${rk}</span>` : ''}<span class="nm">${esc(teamName(t))}</span>${rec ? `<span class="rec">${esc(rec)}</span>` : ''}</div>
-    ${poss ? BALL : ''}${showScore ? `<span class="sc${flash ? ' flash' : ''}">${esc(c.score)}</span>` : ''}
+    ${poss ? BALL : ''}${showScore ? `<span class="sc">${esc(c.score)}</span>` : ''}
   </div>`;
 }
 
@@ -460,8 +439,7 @@ function card(e){
             || `https://www.espn.com/college-football/game/_/gameId/${e.id}`;
   const possId = comp.situation?.possession;
   const loc = t => t?.team?.location || t?.team?.shortDisplayName || '';
-  const big = state !== 'pre';
-  const head = `${venue && !big ? `<div class="venue">${esc(venue)}</div>` : ''}
+  const head = `${venue && state === 'pre' ? `<div class="venue">${esc(venue)}</div>` : ''}
     <div class="top"><span class="st">${esc(status)}</span><span class="net">${esc(net)}</span></div>
     <div class="teams">${teamRow(away, state, possId, e.id)}${teamRow(home, state, possId, e.id)}</div>`;
   if (state === 'in') {
@@ -469,7 +447,7 @@ function card(e){
     return `<a class="gc big live" href="${esc(href)}" target="_blank" rel="noopener">${head}${fld || `<div class="sit">${esc(loc(away))}-${esc(loc(home))} Gamecast</div>`}</a>`;
   }
   const label = state === 'pre' ? 'Preview' : 'Recap';
-  return `<div class="gc${big ? ' big' : ''}">${head}
+  return `<div class="gc big">${head}
     <a class="pv" href="${esc(href)}" target="_blank" rel="noopener">${esc(loc(away))}-${esc(loc(home))} ${label}</a>
   </div>`;
 }
@@ -584,7 +562,6 @@ function render(){
   document.body.classList.toggle('classic', S.layout === 'classic');
   $$('.seg button').forEach(b => b.classList.toggle('on', b.dataset.view === S.view));
   $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === S.tab));
-  $$('#drawer [data-layout]').forEach(b => b.classList.toggle('on', b.dataset.layout === S.layout));
   $('#myCount').textContent = S.my.length ? S.my.length : '';
   content.scrollTop = 0;
   if (S.view === 'stream') renderStream(); else { centerTab(); renderScores(); }
@@ -651,7 +628,6 @@ $('#drawer').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.go === 'myteams') return openPicker();
   if (b.dataset.go) { S.view = b.dataset.go; closeDrawer(); render(); }
-  if (b.dataset.layout) { S.layout = b.dataset.layout; store.set('cfb.layout', S.layout); closeDrawer(); render(); }
 });
 content.addEventListener('change', e => {
   if (e.target.id === 'weekSel') { S.weekKey = e.target.value; render(); }
