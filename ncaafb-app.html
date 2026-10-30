@@ -308,6 +308,30 @@ body.pagev .pickers{padding:14px 10px 2px}
 body.pagev .pseg{margin-left:10px;margin-right:10px}
 body.pagev .sbar{margin-top:0}
 
+/* Top Stories */
+body.pagev #content:has(.tsw){background:#e3e3e3}
+.tsw{padding:9px 8px 20px}
+.ts{display:block;margin:0 0 11px;padding:6px;background:#fff;border:1px solid #c3c3c3;box-shadow:0 1px 3px rgba(0,0,0,.22);cursor:pointer}
+.ts:active{opacity:.92}
+.tsimg{position:relative;aspect-ratio:10/7;overflow:hidden;background:#2a2a2a}
+.tsimg > img:not(.tsl){display:block;width:100%;height:100%;object-fit:cover}
+.tsimg .play{left:8px;top:8px}
+.tshl{background:#0e0e0e;color:#fff;padding:11px 11px 10px;font:19px/1.15 "CFB Slab",Rockwell,Georgia,serif;text-transform:uppercase;letter-spacing:.3px}
+.tsl{position:absolute;top:14%;width:44%;height:62%;object-fit:contain;filter:drop-shadow(0 3px 8px rgba(0,0,0,.45))}
+.tsl.a{left:4%}
+.tsl.h{right:4%}
+.tsov{position:absolute;left:0;right:0;bottom:0;padding:26px 10px 8px;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.82));
+  color:#fff;font:18px/1.15 "CFB Slab",Rockwell,Georgia,serif;text-transform:uppercase;letter-spacing:.3px;text-shadow:0 1px 2px #000}
+.tsbar{display:grid;grid-template-columns:64px 1fr auto 1fr 64px;align-items:center;height:68px;background:linear-gradient(#2b2b2b,#141414);color:#fff}
+.tst{display:flex;flex-direction:column;align-items:center;gap:2px}
+.tst img{width:32px;height:32px;object-fit:contain}
+.tst b{font-size:12px;font-weight:700;color:#e6e6e6}
+.tsn{display:flex;align-items:center;justify-content:center;gap:6px;font-size:38px;font-weight:700;letter-spacing:-1px}
+.tsn .ball{width:22px;height:13px;opacity:.85}
+.tsm{text-align:center;padding:0 4px;white-space:nowrap}
+.tsm small{display:block;font-size:11px;font-weight:700;color:#cfcfcf}
+.tsm b{display:block;font-size:14px;font-weight:700;margin-top:2px}
+
 /* ================= game screen ================= */
 #game{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);
   transition:transform .32s cubic-bezier(.2,.7,.3,1);box-shadow:-4px 0 12px rgba(0,0,0,.45);visibility:hidden}
@@ -1249,8 +1273,9 @@ function clipsHTML(){
   return v.map((c, i) => `<button class="clip" data-vi="${i}"><span class="th" style="background-image:url('${esc(c.thumbnail || '')}')"></span>
     <div><h4>${esc(c.headline || c.title || '')}</h4><span>${esc(dur(c.duration))}</span></div></button>`).join('');
 }
-function playVideo(i){
-  const c = (G.data?.videos || [])[i]; if (!c) return;
+function playVideo(i){ playClip((G.data?.videos || [])[i]); }
+function playClip(c){
+  if (!c) return;
   const L = c.links || {};
   const src = L.source?.HLS?.href || L.source?.HLS?.HD?.href || L.mobile?.source?.href || L.source?.href || L.mobile?.href;
   if (!src || !/\.(m3u8|mp4)(\?|$)/i.test(src)) { const w = L.web?.href || src; if (w) window.open(w, '_blank'); return; }
@@ -1827,6 +1852,55 @@ function rankingsTab(){
   return rankingsHTML(v, T.poll, T.id);
 }
 
+
+/* -- Top Stories: live games first, then ESPN's top college football stories -- */
+let silentTop = false, TOP_ITEMS = [];
+function topStoriesHTML(articles, events){
+  const live = events.filter(e => evState(e) === 'in').map(e => { (S.ev = S.ev || {})[e.id] = e; return e; });
+  const weight = e => { const {away, home} = sides(e); const r = [rankOf(away), rankOf(home)].filter(Boolean); return (r.length ? 60 - Math.min(...r) : 0) + r.length * 20; };
+  live.sort((a, b) => weight(b) - weight(a));
+  let html = '<div class="tsw">';
+  live.slice(0, 4).forEach(e => {
+    const comp = e.competitions[0], {away, home} = sides(e), st = comp.status || e.status;
+    const ac = teamColor(away.team), hc = teamColor(home.team);
+    const lg = c => c.team?.logo || logoOf(c.team);
+    const poss = String(comp.situation?.possession || '');
+    const clock = st.type?.name === 'STATUS_HALFTIME' ? 'HALF' : /END_PERIOD/.test(st.type?.name || '') ? 'END ' + ordOf(st.period) : `${st.displayClock || ''} ${ordOf(st.period || 0)}`.trim();
+    const side = c => `<div class="tst"><img src="${esc(lg(c))}" alt=""><b>${esc(c.team?.abbreviation || '')}</b></div>`;
+    const sc = c => `<span class="tsn">${String(c.team?.id) === poss ? BALL : ''}<span>${esc(c.score ?? '')}</span></span>`;
+    html += `<div class="ts tsg" data-gid="${esc(e.id)}">
+      <div class="tsimg" style="background:linear-gradient(115deg, ${ac} 0%, ${shade(ac, -0.35)} 49.8%, ${shade(hc, -0.35)} 50.2%, ${hc} 100%)">
+        <img class="tsl a" src="${esc(lg(away))}" alt=""><img class="tsl h" src="${esc(lg(home))}" alt="">
+        <div class="tsov">${esc((away.team?.location || away.team?.abbreviation || '') + ' vs. ' + (home.team?.location || home.team?.abbreviation || ''))}; Live</div>
+      </div>
+      <div class="tsbar">${side(away)}${sc(away)}<div class="tsm"><small>${esc(netOf(comp))}</small><b>${esc(clock)}</b></div>${sc(home)}${side(home)}</div>
+    </div>`;
+  });
+  TOP_ITEMS = articles.filter(a => a.headline && (a.images || []).some(i => i.url));
+  TOP_ITEMS.forEach((a, i) => {
+    const img = (a.images.find(x => x.width >= 500) || a.images[0]).url;
+    const isVid = /media|video/i.test(a.type || '') || (a.video || []).length;
+    const href = a.links?.web?.href || a.links?.mobile?.href || '#';
+    html += `<a class="ts" ${isVid ? `href="#" data-tsv="${i}"` : `href="${esc(href)}" target="_blank" rel="noopener"`}>
+      <div class="tsimg"><img src="${esc(img)}" alt="" loading="lazy">${isVid ? '<i class="play"></i>' : ''}</div>
+      <div class="tshl">${esc(a.headline)}</div></a>`;
+  });
+  if (!live.length && !TOP_ITEMS.length) html += '<div class="msg"><b>No stories</b>Check back soon.</div>';
+  return html + '</div>';
+}
+content.addEventListener('click', e => {
+  if (S.view !== 'top') return;
+  const g = e.target.closest('.tsg[data-gid]');
+  if (g) { openGame(g.dataset.gid); return; }
+  const v = e.target.closest('[data-tsv]');
+  if (v) {
+    e.preventDefault();
+    const a = TOP_ITEMS[+v.dataset.tsv];
+    const clip = (a?.video || [])[0];
+    if (clip) playClip(clip); else { const w = a?.links?.web?.href; if (w) window.open(w, '_blank'); }
+  }
+});
+
 /* -- top-level pages from the side menu -- */
 const STAND_CONFS = CONFS.filter(c => !/^(top25|80)$/.test(c[0]));
 S.sconf = store.get('cfb.sconf', '8'); S.poll = 0;
@@ -1847,8 +1921,18 @@ async function renderPage(){
     if (token !== S.token) return;
     S.rk = v;
     content.innerHTML = '<div style="height:14px"></div>' + rankingsHTML(v, S.poll, null);
+  } else if (view === 'top') {
+    if (!silentTop) content.innerHTML = '<div class="spin" style="margin-top:50px"></div>';
+    const [n, sb] = await Promise.allSettled([getJSON(`${API}/news?limit=30`, silentTop), getJSON(`${API}/scoreboard?limit=300&groups=80`, silentTop)]);
+    if (token !== S.token) return;
+    const y = content.scrollTop;
+    content.innerHTML = topStoriesHTML(n.value?.articles || [], sb.value?.events || []);
+    if (silentTop) content.scrollTop = y;
+    silentTop = false;
+    clearTimeout(S.timer);
+    S.timer = setTimeout(() => { if (S.view === 'top' && !document.hidden) { silentTop = true; renderPage(); } }, 30000);
   } else {
-    const label = {top: 'Top Stories', video: 'Video', teams: 'Teams', bowl: 'Bowl Bound'}[view] || '';
+    const label = {video: 'Video', teams: 'Teams', bowl: 'Bowl Bound'}[view] || '';
     content.innerHTML = `<div class="msg" style="margin-top:60px"><b>${esc(label)}</b>Coming soon.</div>`;
   }
 }
