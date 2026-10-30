@@ -238,6 +238,12 @@ body.ingame #app{transform:translateX(-28%)}
 /* live block on the game screen */
 .glive{border-bottom:1px solid #d7d7d7}
 .glive .sit{border-top:0}
+.sbar.sub{margin-top:0;background:#e9e9e9;border-color:#d8d8d8;color:#777;text-transform:none;font-size:12px}
+.plog{display:flex;gap:10px;padding:9px 12px;border-bottom:1px solid #e3e3e3;align-items:flex-start;font-size:13.5px;line-height:1.3;color:#444}
+.plog img{width:22px;height:22px;object-fit:contain;flex:none;margin-top:1px}
+.plog b{display:block;font-size:12px;color:#777;margin-bottom:1px}
+.plog.last{background:#f6f6f6}
+.plog.last div{color:#222}
 .splay{display:flex;gap:10px;padding:9px 12px;border-bottom:1px solid #e3e3e3;align-items:flex-start}
 .splay img,.splay .ph{width:24px;height:24px;object-fit:contain;flex:none;margin-top:1px}
 .splay .ph{border-radius:50%;background:#e6e6e6}
@@ -988,6 +994,20 @@ function gameInfoHTML(g){
   if (gi.attendance) rows.push(['Attendance', Number(gi.attendance).toLocaleString('en-US')]);
   return `<div class="sbar">Game Information</div><div class="info">${rows.map(([a, b]) => `<div><span>${esc(a)}</span><span>${esc(b)}</span></div>`).join('')}</div>`;
 }
+function playLogHTML(g){
+  const cur = G.data?.drives?.current;
+  let plays = (cur?.plays || []).slice().reverse().slice(0, 8);
+  if (!plays.length && g.situation?.lastPlay?.text) plays = [{text: g.situation.lastPlay.text}];
+  if (!plays.length) return '';
+  const logo = cur?.team?.logos?.[0]?.href || cur?.team?.logo || '';
+  const ord = n => n > 4 ? 'OT' : ['', '1st', '2nd', '3rd', '4th'][n] || '';
+  const meta = cur && (cur.description || cur.displayResult) ? `<div class="sbar sub">${esc([cur.team?.shortDisplayName || cur.team?.abbreviation, cur.description].filter(Boolean).join(' · '))}</div>` : '';
+  return `<div class="sbar" style="margin-top:0">Last Plays</div>${meta}` + plays.map((pl, i) => {
+    const when = [pl.period?.number ? ord(pl.period.number) : '', pl.clock?.displayValue || ''].filter(Boolean).join(' ');
+    const dd = pl.start?.downDistanceText || pl.start?.shortDownDistanceText || '';
+    return `<div class="plog${i === 0 ? ' last' : ''}">${logo ? `<img src="${esc(logo)}" alt="">` : ''}<div>${dd || when ? `<b>${esc(dd.replace(/\s&\s/, ' and '))}${dd && when ? ' · ' : ''}${esc(when)}</b>` : ''}${esc(pl.text || '')}</div></div>`;
+  }).join('');
+}
 function lineScoreHTML(g){
   const ls = c => (c.linescores || []).map(x => x.displayValue ?? x.value);
   const A = ls(g.away), H = ls(g.home);
@@ -1020,6 +1040,7 @@ function storyHTML(g){
   if (state === 'in') {
     const fld = fieldHTML({situation: g.situation}, g.away, g.home);
     if (fld) html += `<div class="glive">${fld}</div>`;
+    html += playLogHTML(g);
     html += lineScoreHTML(g);
   }
   if (art) {
@@ -1068,7 +1089,7 @@ function teamStatsHTML(g){
   const hv = {}; (H.statistics || []).forEach(x => { hv[x.name] = x.displayValue; });
   const sub = /^(netPassingYards|rushingYards|completionAttempts|yardsPerPass|rushingAttempts|yardsPerRushAttempt|interceptions|fumblesLost)$/;
   return `<table class="tst"><colgroup><col style="width:29%"><col style="width:42%"><col style="width:29%"></colgroup><tr><th>${hs(A)}</th><th></th><th>${hs(H)}</th></tr>${(A.statistics || []).map(x =>
-    `<tr><td class="${sub.test(x.name) ? 'sub' : ''}">${esc(x.displayValue)}</td><td class="l${sub.test(x.name) ? ' sub' : ''}">${esc(x.label)}</td><td class="${sub.test(x.name) ? 'sub' : ''}">${esc(hv[x.name] ?? '')}</td></tr>`).join('')}</table>`;
+    `<tr><td class="${sub.test(x.name) ? 'sub' : ''}">${esc(x.displayValue)}</td><td class="l${sub.test(x.name) ? ' sub' : ''}">${esc(String(x.label || '').replace(/\s+thrown$/i, ''))}</td><td class="${sub.test(x.name) ? 'sub' : ''}">${esc(hv[x.name] ?? '')}</td></tr>`).join('')}</table>`;
 }
 
 /* -- player stats -- */
@@ -1199,7 +1220,7 @@ function playerStatsHTML(g){
 
 function sizeStatGrid(){
   const w = (gBody.clientWidth || window.innerWidth);
-  document.documentElement.style.setProperty('--nw', Math.max(98, w - (54 + 42 * 4)) + 'px');
+  document.documentElement.style.setProperty('--nw', Math.max(92, w - (54 + 42 * 4) - 20) + 'px');
 }
 window.addEventListener('resize', sizeStatGrid);
 function renderGameBody(keepScroll){
