@@ -332,6 +332,23 @@ body.pagev #content:has(.tsw){background:#e3e3e3}
 .tsm small{display:block;font-size:11px;font-weight:700;color:#cfcfcf}
 .tsm b{display:block;font-size:14px;font-weight:700;margin-top:2px}
 
+/* team schedule (2013 app style) */
+.sch{margin:0 8px;background:#fff;border:1px solid #c9cbce;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.schrec{height:40px;line-height:40px;text-align:center;font-size:16px;color:#333;background:linear-gradient(#fbfbfb,#f1f1f1);border-bottom:1px solid #d6d6d6}
+.schhd,.schr{display:grid;grid-template-columns:29% 1fr 25%;align-items:center;column-gap:6px;padding:0 9px}
+.schhd{height:32px;background:linear-gradient(#d8d8d8,#cbcbcb);border-bottom:1px solid #bcbcbc;font-size:11.5px;font-weight:700;color:#555;
+  text-transform:uppercase;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+.schr{height:46px;border-bottom:1px solid #dcdcdc;font-size:clamp(13px, 4.1vw, 15px);color:#333;cursor:pointer}
+.schr:last-child{border-bottom:0}
+.schr:active{background:#f4f4f4}
+.schr span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.schr span:last-child{font-weight:700;color:#333}
+.schr i{font-style:normal}
+.schr i.W{color:#2f8a2f}
+.schr i.L{color:#d0021b}
+.schr i.T{color:#777}
+.schr .lv{font-style:normal;color:var(--live)}
+
 /* ================= game screen ================= */
 #game{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);
   transition:transform .32s cubic-bezier(.2,.7,.3,1);box-shadow:-4px 0 12px rgba(0,0,0,.45);visibility:hidden}
@@ -1670,6 +1687,7 @@ function recordLine(){
   const cur = evs.find(e => evState(e) === 'in') || evs.find(e => evState(e) === 'pre');
   if (cur) rk = rankOf(sides2(cur).us);
   if (!rk) rk = t.curRank || (t.rank >= 1 && t.rank <= 25 ? t.rank : null);
+  T.recText = `${tot}${confTxt}`;
   return `<div class="trank">${rk ? `<b>#${rk}</b>` : ''}<span>${esc(tot)}${esc(confTxt)}</span></div>`;
 }
 function featuredHTML(){
@@ -1714,21 +1732,27 @@ function newsHTML(){
 }
 function scheduleHTML(){
   const evs = T.events || [];
+  recordLine();                                     // refreshes T.recText
   if (!evs.length) return '<div class="msg"><b>No games scheduled</b></div>';
-  let html = '<div class="tsched">', lastGroup = '';
+  let html = `<div class="sch"><div class="schrec">${esc(T.recText || '')}</div>
+    <div class="schhd"><span>Date</span><span>Opponent</span><span>Result/Time</span></div>`;
   evs.forEach(e => {
-    const grp = (e.seasonType?.type === 3 || /post/i.test(e.seasonType?.name || '')) ? 'Postseason' : 'Regular Season';
-    if (grp !== lastGroup) { html += `<div class="sbar">${grp}</div>`; lastGroup = grp; }
-    const comp = evComp(e), st = evState(e), {them} = sides2(e), d = new Date(e.date), lg = logoOf(them.team);
-    let right;
-    if (st === 'post') { const r = result(e); right = `<b><i class="${r.wl}">${r.wl}</i> ${esc(r.line)}</b><small>${esc((comp.status?.type?.shortDetail || 'Final').replace(/^Final$/i, 'Final'))}</small>`; }
-    else if (st === 'in') right = `<b>${esc(scoreOf(sides2(e).us))} - ${esc(scoreOf(them))}</b><small style="color:var(--live)">${esc(liveStatus(comp.status))}</small>`;
-    else right = `<b>${comp.timeValid === false ? 'TBA' : esc(timeStr(d))}</b><small>${esc(netOf2(comp))}</small>`;
-    html += `<div class="srow${st === 'in' ? ' live' : ''}" data-gid="${esc(e.id)}">
-      <div class="sd"><b>${esc(mDay(d))}</b><small>${esc(d.toLocaleDateString('en-US', {weekday: 'short'}))}</small></div>
-      ${lg ? `<img src="${esc(lg)}" alt="">` : '<i class="ph"></i>'}
-      <div class="so"><b>${vsAt(e)} ${oppLabel(them)}</b><small>${esc(them.team?.displayName || '')}${comp.venue?.fullName ? ' · ' + esc(comp.venue.fullName) : ''}</small></div>
-      <div class="sr">${right}</div></div>`;
+    const comp = evComp(e), st = evState(e), {us, them} = sides2(e), d = new Date(e.date);
+    const date = d.toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'});
+    const pre = comp.neutralSite ? 'vs ' : us.homeAway === 'away' ? '@ ' : '';
+    const opp = them.team?.location || them.team?.shortDisplayName || them.team?.displayName || them.team?.abbreviation || 'TBD';
+    let res;
+    if (st === 'post') {
+      const r = result(e), a = scoreOf(us), b = scoreOf(them);
+      const hi = Math.max(+a, +b), lo = Math.min(+a, +b);
+      res = `<i class="${r.wl}">${r.wl}</i> ${isNaN(hi) ? '' : `${hi}-${lo}`}`;
+    } else if (st === 'in') {
+      const s2 = comp.status || e.status;
+      res = `<em class="lv">${esc(scoreOf(us))}-${esc(scoreOf(them))} ${esc(ordOf(s2?.period || 0))}</em>`;
+    } else {
+      res = comp.timeValid === false ? 'TBA' : esc(timeStr(d));
+    }
+    html += `<div class="schr" data-gid="${esc(e.id)}"><span>${esc(date)}</span><span>${esc(pre + opp)}</span><span>${res}</span></div>`;
   });
   return html + '</div>';
 }
