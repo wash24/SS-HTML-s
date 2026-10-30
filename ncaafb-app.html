@@ -43,6 +43,7 @@ button{font:inherit;border:0;background:none;color:inherit;cursor:pointer}
 #drawer .dr .ic svg{width:100%;height:100%}
 #drawer .dr .ic-logo{width:32px;height:32px;margin:0 -2px 0 -3px}
 #drawer .dr .ic-logo img{width:100%;height:100%;object-fit:contain;opacity:.85}
+#drawer .dr .ic-img img{width:100%;height:100%;object-fit:contain}
 #drawer .dr .ic-wide{width:36px;margin:0 -5px 0 -4px}
 #drawer .dr.on .ic-logo img{opacity:1}
 #drawer .dr span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -53,11 +54,11 @@ button{font:inherit;border:0;background:none;color:inherit;cursor:pointer}
   background:linear-gradient(90deg,rgba(150,100,10,.2),#d9a520 35%,#ffd36a 55%,#d9a520 75%,rgba(150,100,10,.2));box-shadow:0 -2px 8px rgba(255,180,30,.45)}
 #drawer .dsm{height:42px;font-size:15.5px}
 #drawer .dsm .ic{width:22px;height:22px}
-#drawer .dmy{height:58px;gap:14px;padding:0 14px}
-#drawer .dmy img{width:34px;height:34px;object-fit:contain;flex:none;align-self:center;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+#drawer .dmy{height:64px;gap:14px;padding:0 14px}
+#drawer .dmy img{width:38px;height:38px;object-fit:contain;flex:none;align-self:center;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
 #drawer .dmy span{display:flex;flex-direction:column;justify-content:center;line-height:1.12;text-transform:uppercase;letter-spacing:.3px}
-#drawer .dmy b{font-size:15.5px;font-weight:500;color:#cfcfcf}
-#drawer .dmy i{font-style:normal;font-size:15.5px;font-weight:500;color:#e6e6e6}
+#drawer .dmy b{font-size:18px;font-weight:500;color:#cfcfcf}
+#drawer .dmy i{font-style:normal;font-size:18px;font-weight:500;color:#e6e6e6}
 
 /* ---------- app shell ---------- */
 #app{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg);z-index:2;
@@ -617,7 +618,7 @@ body.ingame #app{transform:translateX(-28%)}
   <button class="dr" data-go="news"><i class="ic"><svg viewBox="0 0 32 32"><rect x="3" y="5" width="26" height="22" fill="none" stroke="currentColor" stroke-width="2"/><rect x="6" y="11" width="9" height="12" fill="currentColor"/><path d="M6 8h20M18 12h8M18 15.5h8M18 19h8M18 22.5h8" stroke="currentColor" stroke-width="1.6"/></svg></i><span>News</span></button>
   <button class="dr" data-go="rankings"><i class="ic"><svg viewBox="0 0 32 32"><text x="2.5" y="10" font-size="7" font-weight="700" fill="currentColor" font-family="Helvetica,Arial">1</text><text x="2.5" y="18.5" font-size="7" font-weight="700" fill="currentColor" font-family="Helvetica,Arial">2</text><text x="2.5" y="27" font-size="7" font-weight="700" fill="currentColor" font-family="Helvetica,Arial">3</text><rect x="9" y="4.5" width="20" height="5" fill="currentColor"/><rect x="9" y="13" width="20" height="5" fill="currentColor"/><rect x="9" y="21.5" width="20" height="5" fill="currentColor"/></svg></i><span>Rankings</span></button>
   <button class="dr" data-go="standings"><i class="ic"><svg viewBox="0 0 32 32"><rect x="2" y="5" width="28" height="22" fill="currentColor"/><path d="M5 10h3M5 15h3M5 20h3M10 10h17M10 15h17M10 20h17" stroke="#262626" stroke-width="2.2"/></svg></i><span>Standings</span></button>
-  <button class="dr" data-go="teams"><i class="ic"><svg viewBox="0 0 32 32"><path d="M4 18c0-8.3 5.9-14 13.4-14 6.1 0 11 4.3 11.6 10.5l-6.6.8c-.4 2-1.9 3.5-3.9 3.9l1.1 4.6h3.6l2.4 4.5-1.6.9-1.9-3.5h-3.9l-1.3-5.6c-2.3.1-4.1 2.1-4.6 4.3H6.5C5 23.3 4 20.9 4 18z" fill="currentColor"/><text x="8.6" y="17.5" font-size="11" font-weight="900" fill="#262626" font-family="Georgia,serif">U</text></svg></i><span>Teams</span></button>
+  <button class="dr" data-go="teams"><i class="ic ic-img"><img src="helmet-icon.png" alt=""></i><span>Teams</span></button>
   <button class="dr" data-go="bowl"><i class="ic ic-logo ic-wide"><img src="bcs-logo-white.png" alt=""></i><span>Bowl Bound</span></button>
 </nav>
 
