@@ -7,6 +7,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ESPN CFB">
+<link rel="apple-touch-icon" sizes="180x180" href="cfb-app-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="cfb-favicon.png">
 <meta name="theme-color" content="#000000">
 <meta name="format-detection" content="telephone=no">
 <title>ESPN College Football</title>
@@ -2642,20 +2644,7 @@ content.addEventListener('click', e => {
 });
 
 /* ---------------- home-screen icon ---------------- */
-function makeIcon(){
-  const c = document.createElement('canvas'); c.width = c.height = 180;
-  const x = c.getContext('2d');
-  const g = x.createLinearGradient(0, 0, 0, 180); g.addColorStop(0, '#3a3a3a'); g.addColorStop(.5, '#111'); g.addColorStop(1, '#000');
-  x.fillStyle = g; x.fillRect(0, 0, 180, 180);
-  x.fillStyle = '#d0021b'; x.fillRect(0, 118, 180, 30);
-  x.fillStyle = '#e8b923'; x.fillRect(0, 148, 180, 4);
-  x.fillStyle = '#fff'; x.textAlign = 'center';
-  x.font = 'italic 700 64px Oswald, Impact, sans-serif'; x.fillText('CFB', 90, 98);
-  x.font = '700 22px Oswald, Impact, sans-serif'; x.fillText('SCORES', 90, 142);
-  const l = document.createElement('link'); l.rel = 'apple-touch-icon'; l.href = c.toDataURL('image/png');
-  document.head.appendChild(l);
-}
-(document.fonts ? document.fonts.ready : Promise.resolve()).then(makeIcon);
+// home-screen icon: cfb-app-icon.png (linked in <head>)
 
 /* ---------------- boot ---------------- */
 async function boot(){
