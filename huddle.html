@@ -525,10 +525,10 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .trow .tago{font-size:17px;color:rgba(255,255,255,.85);padding-right:12px}
 /* fixed-width game box at the end of the row, so the divider line sits in the same spot on every team;
    inside, team abbreviations and scores have fixed columns and the status hugs the right edge */
-.trow .tgame{box-sizing:border-box;width:86px;gap:8px;padding:0 3px 0 5px;border-left:1px solid rgba(255,255,255,.28)}
+.trow .tgame{box-sizing:border-box;width:88px;gap:8px;padding:0 3px 0 5px;border-left:1px solid rgba(255,255,255,.28)}
 .trow .tgame .tg-rows{font-size:14px;column-gap:3px;grid-template-columns:32px 22px}
 .trow .tgame .tg-rows span{overflow:hidden;white-space:nowrap}
-.trow .tgame .tg-st{margin-left:auto}
+.trow .tgame .tg-st{margin-left:auto;flex:none}   /* status text never gets squeezed */
 .trow .tgame .tg-st{font-size:11.5px}
 
 /* ticker rank: its own slot left of the abbreviation, so every abbreviation starts at the same x */
