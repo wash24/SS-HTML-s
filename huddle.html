@@ -658,17 +658,20 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .wm-logo{display:block;height:30px;width:auto}
 
 /* ===== Tweets in the team stream (2015 Team Stream style) ===== */
-.tweet{display:flex;gap:10px;margin:10px max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px));padding:10px 10px 11px;background:#e7e7e4;color:#161616;text-decoration:none;box-shadow:0 1px 2px rgba(0,0,0,.35)}
+.tweet{display:flex;gap:10px;margin:0 max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px));padding:12px 2px;background:transparent;color:#f2f2f0;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.1)}   /* sits right on the page's gray; a thin line separates tweets */
+.tcard+.tweet,.tlead+.tweet{margin-top:4px}
+.tweet+.tcard{margin-top:12px}
 .tw-av{flex:none;width:50px;height:50px;background:#fff;padding:2px;box-shadow:0 1px 2px rgba(0,0,0,.25)}
 .tw-av img{display:block;width:100%;height:100%;object-fit:cover}
 .tw-body{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}
 .tw-head{display:flex;align-items:baseline;gap:6px;min-width:0;font-family:var(--font-display);line-height:1.2}
 .tw-head b{font-size:18px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
-.tw-head small{font-size:14px;color:#77777a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
-.tw-ago{margin-left:auto;flex:none;display:flex;align-items:center;gap:4px;font-size:14px;color:#77777a}
-.tw-ago svg{width:14px;height:14px;fill:#6b8fb3}
+.tw-head small{font-size:14px;color:rgba(255,255,255,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+.tw-ago{margin-left:auto;flex:none;display:flex;align-items:center;gap:4px;font-size:14px;color:rgba(255,255,255,.55)}
+.tw-ago svg{width:14px;height:14px;fill:#7ba7d4}
 .tw-text{font-family:var(--font-body);font-size:15px;line-height:1.3;overflow-wrap:anywhere}
-.tw-link{color:#4a6f96}
+.tw-link{color:#8fb7df}
+.gd-tweets{padding-bottom:4px}
 .tw-media{position:relative;display:block;margin-top:6px;overflow:hidden;background:#bbb;aspect-ratio:16/9}
 .tw-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .tw-media.vid::after{content:"";position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.35) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M9 7l8 5-8 5z'/%3E%3C/svg%3E") center/26px no-repeat}
@@ -1709,6 +1712,7 @@ async function loadGame(force){
       if(s.situation) g.sit = s.situation; else if(!g.live) g.sit = null;
       cur.g = g; gameReg[cur.key] = g; }
     if(cur.tab==='info' && (cur.g.live || cur.g.final)) cur.tab = cur.g.live ? 'plays' : 'box';
+    if(!cur.twT || Date.now()-cur.twT > 3*60e3) loadGameTweets(cur);   /* both teams' B/R tweet feeds, every 3 minutes while open */
   }catch(e){ cur.err = true; }
   if(gd === cur) renderGame();
 }
@@ -1718,12 +1722,12 @@ function renderGame(){
   const {g, s} = gd, body = $('#gpBody'), y = body.scrollTop;
   $('#gpName').textContent = `${g.a.ab||g.a.name} @ ${g.h.ab||g.h.name}`;
   const started = g.live || g.final;
-  const tabs = started ? [['plays','Plays'], ['box','Player Stats'], ['team','Team Stats']] : [['info','Preview']];
+  const tabs = started ? [['plays','Plays'], ['box','Player Stats'], ['team','Team Stats'], ['tweets','Tweets']] : [['info','Preview'], ['tweets','Tweets']];
   if(!tabs.some(t=>t[0]===gd.tab)) gd.tab = tabs[0][0];
   let html = `<div class="gd-head">${gameBox(g, {detail:true})}</div>`;
   html += `<div class="gd-tabs" role="tablist">${tabs.map(([k,l]) => `<button class="tp-tab" data-gdtab="${k}" aria-selected="${k===gd.tab}">${l}</button>`).join('')}</div>`;
   if(!s) html += `<div class="gd-load">${gd.err ? 'Couldn’t load this game. Pull back and try again.' : 'Loading…'}</div>`;
-  else html += gd.tab==='box' ? gdBox(g, s) : gd.tab==='team' ? gdTeamStats(g, s) : gd.tab==='plays' ? gdPlays(g, s) : gdInfo(g, s);
+  else html += gd.tab==='tweets' ? gdTweets(g) : gd.tab==='box' ? gdBox(g, s) : gd.tab==='team' ? gdTeamStats(g, s) : gd.tab==='plays' ? gdPlays(g, s) : gdInfo(g, s);
   body.innerHTML = html;
   body.scrollTop = y;
 }
@@ -1834,6 +1838,37 @@ function gdTeamStats(g, s){
     <div class="gd-ts-hd"><span>${gdLogo(g.a,g.lg)}${esc(g.a.ab||g.a.name)}</span><span>${esc(g.h.ab||g.h.name)}${gdLogo(g.h,g.lg)}</span></div>
     ${rows.map(([l,a,h]) => `<div class="gd-st"><div class="gd-st-row"><b>${esc(a)}</b><span>${esc(l)}</span><b>${esc(h)}</b></div>${bar(l,a,h)}</div>`).join('')}
   </div></div>`;
+}
+
+/* ---- Tweets: both teams' B/R "What's Buzzing" feeds, kept to the game window ---- */
+async function loadGameTweets(cur){
+  cur.twT = Date.now();
+  const c = cur.s && cur.s.header && cur.s.header.competitions && cur.s.header.competitions[0];
+  if(!c) return;
+  const lg = cur.g.lg;
+  const lists = await Promise.all((c.competitors||[]).map(async cp => {
+    const tm = cp.team || {}, p = {type:'team', lg, id:String(tm.id), location:tm.location, nick:tm.name, full:tm.displayName};
+    const key = pickKey(p);
+    for(const slug of (brSlugOk[key] ? [brSlugOk[key]] : brSlugs(p))){
+      try{ const r = await fetchWithTimeout(BR+slug, 15000); if(!r.ok) continue;
+        const list = brTweetParse(await r.text()); if(!list.length) continue;
+        brSlugOk[key] = slug; brTweets[key] = list; return list; }catch(e){}
+    }
+    return brTweets[key] || [];
+  }));
+  const seen = new Set();
+  cur.tweets = lists.flat().filter(t => !seen.has(t.id) && seen.add(t.id)).sort((a,b) => b.published.localeCompare(a.published));
+  if(gd === cur && cur.tab==='tweets') renderGame();
+}
+function gdTweets(g){
+  if(!gd.tweets) return `<div class="gd-load">Loading tweets…</div>`;
+  /* the game window: from an hour before start; finals end ~6 hours after start; before the game, the last two days */
+  const start = new Date(g.date).getTime(), now = Date.now();
+  const from = g.live || g.final ? start - 3600e3 : now - 48*3600e3;
+  const to = g.final ? start + 6*3600e3 : now + 60e3;
+  const list = gd.tweets.filter(t => { const x = new Date(t.published).getTime(); return x >= from && x <= to; });
+  if(!list.length) return `<div class="gd-load">${g.final ? 'No tweets from this game are still on Bleacher Report.' : 'No tweets yet.'}</div>`;
+  return `<div class="gd-tweets">${list.map(tTweetCard).join('')}</div>`;
 }
 
 /* ---- Plays: scoring summary + play-by-play (newest first while live) ---- */
