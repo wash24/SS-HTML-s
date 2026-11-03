@@ -1318,7 +1318,8 @@ const AP_ORDER = ['nfl','cfb','nba','cbb','mlb','epl'];
 const AP_NAME = {nfl:'NFL', cfb:'College FB', nba:'NBA', cbb:'College BB', mlb:'MLB', epl:'Premier League'};
 const apLoading = {};
 /* college: only schools in these conferences are listed on Add Teams */
-const AP_CONFS = {cfb:['ACC','Big Ten','Big 12','Pac-12','SEC'], cbb:['ACC','Big East','Big Ten','Big 12','SEC']};
+const AP_CONFS = {cfb:['ACC','Big Ten','Big 12','SEC'], cbb:['ACC','Big East','Big Ten','Big 12','SEC']};
+const AP_EXTRA = {cfb:['87']};   /* Notre Dame (independent) */
 function apRow(attr, on, bg, logo, name){
   return `<button class="trow ap-row" ${attr} aria-pressed="${on}" style="background:${bg}"><span class="tlogo">${logo}</span><span class="tname"><span>${esc(name)}</span></span><span class="ap-chk" aria-hidden="true"></span></button>`;
 }
@@ -1333,7 +1334,7 @@ async function renderPickerBody(){
   for(const lg of AP_ORDER){
     const ts = teamCache[lg];
     if(!ts){ if(!q) html += `<div class="ap-sec">${esc(AP_NAME[lg])}</div><div class="ap-note">Loading teams…</div>`; continue; }
-    const shown = ts.filter(t => !AP_CONFS[lg] || AP_CONFS[lg].includes(t.conf)).filter(t => !q || (t.full+' '+t.ab+' '+(t.location||'')).toLowerCase().includes(q)).slice().sort((x,y) => x.full.localeCompare(y.full));
+    const shown = ts.filter(t => !AP_CONFS[lg] || AP_CONFS[lg].includes(t.conf) || (AP_EXTRA[lg]||[]).includes(String(t.id))).filter(t => !q || (t.full+' '+t.ab+' '+(t.location||'')).toLowerCase().includes(q)).slice().sort((x,y) => x.full.localeCompare(y.full));
     if(!shown.length) continue;
     html += `<div class="ap-sec">${esc(AP_NAME[lg])}</div>` + shown.map(t => { const key = `${t.lg}:${t.id}`;
       return apRow(`data-pick-team="${esc(key)}"`, isPicked(key), teamBg(t.color||'#3a3a3d', t.alt), t.logo ? logoTag(t.logo, t.ab, '', t.logoDark) : `<b class="logo-txt">${esc(t.ab)}</b>`, t.full); }).join('');
