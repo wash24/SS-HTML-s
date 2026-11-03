@@ -443,6 +443,18 @@ body.teamsv #content{background:#3a3a3a}
 .drow.dback::after{display:none}
 .dmsg{padding:40px 20px;text-align:center;color:#aaa}
 
+/* team Tweets tab (2013 app style) */
+.twlist{margin:0 8px;background:#fff;border:1px solid #c9cbce;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.tw{display:flex;gap:13px;align-items:flex-start;padding:13px 12px 12px;border-bottom:1px solid #d9d9d9;color:#222}
+.tw:last-child{border-bottom:0}
+.tw:active{background:#f5f5f5}
+.tw img{width:50px;height:50px;flex:none;border-radius:3px;object-fit:cover;background:#eee}
+.tw > span{flex:1;min-width:0}
+.tw b{display:block;font-size:16px;font-weight:700;color:#1d1d1d;margin-bottom:2px}
+.tw .twt{display:block;font-size:14.5px;line-height:1.3;color:#333;overflow-wrap:anywhere}
+.tw small{display:block;margin-top:4px;font-size:12.5px;color:#888}
+.twempty{padding:22px 14px;text-align:center;font-size:14px;color:#777}
+
 /* ================= game screen ================= */
 #game{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);
   transition:transform .32s cubic-bezier(.2,.7,.3,1);box-shadow:-4px 0 12px rgba(0,0,0,.45);visibility:hidden}
@@ -652,6 +664,7 @@ html,body{background:#000;overscroll-behavior:none}
   <div id="ttabs"><span id="tglow"></span>
     <button data-ttab="club">Clubhouse</button>
     <button data-ttab="sched">Schedule</button>
+    <button data-ttab="tweets">Tweets</button>
     <button data-ttab="stats">Stats</button>
     <button data-ttab="stand">Standings</button>
     <button data-ttab="rank">Rankings</button>
@@ -1848,6 +1861,57 @@ function newsHTML(){
   if (!n.length) return '';
   return `<div class="tnews"><h3>News</h3>${n.slice(0, 10).map(a => `<a href="${esc(a.links?.web?.href || a.links?.mobile?.href || '#')}" target="_blank" rel="noopener">${esc(a.headline)}</a>`).join('')}</div>`;
 }
+/* -- Tweets: the team's Bleacher Report team stream ("What's Buzzing"), same source as Team Stream -- */
+const BR = 'https://bleacherreport.com/';
+const brSlug = x => String(x || '').toLowerCase().replace(/&/g, 'and').replace(/['’.]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const brUnesc = x => { try { return JSON.parse('"' + x + '"'); } catch (e) { return x; } };
+const brSlugOk = {};
+function brTweetParse(html){
+  const t = html.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+  const re = /"url":"(https:\/\/(?:twitter|x)\.com\/[^"\/]+\/status\/(\d+))","id":"\2","author":\{"__typename":"TwitterUser","name":"((?:[^"\\]|\\.)*)","profileImageUrl":"([^"]*)","verified":\w+,"username":"([^"]+)"\},"data":\{"__typename":"TweetData","createdAt":"([^"]+)","text":"((?:[^"\\]|\\.)*)"/g;
+  const out = [], seen = new Set(); let m;
+  while ((m = re.exec(t))) {
+    if (seen.has(m[2])) continue; seen.add(m[2]);
+    out.push({id: m[2], url: m[1], name: brUnesc(m[3]), avatar: m[4].replace('_normal.', '_bigger.'), user: m[5], published: m[6], text: brUnesc(m[7])});
+  }
+  return out.sort((a, b) => b.published.localeCompare(a.published));
+}
+async function loadTeamTweets(t){
+  const loc = t.location || t.shortDisplayName || '', nick = nickOf(t) || t.nickname || '';
+  const slugs = brSlugOk[t.id] ? [brSlugOk[t.id]] : [...new Set([brSlug(loc) + '-football', brSlug(`${loc} ${nick}`) + '-football'])];
+  for (const slug of slugs) {
+    try {
+      const c = new AbortController(), timer = setTimeout(() => c.abort(), 15000);
+      const r = await fetch(BR + slug, {signal: c.signal}).finally(() => clearTimeout(timer));
+      if (!r.ok) continue;
+      const list = brTweetParse(await r.text());
+      if (list.length) { brSlugOk[t.id] = slug; return list; }
+    } catch (e) {}
+  }
+  return [];
+}
+function twAgo(iso){
+  const m = Math.max(1, Math.round((Date.now() - new Date(iso)) / 60000));
+  if (m < 60) return `${m} Minute${m === 1 ? '' : 's'} ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h} Hour${h === 1 ? '' : 's'} ago`;
+  const d = Math.round(h / 24);
+  return d < 7 ? `${d} Day${d === 1 ? '' : 's'} ago` : new Date(iso).toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
+}
+function tweetBody(tw){
+  const x = String(tw.text || '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  return esc(x).replace(/\n/g, '<br>');
+}
+function tweetsTab(){
+  recordLine();
+  const v = lazy('tweets', () => loadTeamTweets(T.team || {id: T.id}));
+  const head = `<div class="schrec">${esc(T.recText || '')}</div>`;
+  if (v === undefined) return head + '<div class="spin"></div>';
+  if (!v || !v.length) return head + '<div class="twlist"><div class="twempty">No tweets right now. Check back soon.</div></div>';
+  return head + `<div class="twlist">${v.slice(0, 40).map(tw => `<a class="tw" href="${esc(tw.url)}" target="_blank" rel="noopener">
+    <img src="${esc(tw.avatar)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+    <span><b>@${esc(tw.user)}</b><span class="twt">${tweetBody(tw)}</span><small>${esc(twAgo(tw.published))}</small></span></a>`).join('')}</div>`;
+}
 function scheduleHTML(){
   const evs = T.events || [];
   recordLine();                                     // refreshes T.recText
@@ -1881,6 +1945,7 @@ function renderTeam(keepScroll){
   const y = content.scrollTop;
   const pad = '<div style="height:38px"></div>';
   content.innerHTML = T.tab === 'sched' ? pad + scheduleHTML()
+    : T.tab === 'tweets' ? pad + tweetsTab()
     : T.tab === 'stats' ? pad + teamStatsTab()
     : T.tab === 'stand' ? pad + standingsTab()
     : T.tab === 'rank' ? pad + rankingsTab()
