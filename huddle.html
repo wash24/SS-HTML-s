@@ -485,6 +485,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 /* ===== Scores tab (v3, matches the stream-app scoreboard) ===== */
 .app[data-view="scores"] .ticker{display:none}
 #view-scores{background:#2c2c2e}
+.tp-scores{background:#2c2c2e;min-height:100%;padding-top:2px}
 .sc-chips{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding:10px max(9px,env(safe-area-inset-right,0px)) 10px max(9px,env(safe-area-inset-left,0px));background:#3a3a3d}
 .sc-chips::-webkit-scrollbar{display:none}
 .sc-chip{flex:none;display:flex;align-items:center;gap:7px;font-family:var(--font-display);font-size:17px;font-weight:500;color:#f0f0f2;background:#5b5b5f;padding:8px 15px;box-shadow:0 1px 2px rgba(0,0,0,.4)}
@@ -1142,8 +1143,10 @@ async function loadScores(lg, group, off){
     const j = await timed(scUrl(lg, group, off), 12000);
     scCache[key] = {list:(j.events||[]).map(e=>parseEvent(e,lg)).sort((x,y)=>(y.live-x.live) || new Date(x.date)-new Date(y.date)), t:Date.now()};
   }catch(e){ scCache[key] = {list:(c&&c.list)||[], t:Date.now(), err:true}; }
-  if(!$('#view-scores').hidden) renderScores();
+  scoresChanged();
 }
+/* redraw whichever scores view is up: the Scores tab, or a league page's Scores tab */
+function scoresChanged(){ if(!$('#view-scores').hidden) renderScores(); if(tpKey && tpTab==='scores') renderTeamPage(); }
 /* Football is played in weeks: NFL and CFB chips step through ESPN's season calendar instead of days */
 const WEEKLY = {nfl:true, cfb:true};
 const weekMeta = {};                      /* lg -> {year, weeks:[{st,wk,label,start,end}], cur:index} */
@@ -1161,7 +1164,7 @@ async function loadWeekMeta(lg){
     weekMeta[lg] = {year:j.season&&j.season.year, weeks, cur};
     if(scWeek[lg]==null) scWeek[lg] = cur;
   }catch(e){ weekMeta[lg] = {err:true}; }
-  if(!$('#view-scores').hidden) renderScores();
+  scoresChanged();
 }
 async function loadWeek(lg, group, idx){
   const m = weekMeta[lg], w = m.weeks[idx]; if(!w) return;
@@ -1173,13 +1176,20 @@ async function loadWeek(lg, group, idx){
     scCache[key] = {list:(j.events||[]).map(e=>parseEvent(e,lg)).sort((x,y)=>(y.live-x.live) || new Date(x.date)-new Date(y.date)),
                     byes:((j.week&&j.week.teamsOnBye)||[]).map(t=>t.shortDisplayName||t.name), t:Date.now()};
   }catch(e){ scCache[key] = {list:(c&&c.list)||[], byes:[], t:Date.now(), err:true}; }
-  if(!$('#view-scores').hidden) renderScores();
+  scoresChanged();
 }
 const weekKey = (lg, group) => { const m = weekMeta[lg], w = m && m.weeks && m.weeks[scWeek[lg]]; return w ? lg+'|'+(group||'')+'|W'+m.year+'-'+w.st+'-'+w.wk : null; };
 const shortDay = iso => new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric'});
 const espnBoard = (lg, off) => lg==='epl' ? `https://www.espn.com/soccer/scoreboard/_/league/eng.1/date/${ymd(dayFrom(off))}` : `https://www.espn.com/${({nfl:'nfl',mlb:'mlb',nba:'nba',cfb:'college-football',cbb:'mens-college-basketball'})[lg]}/scoreboard/_/date/${ymd(dayFrom(off))}`;
+let tpScDay = 0, tpScMenu = false;        /* a league page's own Scores tab: its own day and group menu */
 function renderScores(){
   const el = $('#view-scores'); if(!el) return;
+  el.innerHTML = scoresView(scTab, scDay, scMenu, false);
+  bindScorePickers(false);
+}
+/* The scores page for one tab ('mine' or a league). tp = shown inside a league page: no sport chips, its own controls */
+function scoresView(scTab, scDay, scMenu, tp){
+  const A = tp ? 'data-tpsc' : 'data-sc';
   const mineTeams = picks.filter(p=>p.type==='team');
   const isMine = scTab==='mine';
   const lgs = isMine ? [...new Set((mineTeams.length ? mineTeams : picks).map(p=>p.lg))].filter(k=>LG_ORDER.includes(k)).sort((a,b)=>LG_ORDER.indexOf(a)-LG_ORDER.indexOf(b)) : [scTab];
@@ -1209,29 +1219,37 @@ function renderScores(){
   const dayWord = weekly ? (wkObj ? 'in '+wkObj.label : '') : scDay===0?'today':scDay===1?'tomorrow':scDay===-1?'yesterday':'on '+dayLabel(dayFrom(scDay));
   if(!body) body = `<div class="sc-empty">${pending ? 'Loading games…' : isMine && !picks.length ? 'Add teams to see their games here.' : `No games ${dayWord}.`}</div>`;
   const chips = [['mine','My Teams'], ...LG_ORDER.map(k=>[k, LG[k].label])];
-  const menu = scMenu && scGroups(scTab) ? `<div class="sc-menu" role="menu">${scGroups(scTab).map(([id,label])=>`<button role="menuitemradio" aria-checked="${scGroup[scTab]===id}" data-scgroup="${id}">${esc(label)}</button>`).join('')}</div>` : '';
-  el.innerHTML = `<div class="sc-chips">${chips.map(([k,l])=>`<button class="sc-chip" data-sctab="${k}" aria-pressed="${k===scTab}">${esc(l)}${scGroups(k)?'<i class="caret"></i>':''}</button>`).join('')}</div>${menu}
-    ${weekly ? weekBar(scTab) : `<div class="sc-datebar">
-      <button class="sc-arrow" data-scday="-1" aria-label="Previous day">«</button>
-      <label class="sc-date">${esc(dayLabel(dayFrom(scDay)))}<i class="caret"></i><input type="date" id="scDatePick" value="${dayFrom(scDay).toISOString().slice(0,10)}" aria-label="Pick a date"></label>
-      <button class="sc-arrow" data-scday="1" aria-label="Next day">»</button>
+  const menu = scMenu && scGroups(scTab) ? `<div class="sc-menu" role="menu">${scGroups(scTab).map(([id,label])=>`<button role="menuitemradio" aria-checked="${scGroup[scTab]===id}" ${A}group="${id}">${esc(label)}</button>`).join('')}</div>` : '';
+  /* on a league page, college keeps one chip to pick Top 25 / a conference; no other sport chips */
+  const top = tp ? (scGroups(scTab) ? `<div class="sc-chips"><button class="sc-chip" data-tpscmenu aria-pressed="true">${esc((scGroups(scTab).find(x=>x[0]===scGroup[scTab])||[,''])[1])}<i class="caret"></i></button></div>` : '')
+                 : `<div class="sc-chips">${chips.map(([k,l])=>`<button class="sc-chip" data-sctab="${k}" aria-pressed="${k===scTab}">${esc(l)}${scGroups(k)?'<i class="caret"></i>':''}</button>`).join('')}</div>`;
+  return `${top}${menu}
+    ${weekly ? weekBar(scTab, tp) : `<div class="sc-datebar">
+      <button class="sc-arrow" ${A}day="-1" aria-label="Previous day">«</button>
+      <label class="sc-date">${esc(dayLabel(dayFrom(scDay)))}<i class="caret"></i><input type="date" id="${tp?'tp':'sc'}DatePick" value="${dayFrom(scDay).toISOString().slice(0,10)}" aria-label="Pick a date"></label>
+      <button class="sc-arrow" ${A}day="1" aria-label="Next day">»</button>
     </div>`}
     <div class="sc-list">${body}</div>`;
-  const wp = $('#scWeekPick');
-  if(wp) wp.addEventListener('change', () => { scWeek[scTab] = Number(wp.value); renderScores(); $('#view-scores').scrollTop = 0; });
-  const dp = $('#scDatePick');
-  if(dp) dp.addEventListener('change', () => { if(!dp.value) return; const [y,m,d] = dp.value.split('-').map(Number);
-    const pick = new Date(y, m-1, d, 12), today = dayFrom(0); scDay = Math.round((pick - today)/86400e3); renderScores(); });
 }
-function weekBar(lg){
+function bindScorePickers(tp){
+  const lg = tp ? (picks.find(x=>pickKey(x)===tpKey)||{}).lg : scTab;
+  const redraw = () => tp ? renderTeamPage() : renderScores();
+  const wp = $(tp ? '#tpWeekPick' : '#scWeekPick');
+  if(wp) wp.addEventListener('change', () => { scWeek[lg] = Number(wp.value); redraw(); });
+  const dp = $(tp ? '#tpDatePick' : '#scDatePick');
+  if(dp) dp.addEventListener('change', () => { if(!dp.value) return; const [y,m,d] = dp.value.split('-').map(Number);
+    const pick = new Date(y, m-1, d, 12), today = dayFrom(0), off = Math.round((pick - today)/86400e3); if(tp) tpScDay = off; else scDay = off; redraw(); });
+}
+function weekBar(lg, tp){
+  const A = tp ? 'data-tpsc' : 'data-sc';
   const m = weekMeta[lg];
   if(!m || !m.weeks) return `<div class="sc-datebar"><span></span><span class="sc-date">Loading weeks…</span><span></span></div>`;
   const i = scWeek[lg], w = m.weeks[i];
   const opts = m.weeks.map((x,j) => `<option value="${j}"${j===i?' selected':''}>${esc(x.label)}${x.st===2?' · '+esc(shortDay(x.start)):''}</option>`).join('');
   return `<div class="sc-datebar">
-      <button class="sc-arrow" data-scweek="-1" aria-label="Previous week"${i<=0?' disabled':''}>«</button>
-      <label class="sc-date">${esc(w.label)}<i class="caret"></i><select id="scWeekPick" aria-label="Pick a week">${opts}</select></label>
-      <button class="sc-arrow" data-scweek="1" aria-label="Next week"${i>=m.weeks.length-1?' disabled':''}>»</button>
+      <button class="sc-arrow" ${A}week="-1" aria-label="Previous week"${i<=0?' disabled':''}>«</button>
+      <label class="sc-date">${esc(w.label)}<i class="caret"></i><select id="${tp?'tp':'sc'}WeekPick" aria-label="Pick a week">${opts}</select></label>
+      <button class="sc-arrow" ${A}week="1" aria-label="Next week"${i>=m.weeks.length-1?' disabled':''}>»</button>
     </div>`;
 }
 const isMine_ = (g,p) => String(g.a.id)===String(p.id) || String(g.h.id)===String(p.id);
@@ -1744,15 +1762,16 @@ function renderTeamPage(){
   page.style.setProperty('--tp-bar', p.type==='league' ? '#4a4a4d' : prim);
   page.style.setProperty('--tp-bar2', p.type==='league' ? '#4a4a4d' : shade(prim, .82));   /* tabs a step darker than the name bar */
   $('#tpName').textContent = p.type==='league' ? LG[p.lg].name : p.full;
-  const tabs = p.type==='team' ? ['stream','standings','schedule'] : ['stream','standings'];
+  const tabs = p.type==='team' ? ['stream','standings','schedule'] : ['stream','scores','standings'];
   if(!tabs.includes(tpTab)) tpTab = 'stream';
   $('#tpTabs').innerHTML = tabs.map(t => `<button class="tp-tab" data-tptab="${t}" aria-selected="${t===tpTab}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('');
-  $('#tpBody').innerHTML = tpTab==='standings' ? renderStandings(p) : tpTab==='schedule' ? renderSchedule(p) : renderStream(p);
+  $('#tpBody').innerHTML = tpTab==='standings' ? renderStandings(p) : tpTab==='schedule' ? renderSchedule(p) : tpTab==='scores' ? `<div class="tp-scores">${scoresView(p.lg, tpScDay, tpScMenu, true)}</div>` : renderStream(p);
+  if(tpTab==='scores') bindScorePickers(true);
   if(tpTab==='schedule'){ const n = $('#tpBody .sch-row.next'); if(n && !renderTeamPage._scrolled){ renderTeamPage._scrolled = true; const body = $('#tpBody'); body.scrollTop = Math.max(0, n.offsetTop - body.offsetTop - body.clientHeight/2 + n.offsetHeight/2);  /* scroll only the schedule list, never the whole app */ } }
 }
 function openTeamPage(key){
   const p = picks.find(x=>pickKey(x)===key); if(!p) return;
-  tpKey = key; tpTab = 'stream'; seen.add(key); setDrawer(false);
+  tpKey = key; tpTab = 'stream'; tpScDay = 0; tpScMenu = false; seen.add(key); setDrawer(false);
   renderTeamPage(); $('#tpBody').scrollTop = 0;
   $('#tpage').classList.add('open'); $('#tpage').setAttribute('aria-hidden','false');
   loadTeamGames(p);
@@ -2100,6 +2119,15 @@ document.addEventListener('click', e => {
   if(scg){ scGroup[scTab] = scg.dataset.scgroup; scMenu = false; renderScores(); $('#view-scores').scrollTop = 0; return; }
   const scw = e.target.closest('[data-scweek]');
   if(scw){ const m = weekMeta[scTab]; if(m && m.weeks){ scWeek[scTab] = Math.max(0, Math.min(m.weeks.length-1, scWeek[scTab] + Number(scw.dataset.scweek))); } scMenu = false; renderScores(); $('#view-scores').scrollTop = 0; return; }
+  const tpLg = () => (picks.find(x=>pickKey(x)===tpKey)||{}).lg;
+  if(e.target.closest('[data-tpscmenu]')){ tpScMenu = !tpScMenu; renderTeamPage(); return; }
+  const tsg = e.target.closest('[data-tpscgroup]');
+  if(tsg){ scGroup[tpLg()] = tsg.dataset.tpscgroup; tpScMenu = false; renderTeamPage(); $('#tpBody').scrollTop = 0; return; }
+  const tsw = e.target.closest('[data-tpscweek]');
+  if(tsw){ const lg = tpLg(), m = weekMeta[lg]; if(m && m.weeks) scWeek[lg] = Math.max(0, Math.min(m.weeks.length-1, scWeek[lg] + Number(tsw.dataset.tpscweek))); renderTeamPage(); $('#tpBody').scrollTop = 0; return; }
+  const tsd = e.target.closest('[data-tpscday]');
+  if(tsd){ tpScDay += Number(tsd.dataset.tpscday); renderTeamPage(); $('#tpBody').scrollTop = 0; return; }
+  if(tpScMenu && tpTab==='scores' && !e.target.closest('.sc-menu')){ tpScMenu = false; renderTeamPage(); }
   const scd = e.target.closest('[data-scday]');
   if(scd){ scDay += Number(scd.dataset.scday); scMenu = false; renderScores(); return; }
   if(scMenu && !e.target.closest('.sc-menu')){ scMenu = false; renderScores(); }
