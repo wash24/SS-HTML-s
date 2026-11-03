@@ -698,9 +698,14 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .ap-sec{margin:0 -8px;padding:7px max(14px,env(safe-area-inset-left,0px)) 6px;background:#1f1f21;font-family:var(--font-display);font-size:23px;color:#cfcfd2;line-height:1.2}
 .ap-sec:not(:first-child){margin-top:5px}
 .ap-note{font-family:var(--font-display);font-size:17px;color:rgba(255,255,255,.6);text-align:center;padding:14px}
-.ap-row .ap-chk{flex:none;align-self:center;position:relative;width:23px;height:23px;margin:0 16px 0 8px;border:2px solid rgba(255,255,255,.92);box-shadow:0 1px 1px rgba(0,0,0,.25)}
-.ap-row[aria-pressed="true"] .ap-chk{background:#fff}
-.ap-row[aria-pressed="true"] .ap-chk::after{content:"";position:absolute;left:6px;top:1px;width:6px;height:12px;border:solid var(--flame);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+.ap-row .ap-chk{flex:none;align-self:center;position:relative;width:20px;height:20px;margin:0 17px 0 8px;border:2px solid rgba(255,255,255,.92);box-shadow:0 1px 1px rgba(0,0,0,.25)}
+.ap-row[aria-pressed="true"] .ap-chk::after{content:"";position:absolute;left:5px;top:0;width:5px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+
+/* My Teams reorder: Edit shows a grip on each row; drag it up or down */
+.tdrag{flex:none;align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:4px;width:56px;padding:0 17px;touch-action:none;cursor:grab}
+.tdrag i{display:block;height:2px;background:rgba(255,255,255,.9);box-shadow:0 1px 1px rgba(0,0,0,.25)}
+#drawerList.editing .trow{transition:transform .18s ease}
+#drawerList .trow.lifted{transition:none;z-index:3;box-shadow:0 6px 16px rgba(0,0,0,.55);filter:brightness(1.08)}
 </style>
 <style>
 /* Home-screen app fit.
@@ -743,7 +748,7 @@ html .tabs{padding-bottom:env(safe-area-inset-bottom,0px)}
     <div class="dbar" role="toolbar">
       <button class="dbtn" data-add>Add</button>
       <button class="dbtn close" id="drawerClose" aria-label="Close My Teams"><span class="bars"><i></i><i></i><i></i></span>Close</button>
-      <button class="dbtn" data-edit>Edit</button>
+      <button class="dbtn" id="drawerEdit">Edit</button>
     </div>
     <div class="drawer-list" id="drawerList"></div>
   </section>
@@ -1250,17 +1255,23 @@ function drawerRow(p){
   } else if(m.ago){
     right = `<span class="tago">${esc(m.ago)} ago</span>`;
   }
+  if(drawerEditing) right = `<span class="tdrag" data-drag="${esc(v.key)}" aria-label="Drag to reorder"><i></i><i></i><i></i></span>`;
   const logo = v.logo ? logoTag(v.logo, v.text) : `<b class="logo-txt">${esc(v.text)}</b>`;
   return `<button class="trow" style="background:${v.bg}" data-row="${esc(v.key)}" aria-label="${esc(name)} stories">
     <span class="tlogo">${logo}</span><span class="tname"><span>${esc(name)}</span></span>${right}</button>`;
 }
+let drawerEditing = false, dragging = null;
 function renderDrawer(){
+  if(dragging) return;                         /* don't redraw under a finger mid-drag */
   const unread = alerts.filter(a=>a.unread).length;
+  $('#drawerList').classList.toggle('editing', drawerEditing);
+  $('#drawerEdit').textContent = drawerEditing ? 'Done' : 'Edit';
   $('#drawerList').innerHTML = picks.length ? picks.map(drawerRow).join('')
     : `<div class="drawer-empty">No teams yet. Tap Add Teams to pick your teams and leagues.</div>`;
 }
 const drawerOpen = () => $('#drawer').classList.contains('open');
 function setDrawer(open){
+  if(!open) drawerEditing = false;
   if(open) renderDrawer();
   $('#drawer').classList.toggle('open', open); $('#drawer').setAttribute('aria-hidden', String(!open));
   $('#drawerDim').classList.toggle('on', open);
@@ -2078,6 +2089,8 @@ document.addEventListener('click', e => {
   if(e.target.closest('#drawerClose') || e.target.closest('#drawerDim')){ setDrawer(false); return; }
   const go = e.target.closest('[data-go]');
   if(go){ if(go.dataset.go==='alerts') return; setDrawer(false); showView(go.dataset.go); return; }
+  if(e.target.closest('#drawerEdit')){ drawerEditing = !drawerEditing; renderDrawer(); return; }
+  if(drawerEditing && e.target.closest('#drawerList')) return;   /* while reordering, rows don't open */
   const row = e.target.closest('[data-row]');
   if(row){ openTeamPage(row.dataset.row); return; }
   if(e.target.closest('#gpBack')){ closeGame(); return; }
@@ -2114,6 +2127,33 @@ document.addEventListener('click', e => {
   const star = e.target.closest('[data-star]');
   if(star){ const k=star.dataset.star; starred.has(k)?starred.delete(k):starred.add(k); star.setAttribute('aria-pressed', starred.has(k)); }
 });
+/* drag-to-reorder in the My Teams drawer */
+document.addEventListener('pointerdown', e => {
+  const grip = e.target.closest('.tdrag'); if(!grip || !drawerEditing) return;
+  e.preventDefault();
+  const list = $('#drawerList'), rows = [...list.querySelectorAll('.trow')], row = grip.closest('.trow');
+  const from = rows.indexOf(row), rects = rows.map(r => r.getBoundingClientRect());
+  const step = rows.length > 1 ? rects[1].top - rects[0].top : rects[0].height;
+  dragging = {from, to:from, y0:e.clientY, rows, row, step, id:e.pointerId};
+  row.classList.add('lifted'); grip.setPointerCapture(e.pointerId);
+});
+document.addEventListener('pointermove', e => {
+  const d = dragging; if(!d || e.pointerId!==d.id) return;
+  const dy = e.clientY - d.y0;
+  d.row.style.transform = `translateY(${dy}px)`;
+  d.to = Math.max(0, Math.min(d.rows.length-1, d.from + Math.round(dy / d.step)));
+  d.rows.forEach((r, i) => { if(r===d.row) return;
+    const shift = (d.to > d.from && i > d.from && i <= d.to) ? -d.step : (d.to < d.from && i >= d.to && i < d.from) ? d.step : 0;
+    r.style.transform = shift ? `translateY(${shift}px)` : ''; });
+});
+const endDrag = e => {
+  const d = dragging; if(!d || e.pointerId!==d.id) return;
+  dragging = null;
+  if(d.to !== d.from){ const [p] = picks.splice(d.from, 1); picks.splice(d.to, 0, p); savePicks(); }
+  renderDrawer(); renderTeams();
+};
+document.addEventListener('pointerup', endDrag);
+document.addEventListener('pointercancel', endDrag);
 $('#teamSearch').addEventListener('input', e => { pickerQuery = e.target.value; renderPickerBody(); });
 document.addEventListener('keydown', e => { if(e.key!=='Escape') return; if($('#picker').classList.contains('open')) closePicker(); else if(gameOpen()) closeGame(); });
 
