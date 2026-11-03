@@ -364,6 +364,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .sch-r .w{color:#7fd67f;font-weight:600}
 .sch-r .l{color:#ff8a7a;font-weight:600}
 .sch-r .lv{color:#fff;font-weight:600}
+.sch-r .d{color:#d9d9db;font-weight:600}
 
 
 
@@ -757,7 +758,7 @@ html .tabs{padding-bottom:env(safe-area-inset-bottom,0px)}
     <div class="picked-label">Selected · tap to remove</div>
     <div class="picked" id="picked"></div>
     <div class="lg-tabs" role="tablist">
-      <button class="lg-tab" role="tab" data-lg="nfl">NFL</button><button class="lg-tab" role="tab" data-lg="mlb">MLB</button><button class="lg-tab" role="tab" data-lg="nba">NBA</button><button class="lg-tab" role="tab" data-lg="cfb">CFB</button><button class="lg-tab" role="tab" data-lg="cbb">CBB</button>
+      <button class="lg-tab" role="tab" data-lg="nfl">NFL</button><button class="lg-tab" role="tab" data-lg="mlb">MLB</button><button class="lg-tab" role="tab" data-lg="nba">NBA</button><button class="lg-tab" role="tab" data-lg="cfb">CFB</button><button class="lg-tab" role="tab" data-lg="cbb">CBB</button><button class="lg-tab" role="tab" data-lg="epl">EPL</button>
     </div>
     <div class="search"><input id="teamSearch" type="search" placeholder="Search teams" autocomplete="off" aria-label="Search teams"></div>
     <div class="sheet-body" id="pickerList"></div>
@@ -780,8 +781,12 @@ const LG = {
        logo:NCAA_LOGO, logoDir:'ncaa', college:true},
   cbb:{label:'CBB', name:'College Basketball', path:'basketball/mens-college-basketball', sb:'scoreboard?groups=50&limit=500', teams:'standings?group=50', color:LEAGUE_BG, periods:2,
        logo:NCAA_LOGO, logoDir:'ncaa', college:true},
+  epl:{label:'EPL', name:'Premier League', path:'soccer/eng.1', sb:'scoreboard', teams:'standings', color:LEAGUE_BG, periods:2,
+       logo:'https://a.espncdn.com/i/leaguelogos/soccer/500/23.png', logoDir:'soccer', soccer:true},
 };
-const LG_ORDER = ['nfl','mlb','nba','cfb','cbb'];
+const LG_ORDER = ['nfl','mlb','nba','cfb','cbb','epl'];
+/* team logo by league: college and soccer logos are keyed by team id, pro logos by abbreviation */
+const logoFor = (lg, id, ab) => { const L = LG[lg]||{}; return L.college ? (id?`https://a.espncdn.com/i/teamlogos/ncaa/500/${id}.png`:'') : L.soccer ? (id?`https://a.espncdn.com/i/teamlogos/soccer/500/${id}.png`:'') : (ab?`https://a.espncdn.com/i/teamlogos/${L.logoDir}/500/${String(ab).toLowerCase()}.png`:''); };
 const API = 'https://site.api.espn.com/apis/site/v2/sports/';
 const API_V2 = 'https://site.api.espn.com/apis/v2/sports/';
 const CORE = 'https://sports.core.api.espn.com/v2/sports/';
@@ -793,12 +798,13 @@ const FALLBACK_TEAMS = {
   mlb:[['13','TEX','Texas','Rangers','#003278'],['16','CHC','Chicago','Cubs','#0E3386'],['10','NYY','New York','Yankees','#132448'],['19','LAD','Los Angeles','Dodgers','#005A9C'],['24','STL','St. Louis','Cardinals','#C41E3A'],['18','HOU','Houston','Astros','#002D62']],
   nba:[['4','CHI','Chicago','Bulls','#CE1141'],['13','LAL','Los Angeles','Lakers','#552583'],['9','GS','Golden State','Warriors','#1D428A'],['2','BOS','Boston','Celtics','#007A33'],['6','DAL','Dallas','Mavericks','#0053BC'],['24','SA','San Antonio','Spurs','#000000']],
   cfb:[['8','ARK','Arkansas','Razorbacks','#9D2235'],['333','ALA','Alabama','Crimson Tide','#9E1B32'],['251','TEX','Texas','Longhorns','#BF5700'],['194','OSU','Ohio State','Buckeyes','#BB0000'],['61','UGA','Georgia','Bulldogs','#BA0C2F'],['130','MICH','Michigan','Wolverines','#00274C']],
+  epl:[['359','ARS','Arsenal','Arsenal','#EF0107'],['363','CHE','Chelsea','Chelsea','#034694'],['364','LIV','Liverpool','Liverpool','#C8102E'],['382','MNC','Manchester City','Manchester City','#6CABDD'],['360','MAN','Manchester United','Manchester United','#DA291C'],['367','TOT','Tottenham Hotspur','Tottenham Hotspur','#132257']],
   cbb:[['8','ARK','Arkansas','Razorbacks','#9D2235'],['96','UK','Kentucky','Wildcats','#0033A0'],['150','DUKE','Duke','Blue Devils','#003087'],['2305','KU','Kansas','Jayhawks','#0051BA'],['153','UNC','North Carolina','Tar Heels','#7BAFD4'],['248','HOU','Houston','Cougars','#C8102E']],
 };
 function fallbackTeams(lg){
   const L = LG[lg];
-  return FALLBACK_TEAMS[lg].map(([id,ab,loc,nick,color]) => ({lg, id, ab, location:loc, nick, full:loc+' '+nick, color,
-    logo: L.college ? `https://a.espncdn.com/i/teamlogos/ncaa/500/${id}.png` : `https://a.espncdn.com/i/teamlogos/${L.logoDir}/500/${ab.toLowerCase()}.png`}));
+  return (FALLBACK_TEAMS[lg]||[]).map(([id,ab,loc,nick,color]) => ({lg, id, ab, location:loc, nick, full: L.soccer ? loc : loc+' '+nick, color,
+    logo: logoFor(lg, id, ab)}));
 }
 
 /* ================= Picks (saved on this device) ================= */
@@ -882,6 +888,7 @@ function tzLabel(d){
 function statusParts(g){
   if(g.postponed) return ['Postponed',''];
   if(g.lg==='mlb' && (g.live||g.final)) return [g.detail || (g.final?'Final':''), ''];
+  if((LG[g.lg]||{}).soccer && (g.live||g.final)) return [g.half ? 'HT' : (g.detail || (g.final?'FT':g.clock||'')), ''];
   if(g.final) return [g.period>((LG[g.lg]||{}).periods||4) ? 'Final/'+periodLabel(g) : 'Final',''];
   if(g.live){
     if(g.half) return ['Half',''];
@@ -913,7 +920,7 @@ function isToday(g){
 function topGameScore(g, mine){
   let sc = 0;
   if(gameHasMine(g, mine)) sc += 1000;
-  sc += ({nfl:120, cfb:30, nba:40, mlb:30, cbb:10})[g.lg] || 0;   /* a single NFL game outweighs a random weeknight game */
+  sc += ({nfl:120, cfb:30, nba:40, mlb:30, cbb:10, epl:50})[g.lg] || 0;   /* a single NFL game outweighs a random weeknight game */
   const ra = g.a.rank||99, rh = g.h.rank||99;
   if(ra<=25 && rh<=25) sc += 160 + (50 - ra - rh);          /* ranked vs ranked */
   else if(Math.min(ra,rh)<=25) sc += 60 + (25 - Math.min(ra,rh));
@@ -922,7 +929,7 @@ function topGameScore(g, mine){
   if(g.live){
     sc += 400;
     const margin = Math.abs(Number(g.a.sc) - Number(g.h.sc));
-    const close = g.lg==='mlb' ? 2 : (g.lg==='nfl'||g.lg==='cfb') ? 8 : 8;
+    const close = g.lg==='epl' ? 1 : g.lg==='mlb' ? 2 : 8;
     if(margin <= close) sc += 90 - margin*5;
     const reg = (LG[g.lg]||{}).periods || 4;
     if((g.period||0) >= reg) sc += 40;                     /* late in the game */
@@ -974,7 +981,7 @@ function teamRow(t, g){
   const rec = (!showScore && t.rec) ? `<span class="rec">(${esc(t.rec)})</span>` : '';
   const loser = g.final && Number(t.sc) < Number((t===g.a?g.h:g.a).sc);
   const L = LG[g.lg] || {};
-  const logo = t.logo || (t.ab ? (L.college ? (t.id?`https://a.espncdn.com/i/teamlogos/ncaa/500/${t.id}.png`:'') : `https://a.espncdn.com/i/teamlogos/${L.logoDir}/500/${t.ab.toLowerCase()}.png`) : '');
+  const logo = t.logo || logoFor(g.lg, t.id, t.ab);
   const fallback = t.ab.slice(0,1);
   const mono = (logo || t.logoDark)
     ? `<span class="mono">${logoTag(logo, fallback, 'ticker', t.logoDark)}</span>`
@@ -1123,7 +1130,7 @@ async function loadWeek(lg, group, idx){
 }
 const weekKey = (lg, group) => { const m = weekMeta[lg], w = m && m.weeks && m.weeks[scWeek[lg]]; return w ? lg+'|'+(group||'')+'|W'+m.year+'-'+w.st+'-'+w.wk : null; };
 const shortDay = iso => new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-const espnBoard = (lg, off) => `https://www.espn.com/${({nfl:'nfl',mlb:'mlb',nba:'nba',cfb:'college-football',cbb:'mens-college-basketball'})[lg]}/scoreboard/_/date/${ymd(dayFrom(off))}`;
+const espnBoard = (lg, off) => lg==='epl' ? `https://www.espn.com/soccer/scoreboard/_/league/eng.1/date/${ymd(dayFrom(off))}` : `https://www.espn.com/${({nfl:'nfl',mlb:'mlb',nba:'nba',cfb:'college-football',cbb:'mens-college-basketball'})[lg]}/scoreboard/_/date/${ymd(dayFrom(off))}`;
 function renderScores(){
   const el = $('#view-scores'); if(!el) return;
   const mineTeams = picks.filter(p=>p.type==='team');
@@ -1332,6 +1339,7 @@ function seasonWindow(lg){
   const now = new Date(), y = now.getMonth()>=6 ? now.getFullYear() : now.getFullYear()-1;
   if(lg==='nfl') return [new Date(y,7,25), new Date(y+1,1,15)];
   if(lg==='cfb') return [new Date(y,7,20), new Date(y+1,0,25)];
+  if(lg==='epl') return [new Date(y,7,10), new Date(y+1,5,1)];
   const a = new Date(), b = new Date(); a.setDate(a.getDate()-21); b.setDate(b.getDate()+21); return [a,b];
 }
 const isMine = (g,p) => String(g.a.id)===String(p.id) || String(g.h.id)===String(p.id);
@@ -1340,7 +1348,12 @@ async function loadTeamGames(p){
   const key = pickKey(p), L = LG[p.lg];
   let list = null;
   if(p.type==='team'){
-    try{ const j = await timed(API+L.path+'/teams/'+p.id+'/schedule', 9000); list = (j.events||[]).map(e=>parseEvent(e,p.lg)).filter(g=>isMine(g,p)); tpSource[key]='schedule'; }catch(e){}
+    try{
+      const urls = [API+L.path+'/teams/'+p.id+'/schedule'].concat(L.soccer ? [API+L.path+'/teams/'+p.id+'/schedule?fixture=true'] : []);
+      const js = await Promise.all(urls.map(u => timed(u, 9000)));
+      const seenId = new Set();
+      list = js.flatMap(j => j.events||[]).filter(e => !seenId.has(e.id) && seenId.add(e.id)).map(e=>parseEvent(e,p.lg)).filter(g=>isMine(g,p)); tpSource[key]='schedule';
+    }catch(e){}
   }
   if(!list || !list.length){
     try{
@@ -1375,7 +1388,7 @@ function gmid(g){
   }
   return `<div class="gmid"><span class="at">${g.live||g.final?'':'@'}</span></div>`;
 }
-function teamLogoUrl(t, lg){ const L = LG[lg]||{}; return t.logo || (L.college ? (t.id?`https://a.espncdn.com/i/teamlogos/ncaa/500/${t.id}.png`:'') : `https://a.espncdn.com/i/teamlogos/${L.logoDir}/500/${(t.ab||'').toLowerCase()}.png`); }
+function teamLogoUrl(t, lg){ return t.logo || logoFor(lg, t.id, t.ab); }
 function gside(t, g, which){
   const show = g.live||g.final;
   const lost = g.final && Number(t.sc) < Number((which==='away'?g.h:g.a).sc);
@@ -1426,7 +1439,7 @@ function gameBox(g, o={}){
         <div class="gb-h"><span class="gb-nm">${nameRec(g.h).replace('<small>','<small class="br">')}</span>${logo(g.h,'h')}</div>
       </div></div>`;
   }
-  const al = g.a.line||[], hl = g.h.line||[], n = Math.max(al.length, hl.length, reg);   /* all 4 quarters / 2 halves / 9 innings from the start */
+  const al = g.a.line||[], hl = g.h.line||[], n = Math.max(al.length, hl.length, (LG[g.lg]||{}).soccer ? 0 : reg);   /* all 4 quarters / 2 halves / 9 innings from the start */
   const heads = Array.from({length:n}, (_,i) => (i<reg || mlb) ? String(i+1) : (i-reg ? (i-reg+1)+'OT' : 'OT'));
   const totH = mlb ? ['R','H','E'] : [o.scores ? 'F' : 'TOT'];
   const cw = mlb ? 17 : 23;                              /* period column width */
@@ -1501,6 +1514,7 @@ const full = g => (g && fullGame[g.id] && fullGame[g.id].g) || g;
 
 /* ---- Last plays for live games (ESPN game summary; refreshed every ~30s while live) ---- */
 const playsCache = {};
+const socKey = k => k.scoringPlay || /goal|card|substitution|penalty/i.test((k.type&&k.type.text)||'');
 async function loadPlays(g){
   const c = playsCache[g.id];
   if(c && Date.now()-c.t < 30e3) return;
@@ -1512,6 +1526,8 @@ async function loadPlays(g){
       const drives = (j.drives.previous||[]).concat(j.drives.current ? [j.drives.current] : []);
       const seen = new Set();
       drives.forEach(d => (d.plays||[]).forEach(pl => { if(seen.has(pl.id)) return; seen.add(pl.id); raw.push({...pl, teamId: pl.team&&pl.team.id || d.team&&d.team.id}); }));
+    } else if(j.keyEvents && !j.plays){   /* soccer: goals, cards and substitutions */
+      raw = j.keyEvents.filter(socKey).map(k => ({...k, text: k.text || (k.type&&k.type.text), teamId: k.team&&k.team.id}));
     } else raw = (j.plays||[]).map(pl => ({...pl, teamId: pl.team&&pl.team.id}));
     /* keep real team plays: drop period/game markers, and for baseball keep at-bat results (not every pitch) */
     const marker = /(^|\s)(start|end)\b|end of|timeout|official|delay/i;
@@ -1592,11 +1608,16 @@ function leafGroups(node, out=[], parent=''){
 const statMap = e => { const m = {}; (e.stats||[]).forEach(s => { if(s.name) m[s.name]=s; if(s.type) m['t:'+s.type]=s; if(s.abbreviation) m['a:'+s.abbreviation]=s; }); return m; };
 const sv = s => s ? (s.displayValue ?? s.summary ?? s.value ?? '') : '';
 function standingsTable(grp, lg, hiId){
-  const college = LG[lg].college, nfl = lg==='nfl';
+  const college = LG[lg].college, nfl = lg==='nfl', soc = LG[lg].soccer;
   const pct = (txt) => { const m = String(txt).match(/(\d+)-(\d+)/); return m ? (+m[1]/((+m[1]+ +m[2])||1)) : 0; };
   const rows = grp.entries.map(e => ({e, m:statMap(e)}));
   let cols;
-  if(college){
+  if(soc){
+    const a = (r, ab) => sv(r.m['a:'+ab]);
+    cols = [['GP', r=>a(r,'GP')], ['W', r=>a(r,'W')], ['D', r=>a(r,'D')], ['L', r=>a(r,'L')], ['GD', r=>a(r,'GD')], ['PTS', r=>a(r,'P')]];
+    const n = (r, ab) => +((r.m['a:'+ab]||{}).value) || 0;
+    rows.sort((x,y)=> n(y,'P')-n(x,'P') || n(y,'GD')-n(x,'GD') || n(y,'F')-n(x,'F'));
+  } else if(college){
     cols = [['CONF', r => sv(r.m['t:vsconf']||r.m['vsConf']||r.m['a:CONF'])], ['OVR', r => sv(r.m['t:total']||r.m['overall']) || `${sv(r.m.wins)}-${sv(r.m.losses)}`]];
     rows.sort((x,y)=> pct(cols[0][1](y))-pct(cols[0][1](x)) || pct(cols[1][1](y))-pct(cols[1][1](x)));
   } else {
@@ -1636,8 +1657,9 @@ function renderSchedule(p){
     const d = new Date(g.date), m = d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
     let head = ''; if(m!==month){ month = m; head = `<div class="sch-month">${esc(m)}</div>`; }
     let res;
-    if(g.final){ const w = Number(me.sc) > Number(opp.sc);
-      res = `<span class="${w?'w':'l'}">${w?'W':'L'}</span> ${esc(me.sc)}-${esc(opp.sc)}${g.period>((LG[g.lg]||{}).periods||4) && g.lg!=='mlb' ? ' OT':''}`; }
+    if(g.final){ const w = Number(me.sc) > Number(opp.sc), d = Number(me.sc)===Number(opp.sc), soc = (LG[g.lg]||{}).soccer;
+      res = d && soc ? `<span class="d">D</span> ${esc(me.sc)}-${esc(opp.sc)}`
+          : `<span class="${w?'w':'l'}">${w?'W':'L'}</span> ${esc(me.sc)}-${esc(opp.sc)}${!soc && g.period>((LG[g.lg]||{}).periods||4) && g.lg!=='mlb' ? ' OT':''}`; }
     else if(g.live) res = `<span class="lv">${esc(statusParts(g)[0])}</span> ${esc(me.sc)}-${esc(opp.sc)}`;
     else if(g.postponed) res = 'Postponed';
     else res = g.tbd ? 'TBD' : esc(d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).replace(/\s+/,' '));   /* "6:30 PM", no channel */
@@ -1750,9 +1772,11 @@ const GD_COLS = {
   kickReturns:  [['NO'],['YDS'],['AVG'],['LONG','LNG'],['TD']],
   puntReturns:  [['NO'],['YDS'],['AVG'],['LONG','LNG'],['TD']],
   kicking:      [['FG'],['PCT'],['LONG','LNG'],['XP'],['PTS']],
-  punting:      [['NO'],['YDS'],['AVG'],['TB'],['In 20','IN 20'],['LONG','LNG']]
+  punting:      [['NO'],['YDS'],['AVG'],['TB'],['In 20','IN 20'],['LONG','LNG']],
+  soccer:       [['G'],['A'],['SHOT','SH'],['SOG','ST'],['FC'],['YC']],
+  keeper:       [['SV'],['GA']]
 };
-const GD_SHORT = {'QB HTS':'QBH', 'QB HUR':'QBH', 'In 20':'IN20', 'IN 20':'IN20', 'SACKS':'SCK', 'TGTS':'TGT', 'LONG':'LNG'};
+const GD_SHORT = {'SHOT':'SH', 'QB HTS':'QBH', 'QB HUR':'QBH', 'In 20':'IN20', 'IN 20':'IN20', 'SACKS':'SCK', 'TGTS':'TGT', 'LONG':'LNG'};
 /* indexes of the wanted columns in ESPN's label list (falls back to the first 6 if none match) */
 function gdCols(labels, kind){
   const want = GD_COLS[kind];
@@ -1779,6 +1803,7 @@ function gdTable(head, labels, kind, rows, totals, opts={}){
 }
 const gdNm = (a, pos) => `${esc(athName(a))}${pos ? `<small>${esc(pos)}</small>` : ''}`;
 function gdBox(g, s){
+  if((LG[g.lg]||{}).soccer) return gdSoccerBox(g, s);
   const P = (s.boxscore && s.boxscore.players) || [];
   if(!P.length) return `<div class="gd-load">No player stats yet.</div>`;
   const t = gd.side==='h' ? g.h : g.a;
@@ -1810,6 +1835,26 @@ function gdBox(g, s){
   }
   return html + '</div>';
 }
+/* soccer: lineups with each player's match stats (ESPN "rosters"); starters, then subs who came on, then goalkeeping */
+function gdSoccerBox(g, s){
+  const R = s.rosters || [];
+  const t = gd.side==='h' ? g.h : g.a;
+  const btn = (k, tm) => `<button data-gdside="${k}" aria-pressed="${gd.side===k}" style="--tc:${hex(tm.color||'#555558')}">${gdLogo(tm, g.lg)}${esc(tm.name||tm.ab)}</button>`;
+  let html = `<div class="gd-sec"><div class="gd-teams">${btn('a', g.a)}${btn('h', g.h)}</div>`;
+  const ro = R.find(x => String(x.team && x.team.id)===String(t.id)) || R.find(x => x.homeAway===(gd.side==='h'?'home':'away'));
+  const players = ((ro && ro.roster) || []).filter(a => a.starter || a.subbedIn);
+  if(!players.length) return html + `<div class="gd-load">Lineups aren't out yet.</div></div>`;
+  const labels = ((players.find(a => (a.stats||[]).length) || {}).stats || []).map(x => x.abbreviation);
+  const vals = a => labels.map(l => { const x = (a.stats||[]).find(y => y.abbreviation===l); return x ? x.displayValue : ''; });
+  const nm = a => gdNm(a.athlete, (a.position||{}).abbreviation);
+  const starters = players.filter(a => a.starter), subs = players.filter(a => !a.starter);
+  const rows = [{grp: ro.formation ? 'Starting XI · '+ro.formation : 'Starting XI'}, ...starters.map(a => ({name:nm(a), stats:vals(a)})),
+    ...(subs.length ? [{grp:'Substitutes'}, ...subs.map(a => ({name:nm(a), stats:vals(a)}))] : [])];
+  html += gdTable(t.ab||'', labels, 'soccer', rows, null);
+  const gk = players.filter(a => /^G/.test((a.position||{}).abbreviation||''));
+  if(gk.length) html += `<div class="gd-h">Goalkeeping</div>` + gdTable('GK', labels, 'keeper', gk.map(a => ({name:nm(a), stats:vals(a)})), null);
+  return html + '</div>';
+}
 const cap = x => String(x).toLowerCase().replace(/(^|[\s-])\w/g, c=>c.toUpperCase());
 
 /* ---- Team stats: side-by-side with a split bar ---- */
@@ -1819,7 +1864,14 @@ function gdTeamStats(g, s){
   const ta = T.find(x=>x.homeAway==='away') || T[0], th = T.find(x=>x.homeAway==='home') || T[1];
   if(!ta || !th) return `<div class="gd-load">No team stats yet.</div>`;
   let rows = [];
-  if(g.lg==='mlb'){
+  if((LG[g.lg]||{}).soccer){
+    /* the useful match stats, in the usual order; ESPN's percentages come as fractions (0.8) */
+    const W = [['possessionPct','Possession','%'],['totalShots','Shots'],['shotsOnTarget','Shots on Target'],['wonCorners','Corners'],['foulsCommitted','Fouls'],['yellowCards','Yellow Cards'],['redCards','Red Cards'],['offsides','Offsides'],['saves','Saves'],['totalPasses','Passes'],['passAcc','Pass Accuracy'],['totalTackles','Tackles']];
+    const get0 = (t, n) => { const x = (t.statistics||[]).find(y => y.name===n); return x ? x.displayValue : null; };
+    const get = (t, n) => { if(n!=='passAcc') return get0(t, n); const a = parseFloat(get0(t,'accuratePasses')), b = parseFloat(get0(t,'totalPasses')); return b ? Math.round(a/b*100)+'%' : null; };
+    const fmt = (v, k) => v==null ? null : k==='frac' ? Math.round(parseFloat(v)*100)+'%' : k==='%' ? parseFloat(v).toFixed(1).replace(/\.0$/,'')+'%' : v;
+    rows = W.map(([n,label,k]) => [label, fmt(get(ta,n),k), fmt(get(th,n),k)]).filter(r => r[1]!=null && r[2]!=null);
+  } else if(g.lg==='mlb'){
     const val = (t, grp, ab) => { const G = (t.statistics||[]).find(x=>x.name===grp); const st = G && (G.stats||[]).find(x=>x.abbreviation===ab); return st ? st.displayValue : null; };
     rows = MLB_TS.map(([grp, ab, label]) => [label, val(ta,grp,ab), val(th,grp,ab)]).filter(r => r[1]!=null && r[2]!=null);
   } else {
@@ -1828,7 +1880,7 @@ function gdTeamStats(g, s){
   }
   if(!rows.length) return `<div class="gd-load">No team stats yet.</div>`;
   const num = v => { const m = String(v).match(/-?\d*\.?\d+/); return m ? parseFloat(m[0]) : NaN; };
-  const lowBetter = /turnover|interception|fumble|penalt|foul|error|left on base|sack.*yards|earned runs allowed/i;
+  const lowBetter = /turnover|interception|fumble|penalt|foul|error|left on base|sack.*yards|earned runs allowed|card|offside/i;
   /* very dark primaries (navy, black) disappear on the gray card, so those use the team's alternate color */
   const barC = t => { const c = hex(t.color||'#888'), al = t.alt ? hex(t.alt) : ''; return lum(c) < .12 && al && lum(al) > lum(c) && lum(al) < .9 ? al : lum(c) < .12 ? '#8a8a8e' : c; };
   const ca = barC(g.a), ch = barC(g.h);
@@ -1899,7 +1951,23 @@ const gdPer = (g, pl) => { const p = pl.period||{};
   const reg = (LG[g.lg]||{}).periods || 4, n = p.number||1;
   if(n > reg) return n-reg===1 ? 'Overtime' : (n-reg)+'OT';
   return reg===2 ? (n===1?'1st Half':'2nd Half') : ordinal(n)+' Quarter'; };
+/* soccer: key events (goals, cards, subs) and ESPN's minute-by-minute commentary */
+function gdSoccerPlays(g, s){
+  const row = (teamId, text, when, scoring) => { const t = gdTeamOf(g, teamId);
+    return `<div class="gp${scoring?' score':''}"><span class="gp-logo">${gdLogo(t, g.lg)}</span><span class="gp-txt">${esc(text)}</span><span class="gp-when">${esc(when||'')}</span></div>`; };
+  let ke = (s.keyEvents||[]).filter(socKey).map(k => ({teamId: k.team&&k.team.id, text: k.text || (k.type&&k.type.text) || '', when: k.clock&&k.clock.displayValue, scoring: !!k.scoringPlay}));
+  if(g.live) ke = ke.reverse();
+  const keBlock = ke.length ? `<div class="gd-h">Key Events</div><div class="gd-card gd-plays">${ke.map(k => row(k.teamId, k.text, k.when, k.scoring)).join('')}</div>` : '';
+  /* commentary names the team but not its id, so match on the club's name */
+  const byName = {}; (((s.header||{}).competitions||[{}])[0].competitors||[]).forEach(c => { const t = c.team||{}; [t.displayName, t.shortDisplayName, t.name].forEach(n => { if(n) byName[n] = t.id; }); });
+  const cm = (s.commentary||[]).filter(c => c.text).slice().reverse();
+  const limit = gd.more ? Infinity : 5;
+  const cmBlock = cm.length ? `<div class="gd-h">${g.live ? 'Latest' : 'Commentary'}</div><div class="gd-card gd-plays">${cm.slice(0, limit).map(c => row(c.play && c.play.team && (c.play.team.id || byName[c.play.team.displayName]), c.text, c.time && c.time.displayValue, c.play && c.play.scoringPlay)).join('')}${cm.length > limit ? `<button class="gd-more" data-gdmore>Show more plays</button>` : ''}</div>` : '';
+  if(!keBlock && !cmBlock) return `<div class="gd-sec"><div class="gd-load">No match events yet.</div></div>`;
+  return `<div class="gd-sec">${g.live ? cmBlock + keBlock : keBlock + cmBlock}</div>`;
+}
 function gdPlays(g, s){
+  if((LG[g.lg]||{}).soccer) return gdSoccerPlays(g, s);
   let html = '<div class="gd-sec">';
   /* scoring summary (football and baseball) */
   let scoring = (s.scoringPlays||[]).map(pl => ({...pl, teamId: pl.team && pl.team.id, scoringPlay:true}));
@@ -2017,6 +2085,7 @@ document.addEventListener('keydown', e => { if(e.key!=='Escape') return; if($('#
 /* Box names: college = school only ("Ohio State", not "Ohio State Buckeyes"); pro = team name only ("Rangers", not "Texas Rangers") */
 function shortName(tm, lg){
   if((LG[lg]||{}).college) return tm.location || tm.shortDisplayName || tm.displayName || '';
+  if((LG[lg]||{}).soccer) return tm.shortDisplayName || tm.displayName || tm.name || '';
   return tm.name || tm.nickname || tm.shortDisplayName || tm.displayName || '';
 }
 function parseEvent(ev, lg){
@@ -2040,13 +2109,14 @@ const toStory = (a, key, src, chip, chipColor, chipLogo) => ({key, src, chip, ch
    B/R has no public feed, but its league/team pages (which allow cross-site reads) embed each story's
    data: full headline, slug, publish time and thumbnail. Only B/R's own articles are kept. */
 const BR = 'https://bleacherreport.com/';
-const BR_LEAGUE = {nfl:'nfl', mlb:'mlb', nba:'nba', cfb:'college-football', cbb:'college-basketball'};
+const BR_LEAGUE = {nfl:'nfl', mlb:'mlb', nba:'nba', cfb:'college-football', cbb:'college-basketball', epl:'epl'};
 const brSlugOk = {};                      /* pickKey -> slug that worked */
 const slugify = x => String(x||'').toLowerCase().replace(/&/g,'and').replace(/['’.]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 function brSlugs(p){
   if(p.type==='league') return [BR_LEAGUE[p.lg]];
   if(LG[p.lg].college){ const sfx = p.lg==='cfb' ? '-football' : '-basketball';
     return [slugify(p.location)+sfx, slugify(p.location+' '+p.nick)+sfx]; }
+  if(LG[p.lg].soccer) return [...new Set([slugify(p.full), slugify(String(p.full).replace(/&/g,' ')), slugify(p.location)])];   /* Brighton & Hove Albion -> brighton-hove-albion */
   return [slugify(p.full)];
 }
 const unesc = x => { try{ return JSON.parse('"'+x+'"'); }catch(e){ return x; } };
