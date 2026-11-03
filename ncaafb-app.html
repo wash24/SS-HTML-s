@@ -453,6 +453,7 @@ body.teamsv #content{background:#3a3a3a}
 .tw b{display:block;font-size:16px;font-weight:700;color:#1d1d1d;margin-bottom:2px}
 .tw .twt{display:block;font-size:14.5px;line-height:1.3;color:#333;overflow-wrap:anywhere}
 .tw small{display:block;margin-top:4px;font-size:12.5px;color:#888}
+.twgap{height:8px}
 .twempty{padding:22px 14px;text-align:center;font-size:14px;color:#777}
 
 /* ================= game screen ================= */
@@ -664,10 +665,10 @@ html,body{background:#000;overscroll-behavior:none}
   <div id="ttabs"><span id="tglow"></span>
     <button data-ttab="club">Clubhouse</button>
     <button data-ttab="sched">Schedule</button>
-    <button data-ttab="tweets">Tweets</button>
     <button data-ttab="stats">Stats</button>
     <button data-ttab="stand">Standings</button>
     <button data-ttab="rank">Rankings</button>
+    <button data-ttab="tweets">Tweets</button>
   </div>
   <div id="tlogo"></div></div>
   <div id="hud" aria-live="polite"></div>
@@ -1201,7 +1202,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /* ================= game screen ================= */
-const G = {id: null, tab: 'story', data: null, timer: null, ps: 0, token: 0, season: null};
+const G = {id: null, tab: 'story', data: null, timer: null, ps: 0, token: 0, season: null, tw: null, twT: 0};
 const gBody = $('#gBody');
 
 function teamColor(t){
@@ -1259,7 +1260,7 @@ function renderGameHead(){
   }
   head.innerHTML = `${tm(away)}${sa}<div class="mid">${mid}</div>${sh}${tm(home)}`;
   const first = state === 'pre' ? 'Preview' : state === 'in' ? 'Box Score' : 'Recap';
-  const tabs = [['story', first], ...(state === 'post' ? [['box', 'Box Score']] : []), ['clips', 'Clips'], ['team', 'Team Stats'], ['players', 'Player Stats']];
+  const tabs = [['story', first], ...(state === 'post' ? [['box', 'Box Score']] : []), ['clips', 'Clips'], ['team', 'Team Stats'], ['players', 'Player Stats'], ['tweets', 'Tweets']];
   if (!tabs.some(t => t[0] === G.tab)) G.tab = 'story';
   $('#gTabs').innerHTML = tabs.map(([k, l]) => `<button data-gt="${k}"${k === G.tab ? ' class="on"' : ''}>${l}</button>`).join('');
 }
@@ -1593,13 +1594,36 @@ function sizeStatGrid(){
   document.documentElement.style.setProperty('--nw', Math.max(86, w - (52 + 40 * 4) - 12) + 'px');
 }
 window.addEventListener('resize', sizeStatGrid);
+/* -- game Tweets: both teams' Bleacher Report streams merged, kept to the game window (same rules as Team Stream):
+      before the game, the last two days; once it starts, from an hour before kickoff; finals stop about 6 hours after kickoff.
+      Refreshed every 3 minutes while the tab is open. -- */
+async function loadGameTweets(g){
+  const id = G.id; G.twT = Date.now();
+  const lists = await Promise.all([g.away.team, g.home.team].filter(Boolean).map(t => loadTeamTweets(t).catch(() => [])));
+  if (G.id !== id) return;
+  const seen = new Set();
+  G.tw = lists.flat().filter(t => !seen.has(t.id) && seen.add(t.id)).sort((a, b) => b.published.localeCompare(a.published));
+  if (G.tab === 'tweets') renderGameBody(true);
+}
+function gameTweetsHTML(g){
+  if (!G.tw || Date.now() - G.twT > 3 * 60e3) loadGameTweets(g);
+  if (!G.tw) return '<div class="spin"></div>';
+  const state = gStateOf(g), start = new Date(g.date).getTime(), now = Date.now();
+  const from = state === 'pre' ? now - 48 * 36e5 : start - 36e5;
+  const to = state === 'post' ? start + 6 * 36e5 : now + 60e3;
+  const list = G.tw.filter(t => { const x = new Date(t.published).getTime(); return x >= from && x <= to; });
+  if (!list.length) return `<div class="twgap"></div><div class="twlist"><div class="twempty">${state === 'post' ? 'No tweets from this game are still available.' : 'No tweets yet. Check back soon.'}</div></div>`;
+  return `<div class="twgap"></div><div class="twlist">${list.slice(0, 60).map(tw => `<a class="tw" href="${esc(tw.url)}" target="_blank" rel="noopener">
+    <img src="${esc(tw.avatar)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+    <span><b>@${esc(tw.user)}</b><span class="twt">${tweetBody(tw)}</span><small>${esc(twAgo(tw.published))}</small></span></a>`).join('')}</div><div class="twgap"></div>`;
+}
 function renderGameBody(keepScroll){
   sizeStatGrid();
   const g = gameComp();
   if (!g) { gBody.innerHTML = '<div class="spin"></div>'; return; }
   const y = gBody.scrollTop;
-  if (!G.data && G.tab !== 'story') { gBody.innerHTML = '<div class="spin"></div>'; return; }
-  gBody.innerHTML = G.tab === 'box' ? lineScoreHTML(g) + (scoringHTML(g) || '')
+  if (!G.data && G.tab !== 'story' && G.tab !== 'tweets') { gBody.innerHTML = '<div class="spin"></div>'; return; }
+  gBody.innerHTML = G.tab === 'tweets' ? gameTweetsHTML(g) : G.tab === 'box' ? lineScoreHTML(g) + (scoringHTML(g) || '')
     : G.tab === 'clips' ? clipsHTML() : G.tab === 'team' ? teamStatsHTML(g) : G.tab === 'players' ? playerStatsHTML(g)
     : (G.data ? storyHTML(g) : (gStateOf(g) === 'in' ? `<div class="glive">${fieldHTML({situation: g.situation}, g.away, g.home)}</div>` : '') + '<div class="spin"></div>');
   if (keepScroll) gBody.scrollTop = y;
@@ -1623,7 +1647,7 @@ async function loadGame(silent){
 }
 
 function openGame(id, fromHistory){
-  G.id = String(id); G.tab = 'story'; G.data = null; G.ps = 0; G.season = null;
+  G.id = String(id); G.tab = 'story'; G.data = null; G.ps = 0; G.season = null; G.tw = null; G.twT = 0;
   gBody.scrollTop = 0;
   renderGameHead(); renderGameBody();
   const el = $('#game'); el.classList.add('open'); el.setAttribute('aria-hidden', 'false');
@@ -1903,9 +1927,8 @@ function tweetBody(tw){
   return esc(x).replace(/\n/g, '<br>');
 }
 function tweetsTab(){
-  recordLine();
   const v = lazy('tweets', () => loadTeamTweets(T.team || {id: T.id}));
-  const head = `<div class="schrec">${esc(T.recText || '')}</div>`;
+  const head = '';
   if (v === undefined) return head + '<div class="spin"></div>';
   if (!v || !v.length) return head + '<div class="twlist"><div class="twempty">No tweets right now. Check back soon.</div></div>';
   return head + `<div class="twlist">${v.slice(0, 40).map(tw => `<a class="tw" href="${esc(tw.url)}" target="_blank" rel="noopener">
