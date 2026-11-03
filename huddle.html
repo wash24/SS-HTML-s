@@ -656,6 +656,22 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 /* header logo (replaces the Team Stream wordmark) */
 .wordmark{align-items:center}
 .wm-logo{display:block;height:30px;width:auto}
+
+/* ===== Tweets in the team stream (2015 Team Stream style) ===== */
+.tweet{display:flex;gap:10px;margin:10px max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px));padding:10px 10px 11px;background:#e7e7e4;color:#161616;text-decoration:none;box-shadow:0 1px 2px rgba(0,0,0,.35)}
+.tw-av{flex:none;width:50px;height:50px;background:#fff;padding:2px;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.tw-av img{display:block;width:100%;height:100%;object-fit:cover}
+.tw-body{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}
+.tw-head{display:flex;align-items:baseline;gap:6px;min-width:0;font-family:var(--font-display);line-height:1.2}
+.tw-head b{font-size:18px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+.tw-head small{font-size:14px;color:#77777a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+.tw-ago{margin-left:auto;flex:none;display:flex;align-items:center;gap:4px;font-size:14px;color:#77777a}
+.tw-ago svg{width:14px;height:14px;fill:#6b8fb3}
+.tw-text{font-family:var(--font-body);font-size:15px;line-height:1.3;overflow-wrap:anywhere}
+.tw-link{color:#4a6f96}
+.tw-media{position:relative;display:block;margin-top:6px;overflow:hidden;background:#bbb;aspect-ratio:16/9}
+.tw-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tw-media.vid::after{content:"";position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.35) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M9 7l8 5-8 5z'/%3E%3C/svg%3E") center/26px no-repeat}
 </style>
 <style>
 /* Home-screen app fit.
@@ -1441,6 +1457,19 @@ function tStoryCard(st){
   const inner = `<span class="th">${media}</span><span class="tx"><h4>${esc(st.title)}</h4><span class="via">via ${esc(st.byline||'ESPN')} · ${esc(st.ago)}</span></span>`;
   return st.link ? `<a class="tcard" href="${esc(st.link)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="tcard">${inner}</div>`;
 }
+const BIRD = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 5.8c-.7.3-1.5.6-2.4.7.9-.5 1.5-1.3 1.8-2.3-.8.5-1.7.8-2.6 1-1.6-1.7-4.4-1.8-6.1-.2-1.1 1-1.5 2.6-1.2 4-3.4-.2-6.5-1.8-8.6-4.4-1.1 1.9-.6 4.4 1.3 5.6-.7 0-1.3-.2-1.9-.5 0 2 1.4 3.7 3.4 4.1-.6.2-1.3.2-1.9.1.6 1.7 2.1 2.9 3.9 2.9-1.7 1.4-3.9 2.1-6.1 2.1H.6c2.2 1.4 4.8 2.2 7.4 2.2 8.9 0 13.8-7.4 13.8-13.8v-.6c1-.7 1.8-1.5 2.4-2.5z"/></svg>';
+function tweetText(tw){
+  let x = String(tw.text||'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+  if(tw.media) x = x.replace(/\s*https:\/\/t\.co\/\w+\s*$/,'');      /* the trailing t.co link is just the attached photo/video */
+  return esc(x).replace(/https?:\/\/[^\s<]+/g, u => `<span class="tw-link">${u}</span>`).replace(/\n/g,'<br>');
+}
+function tTweetCard(tw){
+  const media = tw.media ? `<span class="tw-media${tw.media.type==='VIDEO'?' vid':''}"><img src="${esc(tw.media.img)}" alt="" loading="lazy"></span>` : '';
+  return `<a class="tweet" href="${esc(tw.url)}" target="_blank" rel="noopener">
+    <span class="tw-av"><img src="${esc(tw.avatar)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"></span>
+    <span class="tw-body"><span class="tw-head"><b>${esc(tw.name)}</b><small>@${esc(tw.user)}</small><span class="tw-ago">${BIRD}${esc(ago(tw.published))}</span></span>
+      <span class="tw-text">${tweetText(tw)}</span>${media}</span></a>`;
+}
 function tickerCards(list){
   return `<div class="tp-games">${list.map(g => `<div class="game${tickerSlot(g)}"${gameAttr(g)}>
     <div class="game-status">${statusParts(g).map(s=>`<span>${esc(s)}</span>`).join('')}</div>${teamRow(g.a,g)}${teamRow(g.h,g)}</div>`).join('')}</div>`;
@@ -1532,7 +1561,10 @@ function renderStream(p){
     if(lg.length) html += tickerCards(lg);
   }
   if(list[0]) html += tStoryLead(list[0]);
-  list.slice(1).forEach(s => html += tStoryCard(s));
+  /* after the lead story: stories and tweets together, newest first (like the original Team Stream) */
+  const feed = list.slice(1).map(s => ({k:'s', t:s.published, s})).concat((brTweets[tpKey]||[]).map(tw => ({k:'t', t:tw.published, tw})));
+  feed.sort((x,y) => String(y.t||'').localeCompare(String(x.t||'')));
+  feed.forEach(it => html += it.k==='s' ? tStoryCard(it.s) : tTweetCard(it.tw));
   if(!list.length) html += `<div class="tp-empty">No new stories for ${esc(p.type==='league'?LG[p.lg].name:p.full)} yet.</div>`;
   return html;
 }
@@ -1987,13 +2019,31 @@ function brParse(html){
     out.push({slug:m[1], title:unesc(m[2]) || unesc(m[5]), published:m[3], img:m[4]}); }
   return out.sort((a,b)=> b.published.localeCompare(a.published));
 }
+/* ---- B/R "What's Buzzing" tweets: the same team/league pages embed each tweet's author, avatar, text, time and media ---- */
+const brTweets = {};                      /* pickKey -> [tweet] */
+function brTweetParse(html){
+  const t = html.replace(/\\"/g,'"').replace(/\\\\/g,'\\');
+  const re = /"url":"(https:\/\/(?:twitter|x)\.com\/[^"\/]+\/status\/(\d+))","id":"\2","author":\{"__typename":"TwitterUser","name":"((?:[^"\\]|\\.)*)","profileImageUrl":"([^"]*)","verified":\w+,"username":"([^"]+)"\},"data":\{"__typename":"TweetData","createdAt":"([^"]+)","text":"((?:[^"\\]|\\.)*)"/g;
+  const out = [], seen = new Set(); let m;
+  while((m = re.exec(t))){
+    if(seen.has(m[2])) continue; seen.add(m[2]);
+    const tail = t.slice(re.lastIndex, re.lastIndex + 3000);
+    const end = tail.indexOf('"analyticsContentId"'), seg = end > 0 ? tail.slice(0, end) : tail;
+    const md = seg.match(/"__typename":"TweetMedia","previewImageUrl":(null|"[^"]*"),"type":"(\w+)","url":"([^"]*)"/);
+    const media = md ? {type: md[2], img: md[2]==='PHOTO' ? md[3] : (md[1]!=='null' ? md[1].slice(1,-1) : '')} : null;
+    out.push({id:m[2], url:m[1], name:unesc(m[3]), avatar:m[4].replace('_normal.','_bigger.'), user:m[5], published:m[6], text:unesc(m[7]), media: media && media.img ? media : null});
+  }
+  return out.sort((a,b)=> b.published.localeCompare(a.published));
+}
 async function brStories(p, key, src, chip, chipColor, chipLogo){
   const slugs = brSlugOk[key] ? [brSlugOk[key]] : brSlugs(p);
   for(const slug of slugs){
     try{
       const r = await fetchWithTimeout(BR+slug, 15000); if(!r.ok) continue;
-      const list = brParse(await r.text()); if(!list.length) continue;
+      const html = await r.text();
+      const list = brParse(html); if(!list.length) continue;
       brSlugOk[key] = slug;
+      brTweets[key] = brTweetParse(html);
       return list.slice(0, 8).map(a => ({key, src, chip, chipColor, chipLogo, title:a.title, published:a.published, ago:ago(a.published),
         byline:'Bleacher Report', img: a.img ? a.img.split('?')[0]+'?w=800' : '', thumb: a.img ? a.img.split('?')[0]+'?w=360' : '', link: BR + a.slug.replace(/^\//,'')}));
     }catch(e){}
