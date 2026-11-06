@@ -1721,6 +1721,19 @@ const evComp = e => e.competitions?.[0] || {};
 const evState = e => evComp(e).status?.type?.state || e.status?.type?.state || 'pre';
 const scoreOf = c => c?.score == null ? '' : typeof c.score === 'object' ? (c.score.displayValue ?? c.score.value ?? '') : c.score;
 const recDisp = c => { const r = (c?.record || c?.records || [])[0]; return r ? (r.displayValue || r.summary || '') : ''; };
+// Current record for a team in an upcoming game. ESPN's schedule leaves records empty (or 0-0) on future games,
+// so use: this page's own record, then FBS/FCS standings, then any scoreboard the app has loaded.
+function curRecord(c){
+  const id = String(c?.team?.id || '');
+  if (id && id === T.id && T.ownRec) return T.ownRec;
+  if (id && BOWL.rec?.[id]) return BOWL.rec[id];
+  for (const e of Object.values(S.ev || {})) {
+    const x = (e.competitions?.[0]?.competitors || []).find(k => String(k.team?.id) === id);
+    const r = x && ((x.records || []).find(r => /^(total|overall)$/i.test(r.type || r.name || '')) || (x.records || [])[0]);
+    if (r?.summary) return r.summary;
+  }
+  return recDisp(c) || '0-0';
+}
 const logoOf = t => t?.logo || t?.logos?.[0]?.href || '';
 const mDay = d => d.toLocaleDateString('en-US', {month: 'short', day: 'numeric'}).toUpperCase();
 function sides2(e){
@@ -1802,7 +1815,9 @@ async function loadTeam(silent){
     content.innerHTML = `<div class="msg"><b>Unable to load team</b>Check your connection and try again.<br><button class="cta" id="tRetry">Retry</button></div>`;
     return;
   }
+  recordLine();
   renderTeam(silent);
+  if (!BOWL.rec) recordMap().then(() => { if (T.id === id && S.view === 'team' && T.tab === 'club') renderTeam(true); });
   if (evs.some(e => evState(e) === 'in')) T.timer = setTimeout(() => { if (S.view === 'team' && !document.hidden) loadTeam(true); }, 30000);
 }
 function teamHeader(){
@@ -1824,7 +1839,7 @@ function recordLine(){
   const t = T.team || {}, evs = T.events || [];
   // overall record: ESPN's own summary first, then count this season's finals
   const items = t.record?.items || [];
-  let tot = items.find(x => x.type === 'total')?.summary || t.recordSummary || '';
+  let tot = items.find(x => x.type === 'total')?.summary || t.recordSummary || (BOWL.rec && BOWL.rec[T.id]) || '';
   let w = 0, l = 0, cw = 0, cl = 0, flagged = false;
   evs.filter(e => evState(e) === 'post').forEach(e => {
     const r = result(e).wl, cc = evComp(e).conferenceCompetition;
@@ -1833,7 +1848,7 @@ function recordLine(){
   });
   if (!tot) tot = `${w}-${l}`;
   // conference record: vsconf summary, else counted from conference games
-  let conf = items.find(x => /vsconf|conf/i.test(x.type || ''))?.summary || t.confRec || (flagged || !evs.some(e => evState(e) === 'post') ? `${cw}-${cl}` : '');
+  let conf = items.find(x => /vsconf|conf/i.test(x.type || ''))?.summary || t.confRec || (BOWL.conf && BOWL.conf[T.id]) || (flagged || !evs.some(e => evState(e) === 'post') ? `${cw}-${cl}` : '');
   const cn = CONF_SHORT[t.confId] || ((t.standingSummary || '').match(/\bin (.+?)(?:\s+-\s+|$)/) || [])[1] || '';
   const indep = /^Ind/i.test(cn) || String(t.confId) === '18' || /independent/i.test(t.standingSummary || '');
   const confTxt = indep ? ' Independent' : (cn && conf ? `, ${conf} ${cn}` : '');
@@ -1843,6 +1858,7 @@ function recordLine(){
   if (cur) rk = rankOf(sides2(cur).us);
   if (!rk) rk = t.curRank || (t.rank >= 1 && t.rank <= 25 ? t.rank : null);
   T.recText = `${tot}${confTxt}`;
+  T.ownRec = tot;
   return `<div class="trank"><span>${esc(tot)}${esc(confTxt)}</span></div>`;
 }
 function featuredHTML(){
@@ -1856,7 +1872,7 @@ function featuredHTML(){
   const side = c => {
     const fin = st === 'post', lose = fin && (c.winner === false);
     const r = rankOf(c);
-    const sub = st === 'pre' ? `<span>(${esc(recDisp(c) || '0-0')})</span>` : `<span class="s${lose ? ' lose' : ''}">${esc(scoreOf(c))}</span>`;
+    const sub = st === 'pre' ? `<span>(${esc(curRecord(c))})</span>` : `<span class="s${lose ? ' lose' : ''}">${esc(scoreOf(c))}</span>`;
     return `<div class="tt"><b>${r ? `<em>${r}</em>` : ''}${esc(c.team?.abbreviation || '')}</b>${sub}</div>`;
   };
   const img = c => logoOf(c.team) ? `<img src="${esc(logoOf(c.team))}" alt="">` : '<i class="ph"></i>';
@@ -1874,7 +1890,7 @@ function featuredHTML(){
     let lines;
     if (evState(ev) === 'post') { const r = result(ev); lines = `<b>${esc(mDay(new Date(ev.date)))}</b>${vsAt(ev)} ${oppLabel(them)}<br><i class="${r.wl}">${r.wl}</i> ${esc(r.line)}`; }
     else if (evState(ev) === 'in') { lines = `<b class="live" style="color:var(--live)">${esc(liveStatus(evComp(ev).status))}</b>${vsAt(ev)} ${oppLabel(them)}<br>${esc(scoreOf(sides2(ev).us))} - ${esc(scoreOf(them))}`; }
-    else lines = `<b>${esc(timeLine(ev))}</b>${vsAt(ev)} ${oppLabel(them)}<br>(${esc(recDisp(them) || '0-0')})`;
+    else lines = `<b>${esc(timeLine(ev))}</b>${vsAt(ev)} ${oppLabel(them)}<br>(${esc(curRecord(them))})`;
     const tx = `<div class="tx">${lines}</div>`;
     return `<div class="${kind}" data-gid="${esc(ev.id)}">${kind === 'mp' ? tx + logo : logo + tx}</div>`;
   };
@@ -2531,7 +2547,8 @@ async function recordMap(){
   await Promise.all(['80', '81'].map(async g => {
     try {
       const d = await getJSON(`https://site.api.espn.com/apis/v2/sports/football/college-football/standings?group=${g}&season=${yr}`);
-      const walk = n => { (n?.standings?.entries || []).forEach(e => { addToCatalog(cat, e.team); const r = entryRecord(e); if (e.team?.id && r) map[String(e.team.id)] = r; }); (n?.children || []).forEach(walk); };
+      const walk = n => { (n?.standings?.entries || []).forEach(e => { addToCatalog(cat, e.team); const r = entryRecord(e); if (e.team?.id && r) map[String(e.team.id)] = r;
+        const vc = (e.stats || []).find(z => /^vsconf$/i.test(z.type || z.name || '')); if (e.team?.id && vc?.summary) (BOWL.conf = BOWL.conf || {})[String(e.team.id)] = vc.summary; }); (n?.children || []).forEach(walk); };
       walk(d);
     } catch (e) {}
   }));
