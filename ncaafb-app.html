@@ -1843,7 +1843,7 @@ function recordLine(){
   if (cur) rk = rankOf(sides2(cur).us);
   if (!rk) rk = t.curRank || (t.rank >= 1 && t.rank <= 25 ? t.rank : null);
   T.recText = `${tot}${confTxt}`;
-  return `<div class="trank">${rk ? `<b>#${rk}</b>` : ''}<span>${esc(tot)}${esc(confTxt)}</span></div>`;
+  return `<div class="trank"><span>${esc(tot)}${esc(confTxt)}</span></div>`;
 }
 function featuredHTML(){
   const evs = T.events || [];
@@ -2351,28 +2351,34 @@ function parseProjections(html){
   let cur = null, section = '', started = false;
   const push = it => { out.items.push(it); return it; };
   lines.forEach(l => {
-    const pick = l.label ? l.text.slice(l.label.length + 1).trim() : (l.text.match(/^([A-Z][a-z'-]+):\s+(.+)$/) || [])[2];
-    const who = l.label || (l.text.match(/^([A-Z][a-z'-]+):\s+/) || [])[1];
-    if (who && pick && /\b(vs\.?|at)\b/i.test(pick)) {
-      if (!out.analysts.includes(who)) out.analysts.push(who);
-      if (!cur || cur.done) cur = push({type: 'game', title: '', meta: [], picks: {}, section});
-      cur.picks[who] = pick;
-      started = true;
+    const lm = l.text.match(/^([A-Z][\w'.-]+(?:\s*(?:,|&|and)\s*[A-Z][\w'.-]+)*):\s*(.+)$/);
+    let who = lm ? lm[1] : '', pick = lm ? lm[2].trim() : '';
+    const MATCH = /^(?:No\.\s*\d+\s+)?[A-Z0-9][^:]{1,60}?\s+(?:vs\.?|at)\s+(?:No\.\s*\d+\s+)?[A-Z0-9][^:]{1,60}$/;
+    if (!lm && MATCH.test(l.text) && !TIME_RE.test(l.text) && !/\(/.test(l.text)) { who = '*'; pick = l.text; }   // unlabeled matchup = everyone's pick
+    if (who && pick && /\s(vs\.?|at)\s/i.test(pick)) {
+      pick = pick.replace(/[.;]\s*$/, '');
+      const names = who === '*' || /^both$/i.test(who) ? ['*'] : who.split(/\s*(?:,|&|and)\s*/).filter(Boolean);
+      names.forEach(n => { if (n !== '*' && !out.analysts.includes(n)) out.analysts.push(n); });
+      // a second pick for the same analyst means the next game has started (first-round games run back to back)
+      if (!cur || names.some(n => cur.picks[n] || cur.picks['*'] || (n === '*' && Object.keys(cur.picks).length))) {
+        cur = push({type: 'game', title: '', meta: [], picks: {}, section});
+      }
+      names.forEach(n => { cur.picks[n] = pick; });
       return;
     }
-    if ((l.bold || l.head) && DATE.test(l.text) && l.text.length < 40) { push({type: 'date', text: l.text}); cur = null; return; }
+    if (DATE.test(l.text) && l.text.length < 40 && !TIME_RE.test(l.text)) { push({type: 'date', text: l.text}); cur = null; return; }
     if ((l.bold || l.head) && !l.ital) {
       if (!/\bgame\s*\d/i.test(l.text) && (/playoff|^cfp|first round|quarterfinal|semifinal|championship|bowl season|bowl schedule|bowl games/i.test(l.text) && (l.head || !/bowl$/i.test(l.text) && l.text.length < 60 && !/ bowl\b/i.test(l.text.replace(/bowl (season|schedule|games)/i, ''))))) {
         section = /playoff|^cfp|first round|quarterfinal|semifinal|championship/i.test(l.text) ? 'College Football Playoff' : 'Bowl Games';
         if (out.items.filter(x => x.type === 'section').pop()?.text !== section) push({type: 'section', text: section});
-        if (/^(cfp )?(first round|quarterfinals?|semifinals?|national championship)/i.test(l.text)) { push({type: 'round', text: l.text.replace(/\s*\(.*$/, '')}); cur = null; return; }
+        if (/^(cfp )?(first round|quarterfinals?|semifinals?|national championship)/i.test(l.text)) { push({type: 'round', text: l.text.replace(/\s*\(.*$/, '').replace(/\s*[:,-]\s*[A-Z][a-z]{2}.*$/, '')}); cur = null; return; }
         if (out.items.filter(x => x.type === 'section').pop()?.text !== section) push({type: 'section', text: section});
         cur = null; return;
       }
       cur = push({type: 'game', title: l.text, meta: [], picks: {}, section});
       return;
     }
-    const looksMeta = /\([^)]*[A-Za-z][^)]*\)|\b(\d{1,2}(:\d{2})?\s*[ap]\.?m\.?|noon|midnight|tba|tbd)\b/i.test(l.text) && l.text.length < 120;
+    const looksMeta = (/\([^)]*[A-Za-z][^)]*\)|\b(\d{1,2}(:\d{2})?\s*[ap]\.?m\.?|noon|midnight|tba|tbd)\b/i.test(l.text) || /^[A-Z][a-z]{2,8}\.?\s+\d{1,2}\b/.test(l.text)) && l.text.length < 120;
     if (l.ital || (looksMeta && cur && !Object.keys(cur.picks).length)) {
       if (!cur || Object.keys(cur.picks).length) cur = push({type: 'game', title: '', meta: [], picks: {}, section});
       cur.meta.push(l.text);
@@ -2460,15 +2466,16 @@ function projectionsHTML(art, P){
     if (it.type === 'date') { curDate = it.text; return; }
     if (pending) { close(); html += `<div class="bwsec">${esc(pending)}</div>`; pending = ''; }
     if (!open) { html += '<div class="bwlist">'; open = true; }
-    const pk = it.picks[who] || Object.values(it.picks)[0] || '';
+    const pk = it.picks[who] || it.picks['*'] || Object.values(it.picks)[0] || '';
     const parts = String(pk).match(/^(.+?)\s+(?:vs\.?|at)\s+(.+)$/i);
     const matchup = parts ? `${teamWithRecord(parts[1])} vs. ${teamWithRecord(parts[2])}` : pk;
-    const title = it.title || (round ? `CFP ${round}` : 'College Football Playoff');
+    const title = it.title || (round ? `CFP ${round.replace(/\b[a-z]/g, c => c.toUpperCase())}` : 'College Football Playoff');
     const ev = postEventFor(title, it.meta);
     const a = ev?.competitions?.[0]?.venue?.address || {};
     const evPlace = [a.city, STATES[a.state] || a.state].filter(Boolean).join(', ');
     const place = metaPlace(it.meta) || evPlace || (/first round/i.test(round) ? 'Campus site' : '');
-    let when = projDateTime(curDate, metaTime(it.meta));
+    const ownDate = it.meta.map(x => (String(x).match(/\b([A-Z][a-z]{2,8})\.?\s+(\d{1,2})\b/) || [])[0]).find(x => x && MONTHS[x.slice(0, 3).toLowerCase()] != null);
+    let when = projDateTime(ownDate || curDate, metaTime(it.meta));
     if (ev && /TBA/.test(when)) {               // fill whatever the article left open from ESPN's bowl schedule
       const d = new Date(ev.date), [dd, tt] = when.split(' | ');
       const evD = d.toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'});
