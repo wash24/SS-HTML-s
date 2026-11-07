@@ -504,6 +504,20 @@
         <select id="sort-filter">
           <option value="top25">Top 25</option>
           <option value="all">All FBS</option>
+          <option disabled>--------------------</option>
+          <option disabled>Conferences</option>
+          <option disabled>--------------------</option>
+          <option value="conf:1">ACC</option>
+          <option value="conf:151">American (AAC)</option>
+          <option value="conf:4">Big 12</option>
+          <option value="conf:5">Big Ten</option>
+          <option value="conf:12">Conference USA</option>
+          <option value="conf:18">FBS Independents</option>
+          <option value="conf:15">Mid-American (MAC)</option>
+          <option value="conf:17">Mountain West</option>
+          <option value="conf:9">Pac-12</option>
+          <option value="conf:8">SEC</option>
+          <option value="conf:37">Sun Belt</option>
         </select>
         <span class="espn-games-link">Games on ESPN Network</span>
       </div>
@@ -590,7 +604,17 @@
 
   let lastKnownWeek = null;
 
+  // Conference sort: ESPN's own conference grouping (groups=<id>) returns every game a
+  // conference team plays that week, including non-conference opponents.
+  function confGroup() {
+    const v = sortFilter.value || '';
+    return v.startsWith('conf:') ? v.slice(5) : null;
+  }
   function buildApiUrl() {
+    const g = confGroup();
+    return g ? buildBaseUrl().replace('groups=80', 'groups=' + g) : buildBaseUrl();
+  }
+  function buildBaseUrl() {
     if (selectedWeek == null) return API_URL;
     const yr = selectedYear || nowYear;
     if (selectedWeek === 'bowls') {
@@ -615,7 +639,12 @@
     if (autoUpdateOn) loadScores();
   });
 
-  sortFilter.addEventListener('change', () => render(lastEvents));
+  // Top 25 / All FBS just re-filter what's loaded; a conference needs that conference's games
+  let loadedGroup = null;
+  sortFilter.addEventListener('change', () => {
+    if (confGroup() !== loadedGroup) { mainEl.innerHTML = '<div class="empty">Loading&hellip;</div>'; loadScores(true); }
+    else render(lastEvents);
+  });
 
   // Decorative fallback only, used if the API response doesn't include week metadata
   function approxWeek(d) {
@@ -897,7 +926,9 @@
       });
     }
     if (!filtered.length) {
-      mainEl.innerHTML = '<div class="empty">No ranked matchups this period &mdash; try "All FBS".</div>';
+      mainEl.innerHTML = sortFilter.value === 'top25'
+        ? '<div class="empty">No ranked matchups this period &mdash; try "All FBS".</div>'
+        : '<div class="empty">No games for this conference this period.</div>';
       return;
     }
     // Every game's date is computed the same way, from the same source: the raw
@@ -927,12 +958,15 @@
     }).join('');
   }
 
-  async function loadScores() {
-    if (!autoUpdateOn) return;
+  async function loadScores(force) {
+    if (!autoUpdateOn && !force) return;
     try {
+      const group = confGroup();
       const res = await fetch(buildApiUrl(), { cache: 'no-store' });
       if (!res.ok) throw new Error('Bad response: ' + res.status);
       const data = await res.json();
+      if (group !== confGroup()) return;            // the sort changed while this was loading
+      loadedGroup = group;
       lastEvents = data.events || [];
 
       // The Bowls date-range query doesn't reliably respect groups=80 (FBS-only) -
