@@ -782,7 +782,7 @@ function renderStandings(sp){
     }
   }
   if (!groups.length) { el.innerHTML = `<div class="empty">No ${esc(sp.name)} standings yet.</div>`; return; }
-  el.innerHTML = (state.sample[sp.key] ? NOTICE : '') + `<div class="gm-stw st-page">${groups.map(gr => stTable(gr.name, gr.entries, sp.college, null, true)).join('')}</div>`;
+  el.innerHTML = (state.sample[sp.key] ? NOTICE : '') + `<div class="gm-stw st-page">${groups.map(gr => stTable(gr.name, gr.entries, sp.college, null, true, sp.key === 'nfl')).join('')}</div>`;
 }
 
 document.addEventListener('click', e => {
@@ -994,13 +994,13 @@ function stCalc(entries, college){
 }
 // Shorter group names: "American League West" -> "AL West", "Big Ten Conference" -> "Big Ten Conf."
 const stShort = (t, college) => { t = String(t || '').replace(/\bAmerican League\b/g, 'AL').replace(/\bNational League\b/g, 'NL'); return college ? t.replace(/\bConference\b/g, 'Conf.') : t; };
-function stTable(title, entries, college, isMe, sort){
+function stTable(title, entries, college, isMe, sort, ties){
   title = stShort(title, college);
   const pro = !college;
   let rows = stCalc(entries, college);
   if (sort) rows = rows.sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1) || (b.w ?? 0) - (a.w ?? 0));
-  const body = rows.map(r => `<tr class="${isMe && isMe(r.e) ? 'me' : ''}"><td class="tm">${esc(stEntryName(r.e, college))}</td><td>${r.w ?? ''}</td><td>${r.l ?? ''}</td><td>${r.pct == null ? '' : r.pct.toFixed(3).replace(/^0/, '')}</td>${pro ? `<td>${esc(r.gb)}</td>` : ''}</tr>`).join('');
-  return `<div class="gm-st"><table><colgroup><col><col style="width:30px"><col style="width:30px"><col style="width:48px">${pro ? '<col style="width:42px">' : ''}</colgroup><thead><tr><th class="tm">${esc(title)}</th><th>W</th><th>L</th><th>PCT</th>${pro ? '<th>GB</th>' : ''}</tr></thead><tbody>${body}</tbody></table></div>`;
+  const body = rows.map(r => `<tr class="${isMe && isMe(r.e) ? 'me' : ''}"><td class="tm">${esc(stEntryName(r.e, college))}</td><td>${r.w ?? ''}</td><td>${r.l ?? ''}</td>${ties ? `<td>${r.w == null ? '' : r.t || 0}</td>` : ''}<td>${r.pct == null ? '' : r.pct.toFixed(3).replace(/^0/, '')}</td>${pro ? `<td>${esc(r.gb)}</td>` : ''}</tr>`).join('');
+  return `<div class="gm-st"><table><colgroup><col><col style="width:30px"><col style="width:30px">${ties ? '<col style="width:26px">' : ''}<col style="width:48px">${pro ? '<col style="width:42px">' : ''}</colgroup><thead><tr><th class="tm">${esc(title)}</th><th>W</th><th>L</th>${ties ? '<th>T</th>' : ''}<th>PCT</th>${pro ? '<th>GB</th>' : ''}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 const stTitle = gr => String(gr.header || gr.name || '').replace(/^\d{4}(-\d{2})?\s+/, '').replace(/\s+Standings$/i, '');
 
@@ -1015,7 +1015,7 @@ function standingsHTML(g, sum){
   const order = [];
   [ids[1], ids[0]].forEach(id => { const gr = groupOf(id); if (gr && !order.includes(gr)) order.push(gr); });
   if (!order.length) return '';
-  return `<div class="gm-strip">Standings</div><div class="gm-stw">${order.map(gr => stTable(stTitle(gr), (gr.standings && gr.standings.entries) || [], college, isMe)).join('')}</div>`;
+  return `<div class="gm-strip">Standings</div><div class="gm-stw">${order.map(gr => stTable(stTitle(gr), (gr.standings && gr.standings.entries) || [], college, isMe, false, g.sport.key === 'nfl')).join('')}</div>`;
 }
 
 function gameHTML(g){
