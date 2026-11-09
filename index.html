@@ -258,6 +258,7 @@ body{overscroll-behavior:none}
 .gm-st th,.gm-st td{overflow:hidden}
 .scroll,.gm-in{overflow-x:hidden}
 .gm-st tbody tr:first-child td{padding-top:5px}
+.gm-st th.n,.gm-st td.n{text-align:center;padding-left:0;padding-right:0}
 .gm-st tr.me td{color:#fff;font-weight:800}
 .gm-wait{padding:14px 12px;color:var(--t-sub);font-size:13px}
 .gm-foot{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;color:#fff;text-decoration:none;
@@ -999,8 +1000,8 @@ function stTable(title, entries, college, isMe, sort, ties){
   const pro = !college;
   let rows = stCalc(entries, college);
   if (sort) rows = rows.sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1) || (b.w ?? 0) - (a.w ?? 0));
-  const body = rows.map(r => `<tr class="${isMe && isMe(r.e) ? 'me' : ''}"><td class="tm">${esc(stEntryName(r.e, college))}</td><td>${r.w ?? ''}</td><td>${r.l ?? ''}</td>${ties ? `<td>${r.w == null ? '' : r.t || 0}</td>` : ''}<td>${r.pct == null ? '' : r.pct.toFixed(3).replace(/^0/, '')}</td>${pro ? `<td>${esc(r.gb)}</td>` : ''}</tr>`).join('');
-  return `<div class="gm-st"><table><colgroup><col><col style="width:30px"><col style="width:30px">${ties ? '<col style="width:26px">' : ''}<col style="width:48px">${pro ? '<col style="width:42px">' : ''}</colgroup><thead><tr><th class="tm">${esc(title)}</th><th>W</th><th>L</th>${ties ? '<th>T</th>' : ''}<th>PCT</th>${pro ? '<th>GB</th>' : ''}</tr></thead><tbody>${body}</tbody></table></div>`;
+  const body = rows.map(r => `<tr class="${isMe && isMe(r.e) ? 'me' : ''}"><td class="tm">${esc(stEntryName(r.e, college))}</td><td class="n">${r.w ?? ''}</td><td class="n">${r.l ?? ''}</td>${ties ? `<td class="n">${r.w == null ? '' : r.t || 0}</td>` : ''}<td>${r.pct == null ? '' : r.pct.toFixed(3).replace(/^0/, '')}</td>${pro ? `<td>${esc(r.gb)}</td>` : ''}</tr>`).join('');
+  return `<div class="gm-st"><table><colgroup><col><col style="width:32px"><col style="width:32px">${ties ? '<col style="width:32px">' : ''}<col style="width:48px">${pro ? '<col style="width:42px">' : ''}</colgroup><thead><tr><th class="tm">${esc(title)}</th><th class="n">W</th><th class="n">L</th>${ties ? '<th class="n">T</th>' : ''}<th>PCT</th>${pro ? '<th>GB</th>' : ''}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 const stTitle = gr => String(gr.header || gr.name || '').replace(/^\d{4}(-\d{2})?\s+/, '').replace(/\s+Standings$/i, '');
 
