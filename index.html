@@ -198,7 +198,7 @@ body{overscroll-behavior:none}
 .gm-num b{display:block;font-size:clamp(28px,9vw,40px);font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-1px}
 .gm-num b.pre{font-size:26px;letter-spacing:0;padding:6px 0 2px}
 .gm-num span{display:block;font-size:15px;font-weight:800}
-.gm-num span .rk{font-style:normal;font-size:12px;font-weight:700;color:var(--t-sub);vertical-align:1px}
+.gm-num span .rk{font-style:normal;font-size:13px;font-weight:800;color:var(--t-sub);vertical-align:1.5px}
 .gm-num small{display:block;font-size:13px;font-weight:600;color:var(--t-sub)}
 .gm-num.lost b{color:var(--t-sub)}
 .gm-mid{position:relative;text-align:center;font-size:13px;min-width:44px;font-weight:800;text-transform:uppercase;max-width:96px}
@@ -1023,7 +1023,7 @@ function gameHTML(g){
   const [a, h] = g.teams;
   const side = (t, cls) => {
     const lost = g.state === 'post' && !t.winner && g.teams.some(x => x.winner);
-    const big = g.state === 'pre' ? `<span class="pre">${t.rank ? `<i>${t.rank}</i> ` : ''}${esc(t.abbr)}</span>` : `<b>${esc(t.score)}</b><span>${t.rank ? `<i class="rk">#${t.rank}</i> ` : ''}${esc(t.abbr)}</span>`;
+    const big = g.state === 'pre' ? `<span class="pre">${t.rank ? `<i>${t.rank}</i> ` : ''}${esc(t.abbr)}</span>` : `<b>${esc(t.score)}</b><span>${t.rank ? `<i class="rk">${t.rank}</i> ` : ''}${esc(t.abbr)}</span>`;
     return `<div class="gm-side ${cls}">${logoImg(t)}<div class="gm-num${lost ? ' lost' : ''}">${big}${t.record ? `<small>(${esc(t.record)})</small>` : ''}</div></div>`;
   };
   let mid;
