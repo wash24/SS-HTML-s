@@ -2857,14 +2857,14 @@ content.addEventListener('click', e => {
    group (80 = FBS, or a conference id) and sorted by the chosen stat. Fallback: ESPN's season-leaders
    feed for the same group. */
 const LEADER_STATS = [
-  {group: 'Passing',   key: 'passingYards',        label: 'Passing Yards',        col: 'YDS',  cat: 'passing',   q: 'offense:passing'},
-  {group: 'Passing',   key: 'passingTouchdowns',   label: 'Passing Touchdowns',   col: 'TD',   cat: 'passing',   q: 'offense:passing'},
-  {group: 'Passing',   key: 'QBRating',            label: 'Passer Rating',        col: 'RTG',  cat: 'passing',   q: 'offense:passing', core: 'quarterbackRating'},
-  {group: 'Rushing',   key: 'rushingYards',        label: 'Rushing Yards',        col: 'YDS',  cat: 'rushing',   q: 'offense:rushing'},
-  {group: 'Rushing',   key: 'rushingTouchdowns',   label: 'Rushing Touchdowns',   col: 'TD',   cat: 'rushing',   q: 'offense:rushing'},
-  {group: 'Receiving', key: 'receivingYards',      label: 'Receiving Yards',      col: 'YDS',  cat: 'receiving', q: 'offense:receiving'},
+  {group: 'Passing',   key: 'passingYards',        label: 'Passing YDS',        col: 'YDS',  cat: 'passing',   q: 'offense:passing'},
+  {group: 'Passing',   key: 'passingTouchdowns',   label: 'Passing TD',   col: 'TD',   cat: 'passing',   q: 'offense:passing'},
+  {group: 'Passing',   key: 'QBRating',            label: 'QB Rating',        col: 'RTG',  cat: 'passing',   q: 'offense:passing', core: 'quarterbackRating'},
+  {group: 'Rushing',   key: 'rushingYards',        label: 'Rushing YDS',        col: 'YDS',  cat: 'rushing',   q: 'offense:rushing'},
+  {group: 'Rushing',   key: 'rushingTouchdowns',   label: 'Rushing TD',   col: 'TD',   cat: 'rushing',   q: 'offense:rushing'},
+  {group: 'Receiving', key: 'receivingYards',      label: 'Receiving YDS',      col: 'YDS',  cat: 'receiving', q: 'offense:receiving'},
   {group: 'Receiving', key: 'receptions',          label: 'Receptions',           col: 'REC',  cat: 'receiving', q: 'offense:receiving'},
-  {group: 'Receiving', key: 'receivingTouchdowns', label: 'Receiving Touchdowns', col: 'TD',   cat: 'receiving', q: 'offense:receiving'},
+  {group: 'Receiving', key: 'receivingTouchdowns', label: 'Receiving TD', col: 'TD',   cat: 'receiving', q: 'offense:receiving'},
   {group: 'Defense',   key: 'totalTackles',        label: 'Total Tackles',        col: 'TOT',  cat: 'defensive', q: 'defense:defensive'},
   {group: 'Defense',   key: 'sacks',               label: 'Sacks',                col: 'SACK', cat: 'defensive', q: 'defense:defensive'},
   {group: 'Defense',   key: 'interceptions',       label: 'Interceptions',        col: 'INT',  cat: 'defensiveInterceptions', q: 'defense:interceptions'},
