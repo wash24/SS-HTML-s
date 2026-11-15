@@ -737,18 +737,28 @@ function newsList(list, withTag){
     return `<a class="news" href="${esc(href)}" target="_blank" rel="noopener">${img ? `<img src="${esc(img)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<div><b>${esc(a.headline)}</b>${a.description ? `<span>${esc(a.description)}</span>` : ''}${meta ? `<small>${esc(meta)}</small>` : ''}</div></a>`;
   }).join('');
 }
+// Top Stories on The Lead: each league feed lists its stories in editorial order (biggest first), so take only
+// the top of each feed, skip routine pieces (game recaps, previews, video clips, fantasy and betting), drop anything
+// older than two days, and give in-season sports more room than sports in their offseason.
+const ROUTINE = /\b(fantasy|betting|odds|best bets|picks? (for|against)|props?|parlay|how to watch|live stream|injury report|start ?\/ ?sit|waiver)\b/i;
+const leadWorthy = a => newsOk(a) && !/^(recap|preview|media|video|livegameblog)$/i.test(a.type || '') && !ROUTINE.test(a.headline);
+const inSeason = sp => (state.data[sp.key] || []).some(g => Math.abs(Date.now() - g.date) < 3 * 864e5);
 async function loadLeadNews(){
   const el = document.getElementById('n-top');
   if (!state.leadNews) el.innerHTML = '<div class="skel"></div><div class="skel"></div>';
   const res = await Promise.all(SPORTS.map(async sp => {
-    try { const j = await getJSON(API + sp.path + '/news?limit=10'); return (j.articles || []).filter(newsOk).map(a => ({ ...a, _tag: sp.tag })); }
-    catch (e) { return null; }
+    try {
+      const j = await getJSON(API + sp.path + '/news?limit=15');
+      const fresh = (j.articles || []).filter(leadWorthy).filter(a => !a.published || Date.now() - new Date(a.published) < 48 * 36e5);
+      return fresh.slice(0, inSeason(sp) ? 4 : 2).map((a, i) => ({ ...a, _tag: sp.tag, _rank: i }));
+    } catch (e) { return null; }
   }));
   const ok = res.filter(Boolean);
   if (ok.length) {
     const seen = new Set();
+    // each league's lead story first (newest first), then each league's second story, and so on
     state.leadNews = ok.flat().filter(a => { const k = a.headline.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
-      .sort((a, b) => new Date(b.published || 0) - new Date(a.published || 0)).slice(0, 40);
+      .sort((a, b) => a._rank - b._rank || new Date(b.published || 0) - new Date(a.published || 0)).slice(0, 16);
   } else if (!state.leadNews && SPORTS.some(sp => state.sample[sp.key])) {
     state.leadNews = SPORTS.flatMap(sp => SAMPLE_ARTICLES(sp).slice(0, 2).map(a => ({ ...a, _tag: sp.tag }))).sort((a, b) => new Date(b.published) - new Date(a.published));
   }
