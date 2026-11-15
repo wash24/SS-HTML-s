@@ -490,6 +490,9 @@ body.teamsv #content{background:#3a3a3a}
 .cfr .mv.dn i{border-top:9px solid #d0021b}
 .cfr .mv small{margin-top:9px;font-size:8.5px;color:#777;white-space:nowrap}
 .cfr.me{box-shadow:inset 4px 0 0 var(--tc)}
+.cfh .cvh{right:12px}
+.cfr .cvt{flex:none;min-width:56px;margin:0 12px 0 6px;text-align:right;font-size:16.5px;line-height:21px;color:#444}
+.cfp + .sfoot{margin:0 8px;padding:10px 4px}
 
 /* Statistics page */
 body.pagev .scard{margin-left:8px;margin-right:8px}
@@ -2214,7 +2217,10 @@ function rankingsHTML(list, hid){
   const wl = S.rkWeek ? ((S.weeks.find(w => w.key === S.rkWeek) || {}).label || 'Week') : (P?.occurrence?.displayValue || 'Current');
   const pollOpts = polls.length ? polls.map((p, i) => `<option value="${esc(p.name || p.shortName)}"${i === idx ? ' selected' : ''}>${esc(pollLabel(p))}</option>`).join('') : '<option>AP Top 25</option>';
   const pickers = `<div class="pickers"><label class="pk"><span>${esc(wl)}</span><select id="rkWeekSel">${weekOpts}</select></label><label class="pk"><span>${esc(P ? pollLabel(P) : 'AP Top 25')}</span><select id="rkPollSel">${pollOpts}</select></label></div><div style="height:12px"></div>`;
-  if (P && isCFP(P)) return pickers + cfpTableHTML(P, hid);
+  if (P) {
+    const others = !isCFP(P) ? (P.others || []).slice(0, 15).map(o => `${o.team?.location || o.team?.abbreviation || ''} ${Math.round(o.points || 0)}`).join(', ') : '';
+    return pickers + cfpTableHTML(P, hid, !isCFP(P)) + (others ? `<div class="sfoot">Others receiving votes: ${esc(others)}</div>` : '');
+  }
   let rows = '';
   if (!P) rows = '<div class="rkempty">No rankings available.</div>';
   else rows = P.ranks.map(r => {
@@ -2228,7 +2234,7 @@ function rankingsHTML(list, hid){
     (others ? `<div class="sfoot">Others receiving votes: ${esc(others)}</div>` : '');
 }
 // CFP rankings get their own table (2013 app style): RK / TEAM (logo, school, record) / VOTES / movement vs last week
-function cfpTableHTML(P, hid){
+function cfpTableHTML(P, hid, votes){
   const rows = (P.ranks || []).map(r => {
     const t = r.team || {}, me = hid && String(t.id) === String(hid);
     const nm = t.location || t.shortDisplayName || t.nickname || t.abbreviation || '';
@@ -2241,9 +2247,9 @@ function cfpTableHTML(P, hid){
     return `<div class="cfr${me ? ' me' : ''}" data-team="${esc(t.id || '')}"><b class="ck">${esc(cur || r.current)}</b>
       ${lg ? `<img src="${esc(lg)}" alt="" loading="lazy">` : '<span class="cl"></span>'}
       <span class="cn"><b>${esc(nm)}${fpv}</b><small>${esc(r.recordSummary || '')}</small></span>
-      ${mv || '<span class="mv"></span>'}</div>`;
+      ${votes ? `<span class="cvt">${r.points != null ? esc(Math.round(r.points).toLocaleString('en-US')) : ''}</span>` : (mv || '<span class="mv"></span>')}</div>`;
   }).join('');
-  return `<div class="cfp"><div class="cfh"><span class="ck">Rk</span><span class="ct">Team</span></div>${rows || '<div class="rkempty">No rankings available.</div>'}</div>`;
+  return `<div class="cfp"><div class="cfh"><span class="ck">Rk</span><span class="ct">Team</span>${votes ? '<span class="cvh">Votes</span>' : ''}</div>${rows || '<div class="rkempty">No rankings available.</div>'}</div>`;
 }
 function rankingsTab(){
   const key = 'rank:' + S.rkWeek;
