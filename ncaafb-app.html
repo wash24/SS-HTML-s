@@ -463,6 +463,11 @@ body.teamsv #content{background:#3a3a3a}
 .twgap{height:8px}
 .twempty{padding:22px 14px;text-align:center;font-size:14px;color:#777}
 
+/* live card photo: newest highlight frame or stadium shot, over the team-color fallback */
+.tsimg .tsph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.tsimg .play{z-index:3}
+.tsg .tsov{z-index:2}
+
 /* ================= game screen ================= */
 #game{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);
   transition:transform .32s cubic-bezier(.2,.7,.3,1);box-shadow:-4px 0 12px rgba(0,0,0,.45);visibility:hidden}
@@ -2191,12 +2196,34 @@ function rankingsTab(){
 
 /* -- Top Stories: live games first, then ESPN's top college football stories -- */
 let silentTop = false, TOP_ITEMS = [];
-function topStoriesHTML(articles, events){
-  const live = events.filter(e => evState(e) === 'in').map(e => { (S.ev = S.ev || {})[e.id] = e; return e; });
+/* Live-card pictures, from ESPN's game summary: the newest in-game highlight frame, else a stadium photo */
+const LIVE_PIC = {};                                   // game id -> {img, clip, kind}
+const clipTime = v => new Date(v.originalPublishDate || v.lastModified || v.published || 0).getTime();
+function livePicture(sum){
+  const vids = (sum?.videos || []).filter(v => v.thumbnail || v.posterImages?.default?.href);
+  if (vids.length) {
+    const v = vids.slice().sort((a, b) => clipTime(b) - clipTime(a))[0];
+    return {img: v.posterImages?.full?.href || v.posterImages?.default?.href || v.thumbnail, clip: v, kind: 'clip'};
+  }
+  const imgs = sum?.gameInfo?.venue?.images || [];
+  const pick = imgs.find(i => (i.rel || []).includes('day')) || imgs.find(i => (i.rel || []).includes('full')) || imgs[0];
+  return pick?.href ? {img: pick.href, kind: 'venue'} : null;
+}
+async function loadLivePictures(events, fresh){
+  await Promise.all(events.map(async e => {
+    try { const pic = livePicture(await getJSON(`${API}/summary?event=${e.id}`, fresh)); if (pic) LIVE_PIC[e.id] = pic; } catch (err) {}
+  }));
+}
+function liveCards(events){
+  const live = events.filter(e => evState(e) === 'in');
   const weight = e => { const {away, home} = sides(e); const r = [rankOf(away), rankOf(home)].filter(Boolean); return (r.length ? 60 - Math.min(...r) : 0) + r.length * 20; };
-  live.sort((a, b) => weight(b) - weight(a));
+  return live.sort((a, b) => weight(b) - weight(a)).slice(0, 4);
+}
+function topStoriesHTML(articles, events){
+  const live = liveCards(events);
+  live.forEach(e => { (S.ev = S.ev || {})[e.id] = e; });
   let html = '<div class="tsw">';
-  live.slice(0, 4).forEach(e => {
+  live.forEach(e => {
     const comp = e.competitions[0], {away, home} = sides(e), st = comp.status || e.status;
     const ac = teamColor(away.team), hc = teamColor(home.team);
     const lg = c => c.team?.logo || logoOf(c.team);
@@ -2207,6 +2234,7 @@ function topStoriesHTML(articles, events){
     html += `<div class="ts tsg" data-gid="${esc(e.id)}">
       <div class="tsimg" style="background:linear-gradient(115deg, ${ac} 0%, ${shade(ac, -0.35)} 49.8%, ${shade(hc, -0.35)} 50.2%, ${hc} 100%)">
         <img class="tsl a" src="${esc(lg(away))}" alt=""><img class="tsl h" src="${esc(lg(home))}" alt="">
+        ${LIVE_PIC[e.id] ? `<img class="tsph" src="${esc(LIVE_PIC[e.id].img)}" alt="" onerror="this.remove();this.parentNode&&this.parentNode.querySelector('.play')?.remove()">${LIVE_PIC[e.id].kind === 'clip' ? `<i class="play" data-lclip="${esc(e.id)}"></i>` : ''}` : ''}
         <div class="tsov">${esc((away.team?.location || away.team?.abbreviation || '') + ' vs. ' + (home.team?.location || home.team?.abbreviation || ''))}; Live</div>
       </div>
       <div class="tsbar">${side(away)}${sc(away)}<div class="tsm"><small>${esc(netOf(comp))}</small><b>${esc(clock)}</b></div>${sc(home)}${side(home)}</div>
@@ -2226,6 +2254,8 @@ function topStoriesHTML(articles, events){
 }
 content.addEventListener('click', e => {
   if (S.view !== 'top') return;
+  const lc = e.target.closest('[data-lclip]');
+  if (lc) { const pic = LIVE_PIC[lc.dataset.lclip]; if (pic?.clip) playClip(pic.clip); return; }
   const g = e.target.closest('.tsg[data-gid]');
   if (g) { openGame(g.dataset.gid); return; }
   const v = e.target.closest('[data-tsv]');
@@ -2731,6 +2761,8 @@ async function renderPage(){
   } else if (view === 'top') {
     if (!silentTop) content.innerHTML = '<div class="spin" style="margin-top:50px"></div>';
     const [n, sb] = await Promise.allSettled([getJSON(`${API}/news?limit=30`, silentTop), getJSON(`${API}/scoreboard?limit=300&groups=80`, silentTop)]);
+    if (token !== S.token) return;
+    await loadLivePictures(liveCards(sb.value?.events || []), silentTop);
     if (token !== S.token) return;
     const y = content.scrollTop;
     content.innerHTML = topStoriesHTML(n.value?.articles || [], sb.value?.events || []);
