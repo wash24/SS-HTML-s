@@ -495,6 +495,18 @@ body.teamsv #content{background:#3a3a3a}
 body.pagev .scard{margin-left:8px;margin-right:8px}
 body.pagev .pickers + div + .scard{margin-top:0}
 
+/* Statistics leader rows */
+.ldh{display:flex;align-items:center;height:30px;padding:0 14px 0 12px;background:#f4f4f4;border-bottom:1px solid #d6d6d6;font-size:11px;font-weight:700;color:#888;text-transform:uppercase}
+.ldh span:first-child{width:34px}
+.ldh span:nth-child(2){flex:1;padding-left:42px}
+.ldr{display:flex;align-items:center;height:50px;padding:0 14px 0 12px;border-bottom:1px solid #e3e3e3;cursor:pointer}
+.ldr:last-child{border-bottom:0}
+.ldr:active{background:#f6f6f6}
+.ldr .lk{width:34px;flex:none;font-size:17px;font-weight:400;color:#444}
+.ldr img,.ldr .li{width:30px;height:30px;flex:none;object-fit:contain;margin-right:12px}
+.ldr .ln{flex:1;min-width:0;font-size:16px;font-weight:700;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ldr .lv{flex:none;margin-left:10px;font-size:17px;font-weight:700;color:#222}
+
 /* ================= game screen ================= */
 #game{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);
   transition:transform .32s cubic-bezier(.2,.7,.3,1);box-shadow:-4px 0 12px rgba(0,0,0,.45);visibility:hidden}
@@ -2855,13 +2867,16 @@ async function renderStatLeaders(){
   }
   if (token !== S.token || S.view !== 'stats') return;
   if (!rows || !rows.length) { content.innerHTML = pickers + '<div class="gempty"><b>Statistics</b>Stat leaders are not available right now.</div>'; return; }
-  sizeStatGrid();
-  const body = rows.map((r, i) => `<tr data-team="${esc(r.teamId || '')}"><td><span class="tcell"><b class="rkn">${i + 1}</b>${esc(r.name)}</span></td><td>${esc(r.team)}</td><td>${esc(fmtStat(r.value, st.key))}</td></tr>`).join('');
-  content.innerHTML = pickers + statTable(`${yr} ${st.label} · ${gName}`, ['Team', st.col], body, 'Player', true);
+  // taller rows: rank, team logo, player name, and the stat value on the right
+  const body = rows.map((r, i) => {
+    const lg = r.logo || (r.teamId ? `https://a.espncdn.com/i/teamlogos/ncaa/500/${r.teamId}.png` : '');
+    return `<div class="ldr" data-team="${esc(r.teamId || '')}"><b class="lk">${i + 1}</b>${lg ? `<img src="${esc(lg)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span class="li"></span>'}<span class="ln">${esc(r.name)}</span><span class="lv">${esc(fmtStat(r.value, st.key))}</span></div>`;
+  }).join('');
+  content.innerHTML = pickers + `<div class="scard"><div class="sbar">${esc(`${yr} ${st.label} · ${gName}`)}</div><div class="ldh"><span>Rk</span><span>Player</span><span>${esc(st.col)}</span></div>${body}</div>`;
 }
 content.addEventListener('click', e => {
   if (S.view !== 'stats') return;
-  const tr = e.target.closest('tr[data-team]');
+  const tr = e.target.closest('.ldr[data-team]');
   if (tr && tr.dataset.team) openTeam(tr.dataset.team);
 });
 
