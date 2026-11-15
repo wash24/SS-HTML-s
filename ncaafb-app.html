@@ -468,6 +468,29 @@ body.teamsv #content{background:#3a3a3a}
 .tsimg .play{z-index:3}
 .tsg .tsov{z-index:2}
 
+/* CFP rankings table (matches the 2013 app's Rankings screen) */
+.cfp{margin:0 8px}
+.cfh{position:relative;height:34px;background:linear-gradient(#d2d2d2,#c6c6c6);font-size:13px;font-weight:700;color:#7a7a7a;text-transform:uppercase;letter-spacing:.3px;text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.cfh span{position:absolute;top:0;line-height:34px}
+.cfh .ck{left:10px}
+.cfh .ct{left:55px}
+.cfh .cv{left:222px}
+.cfr{position:relative;display:flex;align-items:flex-start;min-height:62px;padding:14px 0 10px;border-bottom:1px solid #d3d3d3;cursor:pointer}
+.cfr:active{background:rgba(0,0,0,.03)}
+.cfr .ck{width:41px;flex:none;padding-left:11px;font-size:20px;font-weight:400;line-height:22px;color:#333}
+.cfr img,.cfr .cl{width:28px;height:28px;flex:none;object-fit:contain;margin:1px 11px 0 0}
+.cfr .cn{flex:1;min-width:0;line-height:1.15}
+.cfr .cn b{display:block;font-size:17px;font-weight:700;color:#2b2b2b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cfr .cn b i{font-style:normal;font-weight:400;color:#555}
+.cfr .cn small{display:block;margin-top:4px;font-size:12.5px;color:#666}
+.cfr .cv{width:42px;flex:none;margin-left:4px;font-size:16.5px;line-height:21px;color:#444}
+.cfr .mv{width:36px;flex:none;display:flex;flex-direction:column;align-items:center;padding-top:5px;margin-right:12px}
+.cfr .mv i{width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent}
+.cfr .mv.up i{border-bottom:9px solid #3fa046}
+.cfr .mv.dn i{border-top:9px solid #d0021b}
+.cfr .mv small{margin-top:9px;font-size:8.5px;color:#777;white-space:nowrap}
+.cfr.me{box-shadow:inset 4px 0 0 var(--tc)}
+
 /* ================= game screen ================= */
 #game{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);
   transition:transform .32s cubic-bezier(.2,.7,.3,1);box-shadow:-4px 0 12px rgba(0,0,0,.45);visibility:hidden}
@@ -2167,11 +2190,13 @@ function rankingsHTML(list, hid){
   let idx = polls.findIndex(p => (p.name || p.shortName) === S.pollName);
   if (idx < 0) idx = Math.max(0, polls.findIndex(p => /^AP/i.test(p.shortName || p.name || '')));
   const P = polls[idx];
-  const pollLabel = p => (p.name || p.shortName || '').replace(/^AFCA\s+/i, '').replace(/^AP Top 25$/i, 'AP Top 25');
+  const isCFP = p => /playoff|cfp/i.test(`${p?.name || ''} ${p?.shortName || ''} ${p?.type || ''}`);
+  const pollLabel = p => isCFP(p) ? 'CFP' : (p.name || p.shortName || '').replace(/^AFCA\s+/i, '').replace(/^AP Top 25$/i, 'AP Top 25');
   const weekOpts = ['<option value="">Current</option>'].concat(S.weeks.map(w => `<option value="${esc(w.key)}"${w.key === S.rkWeek ? ' selected' : ''}>${esc(w.label)}</option>`)).join('');
   const wl = S.rkWeek ? ((S.weeks.find(w => w.key === S.rkWeek) || {}).label || 'Week') : (P?.occurrence?.displayValue || 'Current');
   const pollOpts = polls.length ? polls.map((p, i) => `<option value="${esc(p.name || p.shortName)}"${i === idx ? ' selected' : ''}>${esc(pollLabel(p))}</option>`).join('') : '<option>AP Top 25</option>';
   const pickers = `<div class="pickers"><label class="pk"><span>${esc(wl)}</span><select id="rkWeekSel">${weekOpts}</select></label><label class="pk"><span>${esc(P ? pollLabel(P) : 'AP Top 25')}</span><select id="rkPollSel">${pollOpts}</select></label></div><div style="height:12px"></div>`;
+  if (P && isCFP(P)) return pickers + cfpTableHTML(P, hid);
   let rows = '';
   if (!P) rows = '<div class="rkempty">No rankings available.</div>';
   else rows = P.ranks.map(r => {
@@ -2183,6 +2208,25 @@ function rankingsHTML(list, hid){
   const others = P ? (P.others || []).slice(0, 15).map(o => `${o.team?.location || o.team?.abbreviation || ''} ${Math.round(o.points || 0)}`).join(', ') : '';
   return pickers + `<div class="stand rkt"><div class="sthd"><b class="rk">Rk</b><span>Team</span><b class="vt">Votes</b></div>${rows}</div>` +
     (others ? `<div class="sfoot">Others receiving votes: ${esc(others)}</div>` : '');
+}
+// CFP rankings get their own table (2013 app style): RK / TEAM (logo, school, record) / VOTES / movement vs last week
+function cfpTableHTML(P, hid){
+  const rows = (P.ranks || []).map(r => {
+    const t = r.team || {}, me = hid && String(t.id) === String(hid);
+    const nm = t.location || t.shortDisplayName || t.nickname || t.abbreviation || '';
+    const lg = t.logo || t.logos?.[0]?.href || (t.id ? `https://a.espncdn.com/i/teamlogos/ncaa/500/${t.id}.png` : '');
+    const fpv = r.firstPlaceVotes ? ` <i>(${esc(r.firstPlaceVotes)})</i>` : '';
+    const pts = r.points ? Math.round(r.points).toLocaleString('en-US') : '';
+    const prev = Number(r.previous) || 0, cur = Number(r.current) || 0;
+    let mv = '';
+    if (prev && prev !== cur) mv = `<span class="mv ${cur < prev ? 'up' : 'dn'}"><i></i><small>LW: ${prev}</small></span>`;
+    else if (!prev && (P.ranks || []).some(x => Number(x.previous) > 0)) mv = `<span class="mv up"><i></i><small>LW: NR</small></span>`;
+    return `<div class="cfr${me ? ' me' : ''}" data-team="${esc(t.id || '')}"><b class="ck">${esc(cur || r.current)}</b>
+      ${lg ? `<img src="${esc(lg)}" alt="" loading="lazy">` : '<span class="cl"></span>'}
+      <span class="cn"><b>${esc(nm)}${fpv}</b><small>${esc(r.recordSummary || '')}</small></span>
+      <span class="cv">${esc(pts)}</span>${mv || '<span class="mv"></span>'}</div>`;
+  }).join('');
+  return `<div class="cfp"><div class="cfh"><span class="ck">Rk</span><span class="ct">Team</span><span class="cv">Votes</span></div>${rows || '<div class="rkempty">No rankings available.</div>'}</div>`;
 }
 function rankingsTab(){
   const key = 'rank:' + S.rkWeek;
