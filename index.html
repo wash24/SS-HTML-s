@@ -714,7 +714,7 @@ async function loadSportNews(sp){
   if (!state.sportNews[sp.key]) el.innerHTML = '<div class="skel"></div><div class="skel"></div>';
   try {
     const j = await getJSON(API + sp.path + '/news?limit=25');
-    state.sportNews[sp.key] = (j.articles || []).filter(a => a.headline);
+    state.sportNews[sp.key] = (j.articles || []).filter(newsOk);
   } catch (e) {
     if (!state.sportNews[sp.key]) state.sportNews[sp.key] = state.sample[sp.key] ? SAMPLE_ARTICLES(sp) : null;
   }
@@ -723,6 +723,9 @@ async function loadSportNews(sp){
   if (!list.length) { el.innerHTML = `<div class="empty">No ${esc(sp.name)} headlines right now.</div>`; return; }
   el.innerHTML = (state.sample[sp.key] ? NOTICE : '') + `<div class="section">Latest</div>` + newsList(list, false);
 }
+
+// Leave out "Game Highlights" video posts everywhere news shows (News tabs and the bottom crawl).
+const newsOk = a => !!(a && a.headline) && !/game\s+highlights/i.test(a.headline + ' ' + (a.description || '').slice(0, 80));
 
 // The Lead's News: top stories from every sport in one list, newest first, each tagged with its sport.
 function newsList(list, withTag){
@@ -737,7 +740,7 @@ async function loadLeadNews(){
   const el = document.getElementById('n-top');
   if (!state.leadNews) el.innerHTML = '<div class="skel"></div><div class="skel"></div>';
   const res = await Promise.all(SPORTS.map(async sp => {
-    try { const j = await getJSON(API + sp.path + '/news?limit=10'); return (j.articles || []).filter(a => a.headline).map(a => ({ ...a, _tag: sp.tag })); }
+    try { const j = await getJSON(API + sp.path + '/news?limit=10'); return (j.articles || []).filter(newsOk).map(a => ({ ...a, _tag: sp.tag })); }
     catch (e) { return null; }
   }));
   const ok = res.filter(Boolean);
@@ -1262,7 +1265,7 @@ async function loadNews(){
     try {
       const r = await fetch(API + s.path + '/news?limit=5');
       const j = await r.json();
-      return (j.articles || []).map(a => ({ tag: s.tag, text: a.headline })).filter(a => a.text);
+      return (j.articles || []).filter(newsOk).map(a => ({ tag: s.tag, text: a.headline }));
     } catch (e) { return []; }
   }));
   const mixed = [];
