@@ -724,8 +724,8 @@ async function loadSportNews(sp){
   el.innerHTML = (state.sample[sp.key] ? NOTICE : '') + `<div class="section">Latest</div>` + newsList(list, false);
 }
 
-// Leave out "Game Highlights" video posts everywhere news shows (News tabs and the bottom crawl).
-const newsOk = a => !!(a && a.headline) && !/game\s+highlights/i.test(a.headline + ' ' + (a.description || '').slice(0, 80));
+// Leave out "Game Highlights" / "Full Highlights" video posts everywhere news shows (News tabs and the bottom crawl).
+const newsOk = a => !!(a && a.headline) && !/(game|full)\s+highlights/i.test(a.headline + ' ' + (a.description || '').slice(0, 80));
 
 // The Lead's News: top stories from every sport in one list, newest first, each tagged with its sport.
 function newsList(list, withTag){
