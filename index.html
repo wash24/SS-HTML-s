@@ -260,6 +260,7 @@ body{overscroll-behavior:none}
 .gm-st tbody tr:first-child td{padding-top:5px}
 .gm-st th.n,.gm-st td.n{text-align:center;padding-left:0;padding-right:0}
 .gm-st tr.me td{color:#fff;font-weight:800}
+.gm-play{padding:9px 12px 11px;font-size:13.5px;line-height:1.35;font-weight:600;text-shadow:0 -1px 0 rgba(0,0,0,.5)}
 .gm-wait{padding:14px 12px;color:var(--t-sub);font-size:13px}
 .gm-foot{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;color:#fff;text-decoration:none;
   background:linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.28));border-top:1px solid rgba(0,0,0,.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.12);text-shadow:0 -1px 0 rgba(0,0,0,.6)}
@@ -527,6 +528,7 @@ function normalize(sport, ev){
   const odds = c.odds && c.odds[0];
   return { id: ev.id, sport, state: st.state, date, label, blurb, tv, teams, link: gameLink(sport, ev), psLabel, seriesTxt,
     poss: st.state === 'in' && c.situation && c.situation.possession ? String(c.situation.possession) : '',
+    lastPlay: st.state === 'in' && c.situation && c.situation.lastPlay ? String(c.situation.lastPlay.text || '') : '',
     detail: st.shortDetail || '', venue: c.venue && c.venue.fullName, venueAddr: c.venue && c.venue.address ? [c.venue.address.city, c.venue.address.state].filter(Boolean).join(', ') : '', odds: odds ? [odds.details, odds.overUnder] : null,
     margin: Math.abs(scores[0] - (scores[1] || 0)), post: ev.season && ev.season.type === 3 };
 }
@@ -1021,6 +1023,24 @@ function standingsHTML(g, sum){
   return `<div class="gm-strip">Standings</div><div class="gm-stw">${order.map(gr => stTable(stTitle(gr), (gr.standings && gr.standings.entries) || [], college, isMe, false, g.sport.key === 'nfl')).join('')}</div>`;
 }
 
+// Live games: the most recent play, freshest source first
+// (game summary's situation or play list, refreshed every 30s while the pop-up is open; else the scoreboard's).
+function lastPlayHTML(g, sum){
+  if (g.state !== 'in') return '';
+  let text = '';
+  const sit = sum && sum.situation;
+  if (sit && sit.lastPlay && sit.lastPlay.text) text = sit.lastPlay.text;
+  if (!text && sum && Array.isArray(sum.plays) && sum.plays.length) {
+    const p = [...sum.plays].reverse().find(x => x && x.text);
+    if (p) text = p.text;
+  }
+  if (!text && sum && sum.drives && sum.drives.current && sum.drives.current.plays && sum.drives.current.plays.length) {
+    const ps = sum.drives.current.plays; text = ps[ps.length - 1].text || '';
+  }
+  text = text || g.lastPlay;
+  return text ? `<div class="gm-strip">Last Play</div><div class="gm-play">${esc(text)}</div>` : '';
+}
+
 function gameHTML(g){
   const [a, h] = g.teams;
   const side = (t, cls) => {
@@ -1067,7 +1087,7 @@ function gameHTML(g){
 
   return `<button class="gm-x" id="gmClose" aria-label="Close">✕</button>
     <div class="gm-in"><div class="gm-head">${side(a, 'away')}${mid}${side(h, 'home')}</div>
-    ${linescoreHTML(g)}${perfHTML}${info}${standingsHTML(g, sum && sum.data)}${foot}</div>`;
+    ${linescoreHTML(g)}${lastPlayHTML(g, sum && sum.data)}${perfHTML}${info}${standingsHTML(g, sum && sum.data)}${foot}</div>`;
 }
 
 function renderGame(keepScroll){
