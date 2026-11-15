@@ -2815,19 +2815,25 @@ const fmtStat = (v, key) => {
   return /QBRating|quarterbackRating/.test(key) ? n.toFixed(1) : (Number.isInteger(n) ? n.toLocaleString('en-US') : String(+n.toFixed(1)));
 };
 const statNum = v => { const n = Number(String(v ?? '').replace(/,/g, '')); return String(v ?? '').trim() !== '' && isFinite(n) ? n : null; };
-async function leadersFromStatsFeed(st, group, yr){
+async function leadersFromStatsFeed(st, group, yr, keep, pages = 1){
   // ESPN's stats pages call these tables "passing", "rushing", "receiving", "defensive" and
   // "defensiveInterceptions"; the request's category value has varied, so try the known spellings.
   const side = /^defensive/.test(st.cat) ? 'defense' : 'offense';
   const tries = [...new Set([st.q, `${side}:${st.cat}`, side, st.cat, ''])];
   for (const q of tries) {
-    const u = `https://site.web.api.espn.com/apis/common/v3/sports/football/college-football/statistics/byathlete?region=us&lang=en&contentorigin=espn&isqualified=true&page=1&limit=50&group=${group}${q ? `&category=${encodeURIComponent(q)}` : ''}&sort=${encodeURIComponent(st.cat + '.' + st.key + ':desc')}&season=${yr}&seasontype=2`;
+    const url = pg => `https://site.web.api.espn.com/apis/common/v3/sports/football/college-football/statistics/byathlete?region=us&lang=en&contentorigin=espn&isqualified=true&page=${pg}&limit=50&group=${group}${q ? `&category=${encodeURIComponent(q)}` : ''}&sort=${encodeURIComponent(st.cat + '.' + st.key + ':desc')}&season=${yr}&seasontype=2`;
     let d;
-    try { d = await getJSON(u); } catch (e) { continue; }
+    try { d = await getJSON(url(1)); } catch (e) { continue; }
     const cat = (d.categories || []).find(c => c.name === st.cat);
     const idx = cat ? (cat.names || []).indexOf(st.key) : -1;
     if (idx < 0) continue;
-    const rows = (d.athletes || []).map(a => {
+    // more pages when filtering a long list down to one conference
+    let athletes = d.athletes || [];
+    const kept = () => keep ? athletes.filter(a => keep(String(a.athlete?.teamId || a.athlete?.team?.id || ''))).length : athletes.length;
+    for (let pg = 2; pg <= pages && kept() < 50 && (d.athletes || []).length >= 50; pg++) {
+      try { d = await getJSON(url(pg)); athletes = athletes.concat(d.athletes || []); } catch (e) { break; }
+    }
+    const rows = athletes.map(a => {
       const c = (a.categories || []).find(x => x.name === st.cat);
       const raw = c ? (statNum(c.totals?.[idx]) != null ? c.totals[idx] : c.values?.[idx]) : null;
       const at = a.athlete || {};
@@ -2835,6 +2841,7 @@ async function leadersFromStatsFeed(st, group, yr){
               logo: at.teamLogos?.[0]?.href || '', value: raw};
     }).filter(r => r.name && statNum(r.value) != null);
     if (rows.length < 5) continue;                      // wrong table or empty numbers: try the next spelling
+    if (keep) return rows.filter(r => keep(String(r.teamId || ''))).sort((a, b) => statNum(b.value) - statNum(a.value)).slice(0, 50);
     rows.sort((a, b) => statNum(b.value) - statNum(a.value));
     return rows.slice(0, 50);
   }
@@ -2872,8 +2879,23 @@ async function renderStatLeaders(){
   if (!LEADERS[key]) content.innerHTML = pickers + '<div class="spin"></div>';
   let rows = LEADERS[key];
   if (!rows) {
-    try { rows = await leadersFromStatsFeed(st, S.ldGroup, yr); } catch (e) {}
-    if (!rows) { try { rows = await leadersFromCore(st, S.ldGroup, yr); } catch (e) {} }
+    if (S.ldGroup === '80') {
+      try { rows = await leadersFromStatsFeed(st, '80', yr); } catch (e) {}
+      if (!rows) { try { rows = await leadersFromCore(st, '80', yr); } catch (e) {} }
+    } else {
+      // conference: keep only players whose team is in that conference (rosters from ESPN's FBS standings)
+      const dir = await loadDirectory().catch(() => null);
+      const conf = dir?.confs.find(c => String(c.id) === String(S.ldGroup));
+      const ids = conf ? new Set(conf.teams.map(t => String(t.id))) : null;
+      const inConf = ids ? (tid => ids.has(String(tid))) : null;
+      const ok = list => list && list.length && (!inConf || list.filter(r => inConf(r.teamId)).length >= Math.ceil(list.length * 0.9));
+      try { rows = await leadersFromStatsFeed(st, S.ldGroup, yr); } catch (e) {}
+      if (!ok(rows) && inConf) { try { rows = await leadersFromStatsFeed(st, '80', yr, inConf, 16); } catch (e) { rows = null; } }
+      if (!ok(rows)) {
+        try { rows = await leadersFromCore(st, S.ldGroup, yr); } catch (e) { rows = null; }
+        if (rows && inConf && !ok(rows)) rows = rows.filter(r => inConf(r.teamId));
+      }
+    }
     if (rows && rows.length) LEADERS[key] = rows;
   }
   if (token !== S.token || S.view !== 'stats') return;
