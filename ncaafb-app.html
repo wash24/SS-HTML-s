@@ -2883,7 +2883,7 @@ async function renderStatLeaders(){
     const lg = r.logo || (r.teamId ? `https://a.espncdn.com/i/teamlogos/ncaa/500/${r.teamId}.png` : '');
     return `<div class="ldr" data-team="${esc(r.teamId || '')}"><b class="lk">${i + 1}</b>${lg ? `<img src="${esc(lg)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span class="li"></span>'}<span class="ln">${esc(r.name)}${r.team ? ` <small>${esc(r.team)}</small>` : ''}</span><span class="lv">${esc(fmtStat(r.value, st.key))}</span></div>`;
   }).join('');
-  content.innerHTML = pickers + `<div class="scard"><div class="sbar">${esc(`${yr} ${st.label} · ${gName}`)}</div><div class="ldh"><span>Rk</span><span>Player</span><span>${esc(st.col)}</span></div>${body}</div>`;
+  content.innerHTML = pickers + `<div class="scard"><div class="ldh"><span>Rk</span><span>Player</span><span>${esc(st.col)}</span></div>${body}</div>`;
 }
 content.addEventListener('click', e => {
   if (S.view !== 'stats') return;
