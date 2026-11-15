@@ -632,6 +632,9 @@ body.ingame #app{transform:translateX(-28%)}
 html,body{background:#000;overscroll-behavior:none}
 #app,#game,#modal,#vid{top:0;bottom:auto;height:100vh}
 #drawer{top:0;bottom:auto;height:100vh}
+
+/* Scores: a day's date bar stays pinned at the top while you scroll through that day (frozen-row style) */
+#list .dh{position:sticky;top:0;z-index:3}
 </style>
 </head>
 <body class="loading">
@@ -985,7 +988,7 @@ function renderGames(evs){
   later.sort((a, b) => t(a) - t(b));
   earlier.sort((a, b) => t(b) - t(a));
   let html = '';
-  const section = (label, list) => { if (list.length) html += `<div class="dh">${esc(label)}</div>` + list.map(card).join(''); };
+  const section = (label, list) => { if (list.length) html += `<div class="dgrp"><div class="dh">${esc(label)}</div>${list.map(card).join('')}</div>`; };
   const byDay = (list, suffix) => {
     let last = '', group = [];
     const flush = () => { if (group.length) section(last + suffix, group); group = []; };
