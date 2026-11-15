@@ -501,11 +501,12 @@ body.pagev .pickers + div + .scard{margin-top:0}
 .ldh span:nth-child(2){flex:1;padding-left:42px}
 .ldr{display:flex;align-items:center;height:50px;padding:0 14px 0 12px;border-bottom:1px solid #e3e3e3;cursor:pointer}
 .ldr:last-child{border-bottom:0}
+.ldr .ln small{font-size:12px;font-weight:400;color:#999;margin-left:3px}
 .ldr:active{background:#f6f6f6}
 .ldr .lk{width:34px;flex:none;font-size:17px;font-weight:400;color:#444}
 .ldr img,.ldr .li{width:30px;height:30px;flex:none;object-fit:contain;margin-right:12px}
-.ldr .ln{flex:1;min-width:0;font-size:16px;font-weight:700;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ldr .lv{flex:none;margin-left:10px;font-size:17px;font-weight:700;color:#222}
+.ldr .ln{flex:1;min-width:0;font-size:15px;font-weight:700;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ldr .lv{flex:none;margin-left:10px;font-size:16px;font-weight:700;color:#222}
 
 /* ================= game screen ================= */
 #game{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);
@@ -2813,26 +2814,36 @@ const fmtStat = (v, key) => {
   if (!isFinite(n)) return String(v ?? '');
   return /QBRating|quarterbackRating/.test(key) ? n.toFixed(1) : (Number.isInteger(n) ? n.toLocaleString('en-US') : String(+n.toFixed(1)));
 };
+const statNum = v => { const n = Number(String(v ?? '').replace(/,/g, '')); return String(v ?? '').trim() !== '' && isFinite(n) ? n : null; };
 async function leadersFromStatsFeed(st, group, yr){
-  const u = `https://site.web.api.espn.com/apis/common/v3/sports/football/college-football/statistics/byathlete?region=us&lang=en&contentorigin=espn&isqualified=true&page=1&limit=50&group=${group}&category=${encodeURIComponent(st.q)}&sort=${encodeURIComponent(st.cat + '.' + st.key + ':desc')}&season=${yr}&seasontype=2`;
-  const d = await getJSON(u);
-  const cat = (d.categories || []).find(c => c.name === st.cat);
-  const idx = cat ? (cat.names || []).indexOf(st.key) : -1;
-  if (idx < 0) return null;
-  const rows = (d.athletes || []).map(a => {
-    const c = (a.categories || []).find(x => x.name === st.cat);
-    const v = c ? (c.totals?.[idx] ?? c.values?.[idx]) : null;
-    const at = a.athlete || {};
-    return {name: at.shortName || at.displayName, team: at.teamShortName || at.team?.abbreviation || '', teamId: at.teamId || at.team?.id,
-            logo: at.teamLogos?.[0]?.href || '', value: v};
-  }).filter(r => r.name && r.value != null && r.value !== '');
-  rows.sort((a, b) => Number(String(b.value).replace(/,/g, '')) - Number(String(a.value).replace(/,/g, '')));
-  return rows.length ? rows.slice(0, 50) : null;
+  // ESPN's stats pages call these tables "passing", "rushing", "receiving", "defensive" and
+  // "defensiveInterceptions"; the request's category value has varied, so try the known spellings.
+  const side = /^defensive/.test(st.cat) ? 'defense' : 'offense';
+  const tries = [...new Set([st.q, `${side}:${st.cat}`, side, st.cat, ''])];
+  for (const q of tries) {
+    const u = `https://site.web.api.espn.com/apis/common/v3/sports/football/college-football/statistics/byathlete?region=us&lang=en&contentorigin=espn&isqualified=true&page=1&limit=50&group=${group}${q ? `&category=${encodeURIComponent(q)}` : ''}&sort=${encodeURIComponent(st.cat + '.' + st.key + ':desc')}&season=${yr}&seasontype=2`;
+    let d;
+    try { d = await getJSON(u); } catch (e) { continue; }
+    const cat = (d.categories || []).find(c => c.name === st.cat);
+    const idx = cat ? (cat.names || []).indexOf(st.key) : -1;
+    if (idx < 0) continue;
+    const rows = (d.athletes || []).map(a => {
+      const c = (a.categories || []).find(x => x.name === st.cat);
+      const raw = c ? (statNum(c.totals?.[idx]) != null ? c.totals[idx] : c.values?.[idx]) : null;
+      const at = a.athlete || {};
+      return {name: at.shortName || at.displayName, team: at.teamShortName || at.team?.abbreviation || '', teamId: at.teamId || at.team?.id,
+              logo: at.teamLogos?.[0]?.href || '', value: raw};
+    }).filter(r => r.name && statNum(r.value) != null);
+    if (rows.length < 5) continue;                      // wrong table or empty numbers: try the next spelling
+    rows.sort((a, b) => statNum(b.value) - statNum(a.value));
+    return rows.slice(0, 50);
+  }
+  return null;
 }
 async function leadersFromCore(st, group, yr){
   const base = 'https://sports.core.api.espn.com/v2/sports/football/leagues/college-football/seasons';
   const d = await getJSON(`${base}/${yr}/types/2/groups/${group}/leaders?limit=50`);
-  const want = [st.core, st.key].filter(Boolean);
+  const want = [st.core, st.key, st.key === 'interceptions' ? 'defensiveInterceptions' : ''].filter(Boolean);
   const cat = (d.categories || []).find(c => want.includes(c.name));
   if (!cat) return null;
   const list = (cat.leaders || []).slice(0, 50);
@@ -2843,8 +2854,8 @@ async function leadersFromCore(st, group, yr){
   await Promise.all([0, 1, 2, 3, 4, 5, 6, 7].map(async () => { while (queue.length) { const u = queue.shift(); try { got[u] = await getJSON(u); } catch (e) {} } }));
   return list.map(l => {
     const p = got[fixRef(l.athlete?.$ref)] || {}, t = got[fixRef(l.team?.$ref)] || {};
-    return {name: p.shortName || p.displayName, team: t.abbreviation || '', teamId: t.id, logo: t.logos?.[0]?.href || '', value: l.value ?? l.displayValue};
-  }).filter(r => r.name);
+    return {name: p.shortName || p.displayName, team: t.abbreviation || '', teamId: t.id, logo: t.logos?.[0]?.href || '', value: statNum(l.value) != null ? l.value : l.displayValue};
+  }).filter(r => r.name && statNum(r.value) != null);
 }
 async function renderStatLeaders(){
   const token = ++S.token;
@@ -2870,7 +2881,7 @@ async function renderStatLeaders(){
   // taller rows: rank, team logo, player name, and the stat value on the right
   const body = rows.map((r, i) => {
     const lg = r.logo || (r.teamId ? `https://a.espncdn.com/i/teamlogos/ncaa/500/${r.teamId}.png` : '');
-    return `<div class="ldr" data-team="${esc(r.teamId || '')}"><b class="lk">${i + 1}</b>${lg ? `<img src="${esc(lg)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span class="li"></span>'}<span class="ln">${esc(r.name)}</span><span class="lv">${esc(fmtStat(r.value, st.key))}</span></div>`;
+    return `<div class="ldr" data-team="${esc(r.teamId || '')}"><b class="lk">${i + 1}</b>${lg ? `<img src="${esc(lg)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span class="li"></span>'}<span class="ln">${esc(r.name)}${r.team ? ` <small>${esc(r.team)}</small>` : ''}</span><span class="lv">${esc(fmtStat(r.value, st.key))}</span></div>`;
   }).join('');
   content.innerHTML = pickers + `<div class="scard"><div class="sbar">${esc(`${yr} ${st.label} · ${gName}`)}</div><div class="ldh"><span>Rk</span><span>Player</span><span>${esc(st.col)}</span></div>${body}</div>`;
 }
