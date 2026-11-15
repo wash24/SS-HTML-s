@@ -2275,8 +2275,53 @@ async function loadLivePictures(events, fresh){
 }
 function liveCards(events){
   const live = events.filter(e => evState(e) === 'in');
-  const weight = e => { const {away, home} = sides(e); const r = [rankOf(away), rankOf(home)].filter(Boolean); return (r.length ? 60 - Math.min(...r) : 0) + r.length * 20; };
-  return live.sort((a, b) => weight(b) - weight(a)).slice(0, 4);
+  const ranks = e => { const {away, home} = sides(e); return [rankOf(away), rankOf(home)].filter(Boolean); };
+  const weight = e => { const r = ranks(e); return (r.length ? 60 - Math.min(...r) : 0) + r.length * 20; };
+  live.sort((a, b) => weight(b) - weight(a));
+  if (live.length <= 2) return live;                               // one or two games on: show them all
+  return live.filter(e => ranks(e).length).slice(0, 4);           // busy slate: only the top games
+}
+/* Story ranking: ESPN's news feed is newest-first, so minor recaps and clips can push big stories down.
+   Score each item by what it is, who it's about and how fresh it is, drop minor game items and
+   near-duplicates, and keep video from crowding the top. */
+const TYPE_W = {story: 30, headlinenews: 26, blogentry: 18, preview: 10, recap: 8, media: 6};
+function rankStories(articles, events){
+  const rank = {};
+  events.forEach(e => (e.competitions?.[0]?.competitors || []).forEach(c => { const r = rankOf(c); if (r && c.team?.id) rank[String(c.team.id)] = r; }));
+  const now = Date.now();
+  const STOP = new Set(['the', 'and', 'for', 'with', 'from', 'after', 'into', 'over', 'versus', 'vs', 'set', 'his', 'her', 'their', 'what', 'how', 'why', 'who']);
+  const words = h => new Set(String(h || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !STOP.has(w)));
+  const same = (x, y) => { let n = 0; x.forEach(w => { if (y.has(w)) n++; }); return n >= 4 && n / Math.max(x.size, y.size) >= 0.6; };   // near-duplicate headlines
+  const scored = [];
+  articles.forEach((a, order) => {
+    if (!a.headline || !(a.images || []).some(i => i.url)) return;
+    const type = String(a.type || '').toLowerCase();
+    const isVid = /media|video/.test(type) || (a.video || []).length > 0;
+    const gameItem = /recap|preview/.test(type) || (isVid && (a.categories || []).some(c => c.type === 'event'));
+    const teams = (a.categories || []).filter(c => c.type === 'team').map(c => String(c.teamId || c.team?.id || '')).filter(Boolean);
+    const best = Math.min(...teams.map(t => rank[t] || 99), 99);
+    if (gameItem && best === 99) return;                             // results/previews/clips of unranked games: leave out
+    const hrs = Math.max(0, (now - new Date(a.published || a.lastModified || now)) / 3.6e6);
+    if (hrs > 96) return;                                             // older than four days
+    let score = (TYPE_W[type] ?? (isVid ? TYPE_W.media : 15)) - hrs / 3 - order * 0.15;
+    if (best <= 25) score += 14 + (best <= 10 ? 10 : 0) + (best <= 4 ? 6 : 0);
+    if (a.premium) score += 2;
+    scored.push({a, score, isVid, key: a.headline, w: words(a.headline)});
+  });
+  scored.sort((x, y) => y.score - x.score);
+  const out = [], seen = new Set(), held = [];
+  let vids = 0;
+  const place = it => { seen.add(it.key); out.push(it); if (it.isVid) vids++; };
+  const dup = it => out.some(o => same(o.w, it.w));
+  for (const it of scored) {
+    if (seen.has(it.key) || dup(it) || (it.isVid && vids >= 4)) continue;          // ≤4 clips overall
+    if (it.isVid && out.length < 6 && out.some(o => o.isVid)) { held.push(it); continue; }   // ≤1 clip in the top six
+    place(it);
+    while (out.length >= 6 && held.length && vids < 4) { const h = held.shift(); if (!seen.has(h.key) && !dup(h)) place(h); }
+    if (out.length >= 25) break;
+  }
+  held.forEach(h => { if (out.length < 25 && vids < 4 && !seen.has(h.key) && !dup(h)) place(h); });
+  return out.map(o => o.a);
 }
 function topStoriesHTML(articles, events){
   const live = liveCards(events);
@@ -2299,7 +2344,7 @@ function topStoriesHTML(articles, events){
       <div class="tsbar">${side(away)}${sc(away)}<div class="tsm"><small>${esc(netOf(comp))}</small><b>${esc(clock)}</b></div>${sc(home)}${side(home)}</div>
     </div>`;
   });
-  TOP_ITEMS = articles.filter(a => a.headline && (a.images || []).some(i => i.url));
+  TOP_ITEMS = rankStories(articles, events);
   TOP_ITEMS.forEach((a, i) => {
     const img = (a.images.find(x => x.width >= 500) || a.images[0]).url;
     const isVid = /media|video/i.test(a.type || '') || (a.video || []).length;
@@ -2945,7 +2990,7 @@ async function renderPage(){
     renderVideo();
   } else if (view === 'top') {
     if (!silentTop) content.innerHTML = '<div class="spin" style="margin-top:50px"></div>';
-    const [n, sb] = await Promise.allSettled([getJSON(`${API}/news?limit=30`, silentTop), getJSON(`${API}/scoreboard?limit=300&groups=80`, silentTop)]);
+    const [n, sb] = await Promise.allSettled([getJSON(`${API}/news?limit=60`, silentTop), getJSON(`${API}/scoreboard?limit=300&groups=80`, silentTop)]);
     if (token !== S.token) return;
     await loadLivePictures(liveCards(sb.value?.events || []), silentTop);
     if (token !== S.token) return;
