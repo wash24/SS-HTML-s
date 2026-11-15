@@ -72,8 +72,8 @@ body.drawer-open #scrim{display:block}
 /* nav bar */
 #nav{flex:none;padding-top:env(safe-area-inset-top);background:linear-gradient(#3a3a3a,#2a2a2a 8%,#222 60%,#1b1b1b);
   border-bottom:1px solid #000;position:relative;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
-#nav .bar::before{content:"";position:absolute;left:56px;top:0;bottom:0;width:1px;background:#0a0a0a;box-shadow:1px 0 0 rgba(255,255,255,.1)}
-#nav .bar{height:46px;display:flex;align-items:center;justify-content:center;position:relative}
+#nav .bar::before{content:"";position:absolute;left:58px;top:0;bottom:0;width:1px;background:#0a0a0a;box-shadow:1px 0 0 rgba(255,255,255,.1)}
+#nav .bar{height:54px;display:flex;align-items:center;justify-content:center;position:relative}
 #burger{position:absolute;left:6px;top:50%;transform:translateY(-50%);width:44px;height:40px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px}
 #burger i{display:block;width:23px;height:3px;background:#fff;border-radius:1px;box-shadow:0 -1px 0 rgba(0,0,0,.6)}
 .seg{display:flex;width:206px;height:31px;border:1px solid #000;border-radius:6px;overflow:hidden;
@@ -199,8 +199,6 @@ body.stream #band{display:none}
 #navTitle,#bell,#ttabs,#tlogo{display:none}
 body.teamv .seg{display:none}
 body.teamv #nav{background:var(--tnav)}
-body.teamv #nav .bar{height:54px}
-body.teamv #nav .bar::before{left:58px}
 body.teamv #navTitle{display:block;position:absolute;left:64px;right:64px;text-align:center;font-size:22px;font-weight:700;color:#fff;
   text-shadow:0 -1px 0 rgba(0,0,0,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #bell{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:40px;height:40px;align-items:center;justify-content:center}
@@ -312,10 +310,18 @@ body.teamv .pwrap + .sbar{margin-top:14px}
 .stand .strow b{font-size:15px;font-weight:400;color:#444}
 .stand .strow.me{box-shadow:inset 4px 0 0 var(--tc)}
 
+/* back to the game a team page was opened from */
+#tback{display:none;position:absolute;left:60px;top:50%;transform:translateY(-50%);width:42px;height:44px;align-items:center;justify-content:center}
+#tback svg{width:24px;height:24px;filter:drop-shadow(0 -1px 0 rgba(0,0,0,.5))}
+#tback::after{content:"";position:absolute;right:-1px;top:-5px;bottom:-5px;width:1px;background:rgba(0,0,0,.45);box-shadow:1px 0 0 rgba(255,255,255,.12)}
+#tback:active{opacity:.6}
+body.teamv.fromgame #tback{display:flex}
+body.teamv.fromgame #navTitle{left:108px;right:108px}
+
 /* side-menu pages (Standings, Rankings, ...) */
 body.pagev .seg,body.pagev #band{display:none}
-body.pagev #navTitle{display:block;position:absolute;left:64px;right:20px;text-align:center;font-size:20px;font-weight:700;color:#fff;
-  text-shadow:0 -1px 0 rgba(0,0,0,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:44px}
+body.pagev #navTitle{display:block;position:absolute;left:64px;right:64px;text-align:center;font-size:22px;font-weight:700;color:#fff;
+  text-shadow:0 -1px 0 rgba(0,0,0,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 body.pagev .stand{margin:0 10px}
 body.pagev .pickers{padding:14px 10px 2px}
 body.pagev .pseg{margin-left:10px;margin-right:10px}
@@ -385,6 +391,7 @@ body.teamv .pickers{padding:0 8px 2px}
 .scard + .sfoot{padding-left:12px;padding-right:12px}
 body.teamv .scard{margin-left:8px;margin-right:8px}
 body.teamv .scard:first-child{margin-top:0}
+body.teamv .schrec + .scard{margin-top:0}
 
 /* Video page */
 .vcard{margin:14px 10px 0;background:#fff;border:1px solid #c9cbce;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden}
@@ -463,8 +470,8 @@ body.teamsv #content{background:#3a3a3a}
 body.ingame #app{transform:translateX(-28%)}
 .gnav{flex:none;padding-top:env(safe-area-inset-top);background:linear-gradient(#433e3f,#2c2829 50%,#231f20 51%,#1c191a);
   border-bottom:1px solid #000;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
-.gnav .bar{height:46px;display:flex;align-items:center;justify-content:center;position:relative;padding:0 84px}
-.gnav h1{font-size:20px;font-weight:700;color:#fff;text-shadow:0 -1px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gnav .bar{height:54px;display:flex;align-items:center;justify-content:center;position:relative;padding:0 84px}
+.gnav h1{font-size:22px;font-weight:700;color:#fff;text-shadow:0 -1px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .back{position:absolute;left:7px;top:50%;transform:translateY(-50%);height:29px;padding:0 0 0 9px;
   background:#000;clip-path:polygon(0 50%,11px 0,100% 0,100% 100%,11px 100%);border-radius:0 6px 6px 0;filter:drop-shadow(0 1px 0 rgba(255,255,255,.15))}
 .back span{display:block;height:27px;line-height:27px;margin:1px 1px 1px 0;padding:0 10px 0 6px;font-size:12.5px;font-weight:700;color:#fff;
@@ -649,6 +656,7 @@ html,body{background:#000;overscroll-behavior:none}
   <header id="nav">
     <div class="bar">
       <button id="burger" aria-label="Menu"><i></i><i></i><i></i></button>
+      <button id="tback" aria-label="Back to game"><svg viewBox="0 0 24 24"><path d="M15.5 4.5 8 12l7.5 7.5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <div class="seg" role="tablist">
         <button data-view="scores" class="on">Scores</button>
         <button data-view="stream">Stream</button>
@@ -1067,6 +1075,7 @@ async function renderStream(){
 function render(){
   document.body.classList.toggle('stream', S.view === 'stream');
   document.body.classList.toggle('teamv', S.view === 'team');
+  if (S.view !== 'team') { T.fromGame = null; document.body.classList.remove('fromgame'); }
   const PAGES = {news: 'News', standings: 'Standings', rankings: 'Rankings', top: 'Top Stories', video: 'Video', teams: 'Teams', bowl: 'Bowl Bound'};
   document.body.classList.toggle('pagev', !!PAGES[S.view]);
   document.body.classList.toggle('bowlv', S.view === 'bowl');
@@ -1955,7 +1964,7 @@ function scheduleHTML(){
   const evs = T.events || [];
   recordLine();                                     // refreshes T.recText
   if (!evs.length) return '<div class="msg"><b>No games scheduled</b></div>';
-  let html = `<div class="schrec">${esc(T.recText || '')}</div><div class="sch">
+  let html = `<div class="sch">
     <div class="schhd"><span>Date</span><span>Opponent</span><span>Result/Time</span></div>`;
   evs.forEach(e => {
     const comp = evComp(e), st = evState(e), {us, them} = sides2(e), d = new Date(e.date);
@@ -1983,15 +1992,19 @@ function renderTeam(keepScroll){
   if (!T.events) { content.innerHTML = '<div class="spin" style="margin-top:70px"></div>'; return; }
   const y = content.scrollTop;
   const pad = '<div style="height:38px"></div>';
-  content.innerHTML = T.tab === 'sched' ? pad + scheduleHTML()
+  recordLine();                                       // refreshes T.recText
+  const rec = `${pad}<div class="schrec">${esc(T.recText || '')}</div>`;
+  content.innerHTML = T.tab === 'sched' ? rec + scheduleHTML()
     : T.tab === 'tweets' ? pad + tweetsTab()
-    : T.tab === 'stats' ? pad + teamStatsTab()
+    : T.tab === 'stats' ? rec + teamStatsTab()
     : T.tab === 'stand' ? pad + standingsTab()
     : T.tab === 'rank' ? pad + rankingsTab()
-    : recordLine() + featuredHTML() + newsHTML();
+    : rec + featuredHTML() + newsHTML();
   if (keepScroll) content.scrollTop = y;
 }
-function openTeam(id, fromHistory){
+function openTeam(id, fromHistory, fromGame){
+  T.fromGame = fromGame || null;
+  document.body.classList.toggle('fromgame', !!T.fromGame);
   if (G.id) closeGame(true);
   const same = T.id === String(id);
   T.id = String(id); T.tab = 'club';
@@ -2754,7 +2767,12 @@ $('#ttabs').addEventListener('click', e => {
   const b = e.target.closest('button[data-ttab]'); if (!b || b.dataset.ttab === T.tab) return;
   T.tab = b.dataset.ttab; content.scrollTop = 0; renderTeam();
 });
-$('#gHead').addEventListener('click', e => { const t = e.target.closest('[data-tid]'); if (t && t.dataset.tid) openTeam(t.dataset.tid); });
+$('#gHead').addEventListener('click', e => { const t = e.target.closest('[data-tid]'); if (t && t.dataset.tid) openTeam(t.dataset.tid, false, G.id); });
+$('#tback').addEventListener('click', () => {
+  const g = T.fromGame; if (!g) return;
+  T.fromGame = null; document.body.classList.remove('fromgame');
+  openGame(g);
+});
 content.addEventListener('click', e => {
   if (S.view !== 'team') return;
   if (e.target.closest('#tRetry')) { loadTeam(); return; }
