@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Scoreline">
 <meta name="theme-color" content="#0a0a0a">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
@@ -176,6 +176,7 @@ body{overscroll-behavior:none}
 .mrow .sc.rec{font-size:13px;line-height:1;font-weight:600;color:var(--t-sub)}
 .mrow .win{position:absolute;right:-1px;top:50%;margin-top:-6px;width:0;height:0;border-style:solid;border-width:6px 7px 6px 0;border-color:transparent var(--t-sub) transparent transparent}
 /* game pop-up */
+.app::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:#0a0a0a;z-index:40;pointer-events:none}
 .gm-veil{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;
   padding:calc(env(safe-area-inset-top,0px) + 22px) max(14px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 22px) max(14px,env(safe-area-inset-left,0px));
   background:rgba(0,0,0,.6)}
