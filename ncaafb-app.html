@@ -680,6 +680,7 @@ html,body{background:#000;overscroll-behavior:none}
   <button class="dr" data-go="rankings"><i class="ic"><svg viewBox="0 0 32 32"><text x="2.5" y="10" font-size="7" font-weight="700" fill="currentColor" font-family="Helvetica,Arial">1</text><text x="2.5" y="18.5" font-size="7" font-weight="700" fill="currentColor" font-family="Helvetica,Arial">2</text><text x="2.5" y="27" font-size="7" font-weight="700" fill="currentColor" font-family="Helvetica,Arial">3</text><rect x="9" y="4.5" width="20" height="5" fill="currentColor"/><rect x="9" y="13" width="20" height="5" fill="currentColor"/><rect x="9" y="21.5" width="20" height="5" fill="currentColor"/></svg></i><span>Rankings</span></button>
   <button class="dr" data-go="standings"><i class="ic"><svg viewBox="0 0 32 32"><rect x="2" y="5" width="28" height="22" fill="currentColor"/><path d="M5 10h3M5 15h3M5 20h3M10 10h17M10 15h17M10 20h17" stroke="#262626" stroke-width="2.2"/></svg></i><span>Standings</span></button>
   <button class="dr" data-go="teams"><i class="ic ic-img"><img src="helmet-icon.png" alt=""></i><span>Teams</span></button>
+  <button class="dr" data-go="stats"><i class="ic"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"><rect x="4.5" y="6" width="23" height="23.5" rx="1"/><path d="M12 6V4.2h8V6" /><rect x="11.5" y="3" width="9" height="5" rx="1" fill="currentColor" stroke="none"/><path d="M15 3.4a1 1 0 0 1 2 0" stroke-width="1.6"/><path d="M9.5 24.5l4.5-6 4 3.5 5.5-8"/></svg></i><span>Statistics</span></button>
   <button class="dr" data-go="bowl"><i class="ic ic-logo ic-wide"><img src="bcs-logo-white.png" alt=""></i><span>Bowl Bound</span></button>
 </nav>
 
@@ -1105,7 +1106,7 @@ function render(){
   document.body.classList.toggle('stream', S.view === 'stream');
   document.body.classList.toggle('teamv', S.view === 'team');
   if (S.view !== 'team') { T.fromGame = null; document.body.classList.remove('fromgame'); }
-  const PAGES = {news: 'News', standings: 'Standings', rankings: 'Rankings', top: 'Top Stories', video: 'Video', teams: 'Teams', bowl: 'Bowl Bound'};
+  const PAGES = {news: 'News', standings: 'Standings', rankings: 'Rankings', top: 'Top Stories', video: 'Video', teams: 'Teams', stats: 'Statistics', bowl: 'Bowl Bound'};
   document.body.classList.toggle('pagev', !!PAGES[S.view]);
   document.body.classList.toggle('bowlv', S.view === 'bowl');
   document.body.classList.toggle('teamsv', S.view === 'teams');
@@ -2812,7 +2813,7 @@ async function renderPage(){
     clearTimeout(S.timer);
     S.timer = setTimeout(() => { if (S.view === 'top' && !document.hidden) { silentTop = true; renderPage(); } }, 30000);
   } else {
-    const label = {teams: 'Teams'}[view] || '';
+    const label = {teams: 'Teams', stats: 'Statistics'}[view] || '';
     content.innerHTML = `<div class="msg" style="margin-top:60px"><b>${esc(label)}</b>Coming soon.</div>`;
   }
 }
