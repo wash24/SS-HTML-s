@@ -74,8 +74,9 @@ body.drawer-open #scrim{display:block}
 #burger span{display:flex;flex-direction:column;gap:4px}
 #burger i{display:block;width:24px;height:4px;background:#3a2402;border-radius:1px;box-shadow:0 1px 0 rgba(255,255,255,.45)}
 body.drawer-open #burger{background:linear-gradient(#e9a10c,#d18a07)}
-#badge{width:35px;height:35px;flex:none;margin-right:8px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.45))}
-#badge img{width:100%;height:100%;object-fit:contain}
+#badge{height:42px;flex:none;margin-right:8px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.45))}
+#badge img{height:100%;width:auto;display:block;object-fit:contain}
+body.teamv #badge img{width:100%}
 #navTitle{flex:1;min-width:0;font:700 26px/1 var(--cond);color:#fff;text-transform:uppercase;letter-spacing:.2px;
   text-shadow:0 1px 0 rgba(0,0,0,.45),0 0 1px rgba(0,0,0,.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-top:1px}
 #bell{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:42px;height:42px;display:none;align-items:center;justify-content:center}
@@ -612,7 +613,7 @@ const API2 = 'https://site.api.espn.com/apis/v2/sports/basketball/mens-college-b
 const CORE = 'https://sports.core.api.espn.com/v2/sports/basketball/leagues/mens-college-basketball';
 const LOGO = id => `https://a.espncdn.com/i/teamlogos/ncaa/500/${id}.png`;
 const LOGO_DARK = id => `https://a.espncdn.com/i/teamlogos/ncaa/500-dark/${id}.png`;
-const BADGE = 'cbb-badge.png';
+const BADGE = 'bracket-bound-logo.png';
 // Division I conferences (ESPN group ids)
 const CONF_LIST = [['2','ACC'],['1','America East'],['62','American'],['46','ASUN'],['3','Atlantic 10'],['8','Big 12'],['4','Big East'],['5','Big Sky'],
   ['6','Big South'],['7','Big Ten'],['9','Big West'],['10','CAA'],['11','C-USA'],['45','Horizon'],['12','Ivy League'],['13','Metro'],['14','MAC'],['16','MEAC'],
