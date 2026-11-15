@@ -74,7 +74,7 @@ body.drawer-open #scrim{display:block}
 #burger span{display:flex;flex-direction:column;gap:4px}
 #burger i{display:block;width:24px;height:4px;background:#3a2402;border-radius:1px;box-shadow:0 1px 0 rgba(255,255,255,.45)}
 body.drawer-open #burger{background:linear-gradient(#e9a10c,#d18a07)}
-#badge{height:42px;flex:none;margin-right:8px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.45))}
+#badge{height:35px;flex:none;margin-right:8px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.45))}
 #badge img{height:100%;width:auto;display:block;object-fit:contain}
 body.teamv #badge img{width:100%}
 #navTitle{flex:1;min-width:0;font:700 26px/1 var(--cond);color:#fff;text-transform:uppercase;letter-spacing:.2px;
@@ -730,13 +730,7 @@ function isTopGame(e){
 }
 
 /* network label: ESPN networks get the red wordmark plus the WatchESPN tag (2013 app style) */
-function netHTML(name){
-  if (!name) return '';
-  const m = String(name).match(/^ESPN(2|U|NEWS|\+|EWS)?$/i) || (/^(SECN|SEC Network|ACCN|ACC Network|LHN)$/i.test(name) ? [name, null, name] : null);
-  if (m && m[2]) return `<span>${esc(name)}</span><span class="wesp">WATCH<b>ESPN</b></span>`;
-  if (m) return `<span class="nwe">ESPN${m[1] ? `<i>${esc(m[1].toUpperCase())}</i>` : ''}</span>${m[1] === '+' ? '' : '<span class="wesp">WATCH<b>ESPN</b></span>'}`;
-  return `<span>${esc(name)}</span>`;
-}
+function netHTML(name){ return name ? `<span>${esc(name)}</span>` : ''; }
 
 /* ---------------- scores ---------------- */
 function teamRow(c, state){
