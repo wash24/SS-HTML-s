@@ -2216,7 +2216,6 @@ function cfpTableHTML(P, hid){
     const nm = t.location || t.shortDisplayName || t.nickname || t.abbreviation || '';
     const lg = t.logo || t.logos?.[0]?.href || (t.id ? `https://a.espncdn.com/i/teamlogos/ncaa/500/${t.id}.png` : '');
     const fpv = r.firstPlaceVotes ? ` <i>(${esc(r.firstPlaceVotes)})</i>` : '';
-    const pts = r.points ? Math.round(r.points).toLocaleString('en-US') : '';
     const prev = Number(r.previous) || 0, cur = Number(r.current) || 0;
     let mv = '';
     if (prev && prev !== cur) mv = `<span class="mv ${cur < prev ? 'up' : 'dn'}"><i></i><small>LW: ${prev}</small></span>`;
@@ -2224,9 +2223,9 @@ function cfpTableHTML(P, hid){
     return `<div class="cfr${me ? ' me' : ''}" data-team="${esc(t.id || '')}"><b class="ck">${esc(cur || r.current)}</b>
       ${lg ? `<img src="${esc(lg)}" alt="" loading="lazy">` : '<span class="cl"></span>'}
       <span class="cn"><b>${esc(nm)}${fpv}</b><small>${esc(r.recordSummary || '')}</small></span>
-      <span class="cv">${esc(pts)}</span>${mv || '<span class="mv"></span>'}</div>`;
+      ${mv || '<span class="mv"></span>'}</div>`;
   }).join('');
-  return `<div class="cfp"><div class="cfh"><span class="ck">Rk</span><span class="ct">Team</span><span class="cv">Votes</span></div>${rows || '<div class="rkempty">No rankings available.</div>'}</div>`;
+  return `<div class="cfp"><div class="cfh"><span class="ck">Rk</span><span class="ct">Team</span></div>${rows || '<div class="rkempty">No rankings available.</div>'}</div>`;
 }
 function rankingsTab(){
   const key = 'rank:' + S.rkWeek;
