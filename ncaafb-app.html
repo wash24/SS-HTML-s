@@ -491,6 +491,10 @@ body.teamsv #content{background:#3a3a3a}
 .cfr .mv small{margin-top:9px;font-size:8.5px;color:#777;white-space:nowrap}
 .cfr.me{box-shadow:inset 4px 0 0 var(--tc)}
 
+/* Statistics page */
+body.pagev .scard{margin-left:8px;margin-right:8px}
+body.pagev .pickers + div + .scard{margin-top:0}
+
 /* ================= game screen ================= */
 #game{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);
   transition:transform .32s cubic-bezier(.2,.7,.3,1);box-shadow:-4px 0 12px rgba(0,0,0,.45);visibility:hidden}
@@ -2772,6 +2776,95 @@ content.addEventListener('click', e => {
   if (tm) openTeam(tm.dataset.team);
 });
 
+
+/* ================= Statistics: national stat leaders (top 50) =================
+   Primary source: ESPN's player-stats feed (the one behind ESPN.com's stats pages), filtered by
+   group (80 = FBS, or a conference id) and sorted by the chosen stat. Fallback: ESPN's season-leaders
+   feed for the same group. */
+const LEADER_STATS = [
+  {group: 'Passing',   key: 'passingYards',        label: 'Passing Yards',        col: 'YDS',  cat: 'passing',   q: 'offense:passing'},
+  {group: 'Passing',   key: 'passingTouchdowns',   label: 'Passing Touchdowns',   col: 'TD',   cat: 'passing',   q: 'offense:passing'},
+  {group: 'Passing',   key: 'QBRating',            label: 'Passer Rating',        col: 'RTG',  cat: 'passing',   q: 'offense:passing', core: 'quarterbackRating'},
+  {group: 'Rushing',   key: 'rushingYards',        label: 'Rushing Yards',        col: 'YDS',  cat: 'rushing',   q: 'offense:rushing'},
+  {group: 'Rushing',   key: 'rushingTouchdowns',   label: 'Rushing Touchdowns',   col: 'TD',   cat: 'rushing',   q: 'offense:rushing'},
+  {group: 'Receiving', key: 'receivingYards',      label: 'Receiving Yards',      col: 'YDS',  cat: 'receiving', q: 'offense:receiving'},
+  {group: 'Receiving', key: 'receptions',          label: 'Receptions',           col: 'REC',  cat: 'receiving', q: 'offense:receiving'},
+  {group: 'Receiving', key: 'receivingTouchdowns', label: 'Receiving Touchdowns', col: 'TD',   cat: 'receiving', q: 'offense:receiving'},
+  {group: 'Defense',   key: 'totalTackles',        label: 'Total Tackles',        col: 'TOT',  cat: 'defensive', q: 'defense:defensive'},
+  {group: 'Defense',   key: 'sacks',               label: 'Sacks',                col: 'SACK', cat: 'defensive', q: 'defense:defensive'},
+  {group: 'Defense',   key: 'interceptions',       label: 'Interceptions',        col: 'INT',  cat: 'defensiveInterceptions', q: 'defense:interceptions'},
+];
+S.ldGroup = store.get('cfb.ldGroup', '80'); S.ldStat = store.get('cfb.ldStat', 'passingYards');
+const LEADERS = {};
+const fmtStat = (v, key) => {
+  const n = Number(String(v).replace(/,/g, ''));
+  if (!isFinite(n)) return String(v ?? '');
+  return /QBRating|quarterbackRating/.test(key) ? n.toFixed(1) : (Number.isInteger(n) ? n.toLocaleString('en-US') : String(+n.toFixed(1)));
+};
+async function leadersFromStatsFeed(st, group, yr){
+  const u = `https://site.web.api.espn.com/apis/common/v3/sports/football/college-football/statistics/byathlete?region=us&lang=en&contentorigin=espn&isqualified=true&page=1&limit=50&group=${group}&category=${encodeURIComponent(st.q)}&sort=${encodeURIComponent(st.cat + '.' + st.key + ':desc')}&season=${yr}&seasontype=2`;
+  const d = await getJSON(u);
+  const cat = (d.categories || []).find(c => c.name === st.cat);
+  const idx = cat ? (cat.names || []).indexOf(st.key) : -1;
+  if (idx < 0) return null;
+  const rows = (d.athletes || []).map(a => {
+    const c = (a.categories || []).find(x => x.name === st.cat);
+    const v = c ? (c.totals?.[idx] ?? c.values?.[idx]) : null;
+    const at = a.athlete || {};
+    return {name: at.shortName || at.displayName, team: at.teamShortName || at.team?.abbreviation || '', teamId: at.teamId || at.team?.id,
+            logo: at.teamLogos?.[0]?.href || '', value: v};
+  }).filter(r => r.name && r.value != null && r.value !== '');
+  rows.sort((a, b) => Number(String(b.value).replace(/,/g, '')) - Number(String(a.value).replace(/,/g, '')));
+  return rows.length ? rows.slice(0, 50) : null;
+}
+async function leadersFromCore(st, group, yr){
+  const base = 'https://sports.core.api.espn.com/v2/sports/football/leagues/college-football/seasons';
+  const d = await getJSON(`${base}/${yr}/types/2/groups/${group}/leaders?limit=50`);
+  const want = [st.core, st.key].filter(Boolean);
+  const cat = (d.categories || []).find(c => want.includes(c.name));
+  if (!cat) return null;
+  const list = (cat.leaders || []).slice(0, 50);
+  const refs = new Set(), trefs = new Set();
+  list.forEach(l => { if (l.athlete?.$ref) refs.add(fixRef(l.athlete.$ref)); if (l.team?.$ref) trefs.add(fixRef(l.team.$ref)); });
+  const got = {};
+  const queue = [...refs, ...trefs];
+  await Promise.all([0, 1, 2, 3, 4, 5, 6, 7].map(async () => { while (queue.length) { const u = queue.shift(); try { got[u] = await getJSON(u); } catch (e) {} } }));
+  return list.map(l => {
+    const p = got[fixRef(l.athlete?.$ref)] || {}, t = got[fixRef(l.team?.$ref)] || {};
+    return {name: p.shortName || p.displayName, team: t.abbreviation || '', teamId: t.id, logo: t.logos?.[0]?.href || '', value: l.value ?? l.displayValue};
+  }).filter(r => r.name);
+}
+async function renderStatLeaders(){
+  const token = ++S.token;
+  const st = LEADER_STATS.find(x => x.key === S.ldStat) || LEADER_STATS[0];
+  const groups = [['80', 'FBS'], ...STAND_CONFS];
+  const gName = (groups.find(g => g[0] === S.ldGroup) || groups[0])[1];
+  const yr = S.season || new Date().getFullYear();
+  let statOpts = '', og = '';
+  LEADER_STATS.forEach(x => { if (x.group !== og) { statOpts += (og ? '</optgroup>' : '') + `<optgroup label="${x.group}">`; og = x.group; } statOpts += `<option value="${x.key}"${x.key === st.key ? ' selected' : ''}>${esc(x.label)}</option>`; });
+  statOpts += '</optgroup>';
+  const pickers = `<div class="pickers"><label class="pk"><span>${esc(gName)}</span><select id="ldGroupSel">${groups.map(g => `<option value="${g[0]}"${g[0] === S.ldGroup ? ' selected' : ''}>${esc(g[1])}</option>`).join('')}</select></label>` +
+    `<label class="pk"><span>${esc(st.label)}</span><select id="ldStatSel">${statOpts}</select></label></div><div style="height:12px"></div>`;
+  const key = `${yr}|${S.ldGroup}|${st.key}`;
+  if (!LEADERS[key]) content.innerHTML = pickers + '<div class="spin"></div>';
+  let rows = LEADERS[key];
+  if (!rows) {
+    try { rows = await leadersFromStatsFeed(st, S.ldGroup, yr); } catch (e) {}
+    if (!rows) { try { rows = await leadersFromCore(st, S.ldGroup, yr); } catch (e) {} }
+    if (rows && rows.length) LEADERS[key] = rows;
+  }
+  if (token !== S.token || S.view !== 'stats') return;
+  if (!rows || !rows.length) { content.innerHTML = pickers + '<div class="gempty"><b>Statistics</b>Stat leaders are not available right now.</div>'; return; }
+  sizeStatGrid();
+  const body = rows.map((r, i) => `<tr data-team="${esc(r.teamId || '')}"><td><span class="tcell"><b class="rkn">${i + 1}</b>${esc(r.name)}</span></td><td>${esc(r.team)}</td><td>${esc(fmtStat(r.value, st.key))}</td></tr>`).join('');
+  content.innerHTML = pickers + statTable(`${yr} ${st.label} · ${gName}`, ['Team', st.col], body, 'Player', true);
+}
+content.addEventListener('click', e => {
+  if (S.view !== 'stats') return;
+  const tr = e.target.closest('tr[data-team]');
+  if (tr && tr.dataset.team) openTeam(tr.dataset.team);
+});
+
 /* -- top-level pages from the side menu -- */
 const STAND_CONFS = CONFS.filter(c => !/^(top25|80)$/.test(c[0]));
 S.sconf = store.get('cfb.sconf', '8'); S.poll = 0;
@@ -2794,6 +2887,8 @@ async function renderPage(){
     content.innerHTML = rankingsHTML(v, null);
   } else if (view === 'news') {
     renderStream();
+  } else if (view === 'stats') {
+    renderStatLeaders();
   } else if (view === 'teams') {
     renderTeamsDir();
   } else if (view === 'bowl') {
@@ -2813,7 +2908,7 @@ async function renderPage(){
     clearTimeout(S.timer);
     S.timer = setTimeout(() => { if (S.view === 'top' && !document.hidden) { silentTop = true; renderPage(); } }, 30000);
   } else {
-    const label = {teams: 'Teams', stats: 'Statistics'}[view] || '';
+    const label = {teams: 'Teams'}[view] || '';
     content.innerHTML = `<div class="msg" style="margin-top:60px"><b>${esc(label)}</b>Coming soon.</div>`;
   }
 }
@@ -2823,6 +2918,8 @@ content.addEventListener('change', e => {
     if (S.view === 'team') renderTeam(true); else renderPage();
     return;
   }
+  if (e.target.id === 'ldGroupSel') { S.ldGroup = e.target.value; store.set('cfb.ldGroup', S.ldGroup); renderStatLeaders(); return; }
+  if (e.target.id === 'ldStatSel') { S.ldStat = e.target.value; store.set('cfb.ldStat', S.ldStat); renderStatLeaders(); return; }
   if (e.target.id === 'sconfSel') { S.sconf = e.target.value; store.set('cfb.sconf', S.sconf); renderPage(); }
 });
 content.addEventListener('click', e => {
