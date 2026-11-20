@@ -1407,7 +1407,7 @@ const AP_CONFS = {cfb:['ACC','Big Ten','Big 12','SEC'], cbb:['ACC','Big East','B
 const AP_EXTRA = {cfb:['87']};   /* Notre Dame (independent) */
 /* College lists open as conference cards; tap one to see and pick its schools */
 const AP_CONF_ORDER = {cfb:['ACC','Big Ten','Big 12','SEC','Independents'], cbb:['ACC','Big East','Big Ten','Big 12','SEC']};
-const CONF_LOGO = {'ACC':'500-dark/1', 'Big 12':'500-dark/4', 'Big Ten':'500-dark/5', 'SEC':'500-dark/8', 'Big East':'500/big_east', 'Independents':'local:ncaa-independents.png'};
+const CONF_LOGO = {'ACC':'500-dark/1', 'Big 12':'local:conf-big12.png', 'Big Ten':'500-dark/5', 'SEC':'500-dark/8', 'Big East':'500/big_east', 'Independents':'local:ncaa-independents.png'};
 const apConfOf = (lg, t) => (AP_CONFS[lg]||[]).includes(t.conf) ? t.conf : (AP_EXTRA[lg]||[]).includes(String(t.id)) ? 'Independents' : null;
 let apConf = null, apScrollBack = 0;     /* {lg, conf} while a conference is open */
 function apRow(attr, on, bg, logo, name){
