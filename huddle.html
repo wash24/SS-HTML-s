@@ -1292,6 +1292,7 @@ function teamGame(p){
 }
 function drawerRow(p){
   const v = pickView(p), m = tileMeta[v.key] || {};
+  if(p.type==='league') v.bg = '#3a3a3d';      /* sport rows in My Teams use the lighter card gray */
   const name = p.type==='league' ? LG[p.lg].label+' News' : p.full;
   const g = teamGame(p);
   let right = '';
