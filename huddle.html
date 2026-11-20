@@ -714,7 +714,10 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 /* stream: game boxes are cards on the dark page */
 .tpage .tp-body > .gb{margin:8px max(8px,env(safe-area-inset-right,0px)) 0 max(8px,env(safe-area-inset-left,0px));background:#3a3a3d;border-bottom:0;box-shadow:0 1px 3px rgba(0,0,0,.5)}
 .tpage .tp-body > .gb + .gb{margin-top:10px}
-.gb-tv{margin-left:9px;color:rgba(255,255,255,.55);font-weight:400}
+.gb-tv{margin-left:-1px;color:rgba(255,255,255,.55);font-weight:400}   /* sits one word-space after the time (the label row's own 6px gap, less 1) */
+/* team/league page tabs share the full width evenly */
+.tp-tabs{gap:0;padding:0}
+.tp-tab{flex:1;text-align:center;padding-left:4px;padding-right:4px}
 .tp-scores{background:transparent}
 </style>
 <style>
