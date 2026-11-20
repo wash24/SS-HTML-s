@@ -1395,7 +1395,7 @@ const AP_CONFS = {cfb:['ACC','Big Ten','Big 12','SEC'], cbb:['ACC','Big East','B
 const AP_EXTRA = {cfb:['87']};   /* Notre Dame (independent) */
 /* College lists open as conference cards; tap one to see and pick its schools */
 const AP_CONF_ORDER = {cfb:['ACC','Big Ten','Big 12','SEC','Independents'], cbb:['ACC','Big East','Big Ten','Big 12','SEC']};
-const CONF_LOGO = {'ACC':'500-dark/1', 'Big 12':'500-dark/4', 'Big Ten':'500-dark/5', 'SEC':'500-dark/8', 'Big East':'500/big_east', 'Independents':'500-dark/18'};
+const CONF_LOGO = {'ACC':'500-dark/1', 'Big 12':'500-dark/4', 'Big Ten':'500-dark/5', 'SEC':'500-dark/8', 'Big East':'500/big_east', 'Independents':'local:ncaa-independents.png'};
 const apConfOf = (lg, t) => (AP_CONFS[lg]||[]).includes(t.conf) ? t.conf : (AP_EXTRA[lg]||[]).includes(String(t.id)) ? 'Independents' : null;
 let apConf = null, apScrollBack = 0;     /* {lg, conf} while a conference is open */
 function apRow(attr, on, bg, logo, name){
@@ -1417,7 +1417,7 @@ async function renderPickerBody(){
   } else {
     const lgs = AP_ORDER.filter(lg => !q || (AP_NAME[lg]+' '+LG[lg].name+' '+LG[lg].label).toLowerCase().includes(q));
     if(lgs.length) html += `<div class="ap-sec">Sports</div>` + lgs.map(lg => { const L = LG[lg];
-      return apRow(`data-pick-league="${lg}"`, isPicked(lg), '#3a3a3d', L.logo ? logoTag(L.logo, L.label) : `<b class="logo-txt">${esc(L.label)}</b>`, AP_NAME[lg]); }).join('');
+      return apRow(`data-pick-league="${lg}"`, isPicked(lg), '#3a3a3d', L.logo ? logoTag(L.logo, L.label) : `<b class="logo-txt">${esc(L.label)}</b>`, L.label+' News'); }).join('');
     for(const lg of AP_ORDER){
       const ts = teamCache[lg];
       if(!ts){ if(!q) html += `<div class="ap-sec">${esc(AP_NAME[lg])}</div><div class="ap-note">Loading teams…</div>`; continue; }
@@ -1425,8 +1425,7 @@ async function renderPickerBody(){
         /* college: one card per conference */
         html += `<div class="ap-sec">${esc(AP_NAME[lg])}</div>` + AP_CONF_ORDER[lg].map(conf => {
           const members = ts.filter(t => apConfOf(lg, t)===conf); if(!members.length) return '';
-          const on = members.filter(t => isPicked(`${lg}:${t.id}`)).length;
-          return `<button class="trow ap-row ap-conf" data-apconf="${lg}|${esc(conf)}" style="background:#3a3a3d"><span class="tlogo">${CONF_LOGO[conf] ? `<img src="https://a.espncdn.com/i/teamlogos/ncaa_conf/${CONF_LOGO[conf]}.png" alt="">` : ''}</span><span class="tname"><span>${esc(conf)}</span></span><span class="ap-cnt">${on ? `<b>${on} added</b>` : `${members.length} ${members.length===1?'team':'teams'}`}<i aria-hidden="true">›</i></span></button>`; }).join('');
+          return `<button class="trow ap-row ap-conf" data-apconf="${lg}|${esc(conf)}" style="background:#3a3a3d"><span class="tlogo">${CONF_LOGO[conf] ? `<img src="${CONF_LOGO[conf].startsWith('local:') ? CONF_LOGO[conf].slice(6) : `https://a.espncdn.com/i/teamlogos/ncaa_conf/${CONF_LOGO[conf]}.png`}" alt="">` : ''}</span><span class="tname"><span>${esc(conf)}</span></span><span class="ap-cnt"><i aria-hidden="true">›</i></span></button>`; }).join('');
         continue;
       }
       const shown = listed(lg, ts).filter(t => !q || (t.full+' '+t.ab+' '+(t.location||'')).toLowerCase().includes(q)).sort(byName);
