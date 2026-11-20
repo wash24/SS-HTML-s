@@ -505,6 +505,8 @@ function normalize(sport, ev){
     };
   });
   let label, blurb = '';
+  // Some feeds (soccer) say "Scheduled" instead of a time; show the kickoff time. Real notices (Postponed, TBD) stay.
+  const genericPre = st.state === 'pre' && /^(scheduled|fixture|pre-?game)$/i.test(String(st.shortDetail || st.detail || '').trim());
   const postseason = ev.season && ev.season.type === 3;
   const note = c.notes && c.notes[0] && c.notes[0].headline;
   const psLabel = postseason ? (note || (c.series && c.series.title) || '').replace(/\s+-\s+/g, ' ') : '';
@@ -527,7 +529,7 @@ function normalize(sport, ev){
     label = st.shortDetail;
     blurb = (c.situation && c.situation.lastPlay && c.situation.lastPlay.text) || (c.situation && c.situation.downDistanceText) || '';
   } else {
-    label = st.name === 'STATUS_SCHEDULED' ? `${md(date)}: ${hm(date)}` : `${md(date)}: ${st.shortDetail}`;
+    label = st.name === 'STATUS_SCHEDULED' || genericPre ? `${md(date)}: ${hm(date)}` : `${md(date)}: ${st.shortDetail}`;
     const tv = c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names.join('/');
     const venue = c.venue && c.venue.fullName;
     blurb = [psLabel, venue].filter(Boolean).join(' - ');
@@ -542,7 +544,7 @@ function normalize(sport, ev){
   return { id: ev.id, sport, state: st.state, date, label, blurb, tv, teams, link: gameLink(sport, ev), psLabel, seriesTxt,
     poss: st.state === 'in' && sport.key !== 'epl' && c.situation && c.situation.possession ? String(c.situation.possession) : '',
     lastPlay: st.state === 'in' && c.situation && c.situation.lastPlay ? String(c.situation.lastPlay.text || '') : '',
-    detail: st.shortDetail || '', venue: c.venue && c.venue.fullName, venueAddr: c.venue && c.venue.address ? [c.venue.address.city, c.venue.address.state].filter(Boolean).join(', ') : '', odds: odds ? [odds.details, odds.overUnder] : null,
+    detail: genericPre ? '' : st.shortDetail || '', venue: c.venue && c.venue.fullName, venueAddr: c.venue && c.venue.address ? [c.venue.address.city, c.venue.address.state].filter(Boolean).join(', ') : '', odds: odds ? [odds.details, odds.overUnder] : null,
     margin: Math.abs(scores[0] - (scores[1] || 0)), post: ev.season && ev.season.type === 3 };
 }
 
@@ -930,7 +932,7 @@ function performers(g, sum){
     const items = picks.map(([label, c]) => {
       const l = c.leaders[0];
       if (fam === 'baseball' && (/^hits$/i.test(c.name || '') || label === 'BA')) label = 'HITS';
-      const stat = fam === 'football' ? fbStat(label, l, true) : fam === 'basketball' ? bbLine(label, l, box, t, side) : l.displayValue;
+      const stat = fam === 'football' ? fbStat(label, l, true) : fam === 'basketball' ? bbLine(label, l, box, t, side) : fam === 'soccer' ? soccerStat(label, l, c) : l.displayValue;
       return card(label, l.athlete, stat);
     }).join('');
     return items ? `<div class="gm-col"><div class="gm-who">${esc(t.short)}</div>${items}</div>` : '';
@@ -1026,7 +1028,17 @@ function stCalc(entries, college){
   return rows;
 }
 // Shorter group names: "American League West" -> "AL West", "Big Ten Conference" -> "Big Ten Conf."
-const stShort = (t, college) => { t = String(t || '').replace(/\bAmerican League\b/g, 'AL').replace(/\bNational League\b/g, 'NL'); return college ? t.replace(/\bConference\b/g, 'Conf.') : t; };
+function soccerStat(label, l, c){
+  const parts = String(l.displayValue || '').split(/,\s*/).map(x => x.trim()).filter(Boolean);
+  const keep = parts.filter(x => !/^(matches|appearances|apps|games|mp|gp|starts|minutes)\b/i.test(x));
+  const want = String((c && (c.displayName || c.shortDisplayName)) || label || '').replace(/\s*leaders?$/i, '').trim();
+  const nice = want ? want[0].toUpperCase() + want.slice(1).toLowerCase() : 'Total';
+  const hit = keep.find(x => want && x.toLowerCase().startsWith(want.toLowerCase().slice(0, 4)));
+  if (hit) return hit.includes(':') ? hit.replace(/^([^:]+):\s*/, (m, k) => k.trim()[0].toUpperCase() + k.trim().slice(1).toLowerCase() + ': ') : hit;
+  const v = typeof l.value === 'number' ? (Number.isInteger(l.value) ? l.value : l.value.toFixed(1)) : ((keep[0] || '').match(/[\d.]+/) || [''])[0];
+  return v !== '' ? `${nice}: ${v}` : (keep[0] || l.displayValue || '');
+}
+const stShort = (t, college) => { t = String(t || '').replace(/^\d{4}(-\d{2,4})?\s+/, '').replace(/\b(English )?Premier League\b/g, 'EPL').replace(/\bAmerican League\b/g, 'AL').replace(/\bNational League\b/g, 'NL'); return college ? t.replace(/\bConference\b/g, 'Conf.') : t; };
 function stTableSoccer(title, entries, isMe){
   const num = (e, re) => { const x = (e.stats || []).find(y => re.test(y.name || '') || re.test(y.abbreviation || '')); if (!x) return null; const v = x.value ?? parseFloat(x.displayValue); return isNaN(v) ? null : +v; };
   const rows = entries.map(e => {
@@ -1120,7 +1132,7 @@ function gameHTML(g){
         if (!cats.length && fam === 'soccer') cats = pool.filter(c => c.leaders && c.leaders[0]).slice(0, 3).map(c => [c.shortDisplayName || c.displayName || c.name, c]);
         const items = cats.map(([label, c]) => {
           const l = c.leaders[0];
-          const stat = fam === 'football' ? fbStat(label, l) : fam === 'basketball' ? `${leaderValue(label, l)} ${({ PTS:'PPG', AST:'APG', REB:'RPG' })[label]}` : leaderValue(label, l);
+          const stat = fam === 'football' ? fbStat(label, l) : fam === 'basketball' ? `${leaderValue(label, l)} ${({ PTS:'PPG', AST:'APG', REB:'RPG' })[label]}` : fam === 'soccer' ? soccerStat(label, l, c) : leaderValue(label, l);
           return card(label, l.athlete, stat);
         }).join('');
         return items ? `<div class="gm-col"><div class="gm-who">${esc(t.short)}</div>${items}</div>` : '';
