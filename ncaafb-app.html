@@ -2091,7 +2091,26 @@ function renderTeam(keepScroll){
     : rec + featuredHTML() + newsHTML();
   if (keepScroll) content.scrollTop = y;
 }
+/* Team pages are FBS-only: FCS / Division II / Division III teams appear on Scores and Rankings but don't open a page. */
+let FBS_IDS = null;
+async function fbsIds(){
+  if (FBS_IDS) return FBS_IDS;
+  const set = new Set();
+  try { (await loadDirectory()).all.forEach(t => t?.id && set.add(String(t.id))); } catch (e) {}
+  if (set.size < 100) {
+    try { const d = await getJSON(`${API}/teams?groups=80&limit=1000`); (d.sports?.[0]?.leagues?.[0]?.teams || []).forEach(x => x.team?.id && set.add(String(x.team.id))); } catch (e) {}
+  }
+  if (set.size >= 100) FBS_IDS = set;               // only trust a full FBS list
+  return set;
+}
+function teamBlocked(){
+  if (/^#team\//.test(location.hash)) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} render(); }
+}
 function openTeam(id, fromHistory, fromGame){
+  if (FBS_IDS) { if (FBS_IDS.has(String(id))) openTeamNow(id, fromHistory, fromGame); else teamBlocked(); return; }
+  fbsIds().then(set => { if (set.size >= 100 && !set.has(String(id))) teamBlocked(); else openTeamNow(id, fromHistory, fromGame); });
+}
+function openTeamNow(id, fromHistory, fromGame){
   T.fromGame = fromGame || null;
   document.body.classList.toggle('fromgame', !!T.fromGame);
   if (G.id) closeGame(true);
@@ -3004,7 +3023,7 @@ content.addEventListener('click', e => {
 });
 
 /* -- top-level pages from the side menu -- */
-const STAND_CONFS = CONFS.filter(c => !/^(top25|80)$/.test(c[0]));
+const STAND_CONFS = CONFS.filter(c => !/^(top25|80)$/.test(c[0]) && !SMALL[c[0]]);   // FBS conferences only
 S.sconf = store.get('cfb.sconf', '8'); S.poll = 0;
 async function renderPage(){
   const token = ++S.token, view = S.view;
@@ -3117,6 +3136,7 @@ async function boot(){
   if (tm) openTeam(tm[1], true);
   const m = startHash.match(/^#game\/(\d+)/);
   if (m) { try { history.replaceState(null, '', startHash); } catch (e) {} openGame(m[1], true); }
+  setTimeout(() => fbsIds(), 1500);                  // warm the FBS team list so team taps open instantly
 }
 boot();
 if (document.fonts) document.fonts.ready.then(() => { if (S.view === 'scores') centerTab(); });
