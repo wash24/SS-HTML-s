@@ -654,7 +654,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 /* ===== Loading screen ===== */
 #splash{position:fixed;inset:0;z-index:1000;background:#4a4a4d;display:flex;align-items:center;justify-content:center;transition:opacity .4s ease}
 #splash.done{opacity:0;pointer-events:none}
-.splash-mark{position:relative;width:140px;height:140px;display:flex;align-items:center;justify-content:center}
+.splash-mark{position:relative;width:min(250px,64vw);aspect-ratio:1032/864;height:auto;display:flex;align-items:center;justify-content:center}
 .splash-mark img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 .splash-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;border:2px dashed rgba(255,255,255,.35);border-radius:24px;font-family:var(--font-display);font-size:22px;letter-spacing:.12em;color:rgba(255,255,255,.45)}
 .splash-mark.has-img .splash-ph{display:none}
@@ -752,7 +752,7 @@ html .tabs{padding-bottom:env(safe-area-inset-bottom,0px)}
 
 <!-- Loading screen. To use your logo, upload it to the repo as team-stream-logo.png (square, about 512x512, transparent background works best). Until then a placeholder shows. -->
 <div id="splash" aria-label="Loading">
-  <div class="splash-mark"><img src="team-stream-logo.png" alt="Team Stream" onload="this.parentNode.classList.add('has-img')" onerror="this.remove()"><span class="splash-ph">LOGO</span></div>
+  <div class="splash-mark"><img src="splash-logo.png" alt="Team Stream from Bleacher Report" onload="this.parentNode.classList.add('has-img')" onerror="this.remove()"><span class="splash-ph">LOGO</span></div>
 </div>
 <div class="app" id="app">
   <header class="appbar">
