@@ -924,7 +924,19 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hex = c => !c ? '#444' : (c[0]==='#' ? c : '#'+c);
 function lum(c){ c = hex(c).slice(1); if(c.length!==6) return .3; const [r,g,b]=[0,2,4].map(i=>parseInt(c.substr(i,2),16)/255); return .2126*r+.7152*g+.0722*b; }
-const teamBg = (color, alt) => (lum(color) > .78 && alt) ? hex(alt) : hex(color);
+/* Stream-card color for a team. Names and logos sit on it in white, so the color has to be dark enough for white to read.
+   Uses the real (WCAG) contrast against white: the team's main color if it reads, else its second color if that reads,
+   else the main color darkened just until it reads (golds, yellows and sky blues like ASU, WVU, Warriors). */
+function relLum(c){ c = hex(c).slice(1); if(c.length!==6) return .05; const f = v => v<=.04045 ? v/12.92 : Math.pow((v+.055)/1.055, 2.4);
+  const [r,g,b] = [0,2,4].map(i=>f(parseInt(c.substr(i,2),16)/255)); return .2126*r+.7152*g+.0722*b; }
+const onWhite = c => 1.05/(relLum(c)+.05);          /* contrast ratio of white text on c */
+function teamBg(color, alt){
+  const c = hex(color||'#3a3a3d');
+  if(onWhite(c) >= 2.5) return c;
+  if(alt && onWhite(alt) >= 3) return hex(alt);
+  let f = .95, d = c; while(onWhite(d) < 2.6 && f > .3){ d = shade(c, f); f -= .04; }
+  return d;
+}
 /* <img> that swaps itself for text if the logo can't load */
 /* Dark-background ("500-dark") logo variants: ESPN publishes these for leagues and teams.
    Each <img> tries the dark version first, falls back to the regular logo, then to text. */
@@ -1099,7 +1111,7 @@ function mini(st){
 function pickView(p){
   if(p.type==='league'){ const L = LG[p.lg]; return {key:p.lg, name:L.label, bg:L.color, logo:L.logo, text:L.label}; }
   const fx = fixedColor(p.lg, p.id);
-  return {key:pickKey(p), name: LG[p.lg].college ? p.location : p.nick, bg: fx ? hex(fx[0]) : teamBg(p.color,p.alt), logo:p.logo, text:p.ab};
+  return {key:pickKey(p), name: LG[p.lg].college ? p.location : p.nick, bg: fx ? teamBg(fx[0], fx[1]) : teamBg(p.color,p.alt), logo:p.logo, text:p.ab};
 }
 function rail(){
   const tiles = picks.map(p => {
