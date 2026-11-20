@@ -661,7 +661,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 
 /* header logo (replaces the Team Stream wordmark) */
 .wordmark{align-items:center}
-.wm-logo{display:block;height:28px;width:auto}
+.wm-logo{display:block;height:25px;width:auto}
 
 /* ===== Tweets in the team stream (2015 Team Stream style) ===== */
 .tweet{display:flex;gap:10px;margin:0 max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px));padding:12px 2px;background:transparent;color:#f2f2f0;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.1)}   /* sits right on the page's gray; a thin line separates tweets */
@@ -709,7 +709,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 #drawerList .trow.lifted{transition:none;z-index:3;box-shadow:0 6px 16px rgba(0,0,0,.55);filter:brightness(1.08)}
 
 /* ===== Team pages: team-color name bar + tabs, darkest page, lighter cards ===== */
-.tpage{background:var(--tp-bg,#1f1f21)}
+.tpage{background:var(--tp-bg,#2a2a2c)}
 .tp-head,.tp-tabs{background:var(--tp-bar,#4a4a4d)}
 /* stream: game boxes are cards on the dark page */
 .tpage .tp-body > .gb{margin:8px max(8px,env(safe-area-inset-right,0px)) 0 max(8px,env(safe-area-inset-left,0px));background:#3a3a3d;border-bottom:0;box-shadow:0 1px 3px rgba(0,0,0,.5)}
@@ -1771,7 +1771,7 @@ function renderTeamPage(){
   const base = p.type==='league' ? '#3a3a3d' : v.bg;
   const prim = lum(base) > .55 ? shade(base, .6) : hex(base);   /* team primary color (darkened only if very light, so white text reads) */
   /* team pages: name bar and tabs in the team's primary color; the page behind the stream is the darkest layer */
-  page.style.setProperty('--tp-bg', '#1f1f21');
+  page.style.setProperty('--tp-bg', '#2a2a2c');
   page.style.setProperty('--tp-bar', p.type==='league' ? '#4a4a4d' : prim);
   page.classList.toggle('team', p.type==='team');
   $('#tpName').textContent = p.type==='league' ? LG[p.lg].name : p.full;
