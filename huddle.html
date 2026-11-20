@@ -719,7 +719,12 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .tp-tabs{gap:0;padding:0}
 .tp-tab{flex:1;text-align:center;padding-left:4px;padding-right:4px}
 .tp-scores{background:transparent}
-.tpage .sch-row,.tpage .stand{background:transparent}   /* Standings/Schedule sit on the page's own back layer, not an extra dark tint */
+/* Standings tables and Schedule rows are lighter cards on the page's back layer, like the game boxes */
+.tpage .stand{background:#3a3a3d;margin:8px max(8px,env(safe-area-inset-right,0px)) 0 max(8px,env(safe-area-inset-left,0px));box-shadow:0 1px 3px rgba(0,0,0,.5);padding-bottom:2px}
+.tpage .stand tr.me td{background:rgba(255,255,255,.1)}
+.tpage .sched{margin-left:max(8px,env(safe-area-inset-left,0px));margin-right:max(8px,env(safe-area-inset-right,0px))}
+.tpage .sch-row{background:#3a3a3d;box-shadow:0 1px 2px rgba(0,0,0,.45)}
+.tpage .sch-row.next{background:#47474b}
 </style>
 <style>
 /* Home-screen app fit.
