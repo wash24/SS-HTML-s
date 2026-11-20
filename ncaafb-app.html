@@ -322,7 +322,7 @@ body.teamv.fromgame #navTitle{left:108px;right:108px}
 body.pagev .seg,body.pagev #band{display:none}
 body.pagev #navTitle{display:block;position:absolute;left:64px;right:64px;text-align:center;font-size:22px;font-weight:700;color:#fff;
   text-shadow:0 -1px 0 rgba(0,0,0,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-body.pagev .stand{margin:0 10px}
+body.pagev .stand{margin:0 8px}
 body.pagev .pickers{padding:14px 10px 2px}
 body.pagev .pseg{margin-left:10px;margin-right:10px}
 body.pagev .sbar{margin-top:0}
@@ -3083,14 +3083,14 @@ content.addEventListener('click', e => {
   if (S.view !== 'standings' && S.view !== 'rankings') return;
   const p = e.target.closest('[data-poll]');
 
-  const tr = e.target.closest('tr[data-team], .strow[data-team], .rkrow[data-team]');
+  const tr = e.target.closest('tr[data-team], .strow[data-team], .rkrow[data-team], .cfr[data-team]');
   if (tr && tr.dataset.team) openTeam(tr.dataset.team);
 });
 content.addEventListener('click', e => {
   if (S.view !== 'team') return;
   const p = e.target.closest('[data-poll]');
 
-  const tr = e.target.closest('tr[data-team], .strow[data-team], .rkrow[data-team]');
+  const tr = e.target.closest('tr[data-team], .strow[data-team], .rkrow[data-team], .cfr[data-team]');
   if (tr && tr.dataset.team && tr.dataset.team !== T.id) openTeam(tr.dataset.team);
 });
 
