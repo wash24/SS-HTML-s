@@ -725,6 +725,14 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 .tpage .sched{margin-left:max(8px,env(safe-area-inset-left,0px));margin-right:max(8px,env(safe-area-inset-right,0px))}
 .tpage .sch-row{background:#3a3a3d;box-shadow:0 1px 2px rgba(0,0,0,.45)}
 .tpage .sch-row.next{background:#47474b}
+
+/* Add Teams: conference cards for college */
+.ap-conf .tlogo img{object-fit:contain;padding:9px 6px;box-sizing:border-box}
+.ap-cnt{flex:none;align-self:center;display:flex;align-items:center;gap:12px;margin-right:16px;font-family:var(--font-display);font-size:15px;color:rgba(255,255,255,.6)}
+.ap-cnt b{font-weight:500;color:#fff}
+.ap-cnt i{font-style:normal;font-size:28px;line-height:1;color:rgba(255,255,255,.85)}
+.ap-crumb{align-self:flex-start;margin:8px 0 -2px;padding:4px 2px;font-family:var(--font-display);font-size:19px;color:rgba(255,255,255,.85)}
+.ap-crumb span{font-size:24px;margin-right:2px}
 </style>
 <style>
 /* Home-screen app fit.
@@ -1385,6 +1393,11 @@ const apLoading = {};
 /* college: only schools in these conferences are listed on Add Teams */
 const AP_CONFS = {cfb:['ACC','Big Ten','Big 12','SEC'], cbb:['ACC','Big East','Big Ten','Big 12','SEC']};
 const AP_EXTRA = {cfb:['87']};   /* Notre Dame (independent) */
+/* College lists open as conference cards; tap one to see and pick its schools */
+const AP_CONF_ORDER = {cfb:['ACC','Big Ten','Big 12','SEC','Independents'], cbb:['ACC','Big East','Big Ten','Big 12','SEC']};
+const CONF_LOGO = {'ACC':'500-dark/1', 'Big 12':'500-dark/4', 'Big Ten':'500-dark/5', 'SEC':'500-dark/8', 'Big East':'500/big_east', 'Independents':'500-dark/18'};
+const apConfOf = (lg, t) => (AP_CONFS[lg]||[]).includes(t.conf) ? t.conf : (AP_EXTRA[lg]||[]).includes(String(t.id)) ? 'Independents' : null;
+let apConf = null, apScrollBack = 0;     /* {lg, conf} while a conference is open */
 function apRow(attr, on, bg, logo, name){
   return `<button class="trow ap-row" ${attr} aria-pressed="${on}" style="background:${bg}"><span class="tlogo">${logo}</span><span class="tname"><span>${esc(name)}</span></span><span class="ap-chk" aria-hidden="true"></span></button>`;
 }
@@ -1392,17 +1405,34 @@ async function renderPickerBody(){
   const body = $('#pickerList'), q = pickerQuery.trim().toLowerCase();
   /* every sport's team list loads in the background; the screen fills in as each arrives */
   AP_ORDER.forEach(lg => { if(!teamCache[lg] && !apLoading[lg]) apLoading[lg] = getTeams(lg).then(() => { if($('#picker').classList.contains('open')) renderPickerBody(); }); });
+  const teamRow = t => { const key = `${t.lg}:${t.id}`;
+    return apRow(`data-pick-team="${esc(key)}"`, isPicked(key), teamBg(t.color||'#3a3a3d', t.alt), t.logo ? logoTag(t.logo, t.ab, '', t.logoDark) : `<b class="logo-txt">${esc(t.ab)}</b>`, t.full); };
+  const byName = (x,y) => x.full.localeCompare(y.full);
+  const listed = (lg, ts) => ts.filter(t => !AP_CONFS[lg] || apConfOf(lg, t));
   let html = '';
-  const lgs = AP_ORDER.filter(lg => !q || (AP_NAME[lg]+' '+LG[lg].name+' '+LG[lg].label).toLowerCase().includes(q));
-  if(lgs.length) html += `<div class="ap-sec">Sports</div>` + lgs.map(lg => { const L = LG[lg];
-    return apRow(`data-pick-league="${lg}"`, isPicked(lg), L.color, L.logo ? logoTag(L.logo, L.label) : `<b class="logo-txt">${esc(L.label)}</b>`, AP_NAME[lg]); }).join('');
-  for(const lg of AP_ORDER){
-    const ts = teamCache[lg];
-    if(!ts){ if(!q) html += `<div class="ap-sec">${esc(AP_NAME[lg])}</div><div class="ap-note">Loading teams…</div>`; continue; }
-    const shown = ts.filter(t => !AP_CONFS[lg] || AP_CONFS[lg].includes(t.conf) || (AP_EXTRA[lg]||[]).includes(String(t.id))).filter(t => !q || (t.full+' '+t.ab+' '+(t.location||'')).toLowerCase().includes(q)).slice().sort((x,y) => x.full.localeCompare(y.full));
-    if(!shown.length) continue;
-    html += `<div class="ap-sec">${esc(AP_NAME[lg])}</div>` + shown.map(t => { const key = `${t.lg}:${t.id}`;
-      return apRow(`data-pick-team="${esc(key)}"`, isPicked(key), teamBg(t.color||'#3a3a3d', t.alt), t.logo ? logoTag(t.logo, t.ab, '', t.logoDark) : `<b class="logo-txt">${esc(t.ab)}</b>`, t.full); }).join('');
+  if(apConf && !q){
+    /* inside one conference */
+    const {lg, conf} = apConf, ts = (teamCache[lg]||[]).filter(t => apConfOf(lg, t)===conf).sort(byName);
+    html = `<button class="ap-crumb" data-apback><span aria-hidden="true">‹</span> ${esc(AP_NAME[lg])}</button><div class="ap-sec">${esc(conf)}</div>` + ts.map(teamRow).join('');
+  } else {
+    const lgs = AP_ORDER.filter(lg => !q || (AP_NAME[lg]+' '+LG[lg].name+' '+LG[lg].label).toLowerCase().includes(q));
+    if(lgs.length) html += `<div class="ap-sec">Sports</div>` + lgs.map(lg => { const L = LG[lg];
+      return apRow(`data-pick-league="${lg}"`, isPicked(lg), '#3a3a3d', L.logo ? logoTag(L.logo, L.label) : `<b class="logo-txt">${esc(L.label)}</b>`, AP_NAME[lg]); }).join('');
+    for(const lg of AP_ORDER){
+      const ts = teamCache[lg];
+      if(!ts){ if(!q) html += `<div class="ap-sec">${esc(AP_NAME[lg])}</div><div class="ap-note">Loading teams…</div>`; continue; }
+      if(AP_CONF_ORDER[lg] && !q){
+        /* college: one card per conference */
+        html += `<div class="ap-sec">${esc(AP_NAME[lg])}</div>` + AP_CONF_ORDER[lg].map(conf => {
+          const members = ts.filter(t => apConfOf(lg, t)===conf); if(!members.length) return '';
+          const on = members.filter(t => isPicked(`${lg}:${t.id}`)).length;
+          return `<button class="trow ap-row ap-conf" data-apconf="${lg}|${esc(conf)}" style="background:#3a3a3d"><span class="tlogo">${CONF_LOGO[conf] ? `<img src="https://a.espncdn.com/i/teamlogos/ncaa_conf/${CONF_LOGO[conf]}.png" alt="">` : ''}</span><span class="tname"><span>${esc(conf)}</span></span><span class="ap-cnt">${on ? `<b>${on} added</b>` : `${members.length} teams`}<i aria-hidden="true">›</i></span></button>`; }).join('');
+        continue;
+      }
+      const shown = listed(lg, ts).filter(t => !q || (t.full+' '+t.ab+' '+(t.location||'')).toLowerCase().includes(q)).sort(byName);
+      if(!shown.length) continue;
+      html += `<div class="ap-sec">${esc(AP_NAME[lg])}</div>` + shown.map(teamRow).join('');
+    }
   }
   if(!html) html = `<div class="ap-note">No teams match “${esc(pickerQuery)}”.</div>`;
   const y = body.scrollTop; body.innerHTML = html; body.scrollTop = y;
@@ -1416,7 +1446,7 @@ function togglePick(p){
 let picksAtOpen = '';
 function openPicker(search){
   picksAtOpen = JSON.stringify(picks);
-  pickerQuery = ''; $('#teamSearch').value = ''; $('#apSearch').hidden = !search; $('#pickerList').scrollTop = 0;
+  pickerQuery = ''; $('#teamSearch').value = ''; $('#apSearch').hidden = !search; apConf = null; $('#pickerList').scrollTop = 0;
   $('#picker').classList.add('open'); $('#picker').setAttribute('aria-hidden','false');
   renderPicked(); renderPickerBody();
 }
@@ -2172,7 +2202,10 @@ document.addEventListener('click', e => {
   if(e.target.closest('#tpTitle')){ showView('teams'); setDrawer(true); closeTeamPage(); return; }
   if(e.target.closest('[data-add]')){ openPicker(); return; }
   if(e.target.closest('.search-btn')){ openPicker(true); setTimeout(()=>$('#teamSearch').focus(), 320); return; }
-  if(e.target.closest('#pickerBack')){ closePicker(); return; }
+  if(e.target.closest('#pickerBack')){ if(apConf){ apConf = null; renderPickerBody(); $('#pickerList').scrollTop = apScrollBack; } else closePicker(); return; }
+  const apc = e.target.closest('[data-apconf]');
+  if(apc){ const [lg, conf] = apc.dataset.apconf.split('|'); apScrollBack = $('#pickerList').scrollTop; apConf = {lg, conf}; renderPickerBody(); $('#pickerList').scrollTop = 0; return; }
+  if(e.target.closest('[data-apback]')){ apConf = null; renderPickerBody(); $('#pickerList').scrollTop = apScrollBack; return; }
   if(e.target.closest('#apSearchBtn')){ const sb = $('#apSearch'); sb.hidden = !sb.hidden; if(!sb.hidden) $('#teamSearch').focus(); else if(pickerQuery){ pickerQuery=''; $('#teamSearch').value=''; renderPickerBody(); } return; }
   if(e.target.closest('[data-edit]') || e.target.closest('.gear')){ openPicker(); return; }
   if(e.target.closest('#pickerDone')){ closePicker(); return; }
