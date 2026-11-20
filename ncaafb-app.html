@@ -1413,9 +1413,6 @@ function gameInfoHTML(g){
   if (city) rows.push(['Location', city]);
   const net = netOf(g.comp) || (d.broadcasts || []).map(b => b.media?.shortName).filter(Boolean).join(', ');
   if (net) rows.push(['TV', net]);
-  const odds = (d.pickcenter || d.odds || [])[0];
-  if (odds?.details && gStateOf(g) === 'pre') rows.push(['Line', odds.details]);
-  if (odds?.overUnder && gStateOf(g) === 'pre') rows.push(['Over/Under', String(odds.overUnder)]);
   if (gi.attendance) rows.push(['Attendance', Number(gi.attendance).toLocaleString('en-US')]);
   return `<div class="scard"><div class="sbar">Game Information</div><div class="info">${rows.map(([a, b]) => `<div><span>${esc(a)}</span><span>${esc(b)}</span></div>`).join('')}</div></div><div style="height:6px"></div>`;
 }
@@ -1456,11 +1453,23 @@ function scoringHTML(g){
   });
   return out + '</div>';
 }
+/* ESPN's auto-generated "previews" are just a stat dump (records, opening line, how to watch, key stats,
+   team leaders, last/next game) — not a real write-up. */
+function isStatDump(a){
+  const txt = String(a?.story || a?.description || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!txt) return false;
+  const marks = [/\bKey stats\b/i, /\bTeam leaders\b/i, /\bOpening Line:/i, /\bHow to watch:/i, /\bAgainst the spread:/i,
+    /\bLast game\b/i, /\bNext game\b/i, /yards per game \(\d+(st|nd|rd|th)/i].filter(r => r.test(txt)).length;
+  const opener = /^[^.]{2,70}\(\d+-\d+(-\d+)?\)\s+(at|vs\.?)\s+[^.]{2,70}\(\d+-\d+(-\d+)?\),/i.test(txt);
+  return marks >= 3 || (opener && marks >= 1);
+}
 function storyHTML(g){
   const state = gStateOf(g), d = G.data || {};
   const a = d.article;
   const want = state === 'pre' ? /preview/i : /recap/i;
-  const art = state !== 'in' && a && (a.story || a.headline) && (!a.type || want.test(a.type) || state === 'post') ? a : null;
+  let art = state !== 'in' && a && (a.story || a.headline) && (!a.type || want.test(a.type) || state === 'post') ? a : null;
+  const dump = state === 'pre' && isStatDump(a);
+  if (dump) art = null;
   let html = '';
   if (state === 'in') {
     const fld = fieldHTML({situation: g.situation}, g.away, g.home);
@@ -1476,7 +1485,7 @@ function storyHTML(g){
       ${pic ? `<figure>${vid ? `<button class="play" data-vi="0" aria-label="Play video"></button>` : ''}<img src="${esc(pic)}" alt=""></figure>` : ''}
       ${art.byline ? `<div class="by">${esc(art.byline)}</div>` : ''}
       <div class="txt">${cleanStory(art.story) || (art.description ? `<p>${esc(art.description)}</p>` : '')}</div></article>`;
-  } else if (state !== 'in') {
+  } else if (state !== 'in' && !dump) {
     html += `<div class="gempty"><b>${state === 'pre' ? 'Preview not yet available' : 'Recap not yet available'}</b>${state === 'pre' ? 'ESPN usually posts game previews a day or two before kickoff.' : 'The recap usually posts shortly after the final whistle.'}</div>`;
   }
   if (state === 'in') html += scoringHTML(g);
