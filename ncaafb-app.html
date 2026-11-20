@@ -777,7 +777,9 @@ body.teamv .scard > .sbar{height:32px;line-height:32px;padding:0 10px;background
 (() => {
 const API = 'https://site.api.espn.com/apis/site/v2/sports/football/college-football';
 const CONFS = [['top25','Top 25'],['80','All FBS'],['1','ACC'],['151','American'],['4','Big 12'],['5','Big Ten'],['12','C-USA'],
-  ['18','Independents'],['15','MAC'],['17','Mountain West'],['9','Pac-12'],['8','SEC'],['37','Sun Belt']];
+  ['18','Independents'],['15','MAC'],['17','Mountain West'],['9','Pac-12'],['8','SEC'],['37','Sun Belt'],
+  ['81','FCS'],['57','Division II'],['d3','Division III']];
+const SMALL = {'81':1,'57':1,'d3':1};   // lower divisions: no Top 25 / FBS rank filtering
 const CONF_SHORT = {1:'ACC',151:'AAC',4:'Big 12',5:'Big Ten',12:'C-USA',18:'Ind.',15:'MAC',17:'MWC',9:'Pac-12',8:'SEC',37:'Sun Belt'};
 const TABS = ['top','all','my'];
 
@@ -813,7 +815,7 @@ async function getJSON(url, fresh){
 }
 function sbURL(group){
   const w = S.weeks.find(x => x.key === S.weekKey);
-  let u = `${API}/scoreboard?limit=300&groups=${group}`;
+  let u = `${API}/scoreboard?limit=${SMALL[group] || group === '35' || group === '58' ? 1000 : 300}&groups=${group}`;
   if (w) u += `&seasontype=${w.st}&week=${w.wk}`;
   if (S.season) u += `&dates=${S.season}`;
   return u;
@@ -903,7 +905,7 @@ function teamRow(c, state, possId, eid){
   const rec = recordBig(c);
   const poss = state === 'in' && possId && String(possId) === String(t.id);
   return `<div class="tm${lose ? ' lose' : ''}">
-    ${logo ? `<img src="${esc(logo)}" alt="" loading="lazy">` : '<div class="ph"></div>'}
+    ${logo ? `<img src="${esc(logo)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;ph&quot;></div>'">` : '<div class="ph"></div>'}
     <div class="txt">${rk ? `<span class="rk">${rk}</span>` : ''}<span class="nm">${esc(teamName(t))}</span>${rec ? `<span class="rec">${esc(rec)}</span>` : ''}</div>
     ${showScore ? `<span class="sc">${poss ? BALL : ''}<span>${esc(c.score)}</span></span>` : (poss ? BALL : '')}
   </div>`;
@@ -1089,9 +1091,18 @@ async function renderScores(silent){
   if (!silent) content.innerHTML = pickersHTML() + '<div id="list"><div class="spin"></div></div>';
   const group = tab === 'all' && S.conf !== 'top25' ? S.conf : '80';
   try {
-    const d = await getJSON(sbURL(group), silent);
+    let evs;
+    if (group === 'd3') {
+      // ESPN has no Division III-only feed we can rely on: take the combined Div II/III feed (35)
+      // and drop the Division II games (57). Fall back to group 58 if the combined feed fails.
+      const [both, d2] = await Promise.allSettled([getJSON(sbURL('35'), silent), getJSON(sbURL('57'), silent)]);
+      if (both.status === 'fulfilled') {
+        const d2ids = new Set(d2.status === 'fulfilled' ? (d2.value.events || []).map(e => String(e.id)) : []);
+        evs = (both.value.events || []).filter(e => !d2ids.has(String(e.id)));
+      } else evs = (await getJSON(sbURL('58'), silent)).events || [];
+    } else evs = (await getJSON(sbURL(group), silent)).events || [];
     if (token !== S.token) return;
-    let evs = (d.events || []).filter(e => e.competitions?.[0]);
+    evs = evs.filter(e => e.competitions?.[0]);
     evs.forEach(e => { S.ev[e.id] = e; });
     if (tab === 'all' && S.conf === 'top25') evs = evs.filter(e => { const s = sides(e); return rankOf(s.away) || rankOf(s.home); });
     if (tab === 'top') evs = evs.filter(isTopGame);
@@ -1714,7 +1725,7 @@ async function loadGame(silent){
     if (token !== G.token) return;
     if (!G.data && !silent) gBody.innerHTML = `<div class="gempty"><b>Unable to load game</b>Check your connection and try again.<br><button class="cta" id="gRetry">Retry</button></div>`;
   }
-  if (silent && S.ev[id]) { try { const sb = await getJSON(sbURL('80'), true); (sb.events || []).forEach(e => { S.ev[e.id] = e; }); } catch (e) {} }
+  if (silent && S.ev[id]) { try { const sb = await getJSON(sbURL(SMALL[S.conf] ? (S.conf === 'd3' ? '35' : S.conf) : '80'), true); (sb.events || []).forEach(e => { S.ev[e.id] = e; }); } catch (e) {} }
   if (token !== G.token) return;
   renderGameHead(); renderGameBody(silent);
   if (gStateOf(gameComp()) === 'in') G.timer = setTimeout(() => { if (G.id && !document.hidden) loadGame(true); }, 30000);
