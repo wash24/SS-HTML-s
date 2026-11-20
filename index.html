@@ -129,6 +129,7 @@ body{overscroll-behavior:none}
 .hd-art{position:absolute;top:5px;left:5px;right:5px;bottom:6px;background-repeat:no-repeat;background-position:right center;background-size:auto 100%;pointer-events:none;clip-path:polygon(0 0,100% 0,100% calc(100% - 17px),calc(100% - 38px) calc(100% - 17px),calc(100% - 51px) 100%,0 100%)}
 .hd-art[data-art="hoops"]{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27400%27%20height%3D%2780%27%20viewBox%3D%270%200%20400%2080%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.1%27%20stroke-width%3D%271.2%27%3E%3Ccircle%20cx%3D%27330%27%20cy%3D%2740%27%20r%3D%2734%27/%3E%3Ccircle%20cx%3D%27330%27%20cy%3D%2740%27%20r%3D%279%27/%3E%3Cpath%20d%3D%27M0%2018h120l26%2036H0M146%2054a40%2040%200%200%200%200-36%27/%3E%3Cpath%20d%3D%27M60%208l14%2014m0-14L60%2022%27%20/%3E%3C/svg%3E")}
 .hd-art[data-art="football"]{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27400%27%20height%3D%2780%27%20viewBox%3D%270%200%20400%2080%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.1%27%20stroke-width%3D%271.2%27%3E%3Cpath%20d%3D%27M40%200v80M100%200v80M160%200v80M240%200v80M300%200v80M360%200v80%27/%3E%3Cpath%20d%3D%27M70%2036v8M130%2036v8M270%2036v8M330%2036v8%27/%3E%3Cpath%20d%3D%27M200%200v80%27%20stroke-opacity%3D%27.24%27/%3E%3C/svg%3E")}
+.hd-art[data-art="soccer"]{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20width%3D%27400%27%20height%3D%2780%27%20viewBox%3D%270%200%20400%2080%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.1%27%20stroke-width%3D%271.2%27%3E%3Cpath%20d%3D%27M200%200v80%27/%3E%3Ccircle%20cx%3D%27200%27%20cy%3D%2740%27%20r%3D%2722%27/%3E%3Ccircle%20cx%3D%27200%27%20cy%3D%2740%27%20r%3D%271.6%27%20fill%3D%27white%27%20fill-opacity%3D%27.1%27/%3E%3Cpath%20d%3D%27M400%2014h-44v52h44M400%2028h-16v24h16%27/%3E%3Cpath%20d%3D%27M356%2026a16%2016%200%200%200%200%2028%27/%3E%3Cpath%20d%3D%27M0%2014h44v52H0M0%2028h16v24H0%27/%3E%3Cpath%20d%3D%27M44%2026a16%2016%200%200%201%200%2028%27/%3E%3C/svg%3E")}
 .hd-art[data-art="baseball"]{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27400%27%20height%3D%2780%27%20viewBox%3D%270%200%20400%2080%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.1%27%20stroke-width%3D%271.2%27%3E%3Cpath%20d%3D%27M330%2070l-40-40%2040-40%2040%2040z%27/%3E%3Ccircle%20cx%3D%27330%27%20cy%3D%2730%27%20r%3D%276%27/%3E%3Cpath%20d%3D%27M0%2070q120-90%20260-40%27/%3E%3Cpath%20d%3D%27M20%2010h60%27/%3E%3C/svg%3E")}
 .hd-art[data-art="lead"]{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27400%27%20height%3D%2780%27%20viewBox%3D%270%200%20400%2080%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-opacity%3D%27.1%27%20stroke-width%3D%271.2%27%3E%3Ccircle%20cx%3D%27340%27%20cy%3D%2740%27%20r%3D%2742%27/%3E%3Cpath%20d%3D%27M0%2060q100-60%20220-20t180-20%27/%3E%3Cpath%20d%3D%27M20%2015l12%2012m0-12L20%2027%27/%3E%3C/svg%3E")}
 .panel-head::before{content:"";position:absolute;inset:0 0 48% 0;background:linear-gradient(rgba(255,255,255,.2),rgba(255,255,255,.05));pointer-events:none}
@@ -320,6 +321,7 @@ const SPORTS = [
   { key:'mlb', daily:true, theme:'mlb', name:'MLB',              tag:'MLB',   mark:'MLB',   path:'baseball/mlb',                       params:'',                    college:false, page:'mlb-scoreboard.html' },
   { key:'ncb', daily:true, theme:'red', name:'NCAA Basketball',    tag:'NCAAB', mark:'NCAAB', path:'basketball/mens-college-basketball', params:'groups=50&limit=300', college:true,  page:'ncaabb-scoreboard.html' },
   { key:'nba', daily:true, theme:'nba', name:'NBA',              tag:'NBA',   mark:'NBA',   path:'basketball/nba',                     params:'',                    college:false, page:'nba-scoreboard.html' },
+  { key:'epl', daily:true, span:[-3, 4], theme:'mlb', name:'Premier League', tag:'EPL', mark:'EPL', path:'soccer/eng.1', params:'', college:false, page:'' },
 ];
 // Where tapping a game goes. Default: the game's own page from the feed.
 const gameLink = (sport, ev) => (ev.links && ev.links[0] && ev.links[0].href) || '#';
@@ -375,6 +377,11 @@ const SAMPLE = {
     mk('a1','in','4th 2:48',-0.5,['Golden State','GSW','1d428a',104],['Los Angeles','LAL','552583',101],{ls:[[28,25,30,21],[26,27,27,21]],tv:'Sample TV',play:'Sample play: corner three ties the game, then a go-ahead layup.'}),
     mk('a2','post','Final',-22,['New York','NYK','006bb6',109],['Boston','BOS','007a33',116],{win:'home',ls:[[27,30,26,26],[29,24,29,34]],head:'Sample recap: Boston pulls away with a 12-2 run in the fourth.'}),
   ],
+  epl: [
+    mk('e1','post','FT',-20,['Arsenal','ARS','ef0107',2,null,'8-3-1'],['Chelsea','CHE','034694',1,null,'7-3-2'],{win:'away',ls:[[1,1],[0,1]],venue:['Stamford Bridge','London','England'],head:'Sample recap: Arsenal edge Chelsea in the London derby.',lead:[[['goals','GOALS','B. Saka','1 G'],['assists','ASSISTS','M. Odegaard','1 A']],[['goals','GOALS','C. Palmer','1 G'],['saves','SAVES','R. Sanchez','5 SV']]]}),
+    mk('e2','in',"67'",-1.1,['Liverpool','LIV','c8102e',1,null,'8-1-3'],['Tottenham','TOT','132257',1,null,'6-2-4'],{ls:[[0,1],[1,0]],tv:'Sample TV',venue:['Tottenham Hotspur Stadium','London','England'],play:"Sample play: corner kick taken short, cleared at the near post."}),
+    mk('e3','pre','',30,['Aston Villa','AVL','670e36',null,null,'6-3-3'],['Manchester City','MCI','6cabdd',null,null,'8-2-2'],{tv:'Sample TV',venue:['Etihad Stadium','Manchester','England'],lead:[[['goals','GOALS','O. Watkins','7'],['assists','ASSISTS','M. Rogers','4']],[['goals','GOALS','E. Haaland','12'],['assists','ASSISTS','P. Foden','5']]]}),
+  ],
 };
 // Sample box score player lines (basketball), standing in for the per-game summary feed.
 const sampleBox = (teams) => {
@@ -390,6 +397,9 @@ const SAMPLE_SUMMARY = {
 // Sample standings. Rows: [team id, name, wins, losses, conf record?]
 const sampleStand = groups => ({ standings: { groups: groups.map(([header, rows]) => ({ header,
   standings: { entries: rows.map(([id, team, w, l, conf]) => ({ id, team, stats: [{ name:'wins', value:w }, { name:'losses', value:l }, ...(conf ? [{ type:'vsconf', summary:conf }] : [])] })) } })) } });
+const EPL_TABLE = [['ARS','Arsenal',8,3,1,15,27],['MCI','Man City',8,2,2,13,26],['LIV','Liverpool',8,1,3,9,25],['CHE','Chelsea',7,3,2,8,24],['AVL','Aston Villa',6,3,3,4,21],['TOT','Tottenham',6,2,4,3,20]];
+const eplStand = () => ({ standings: { groups: [{ header: '2026-27 Premier League', standings: { entries: EPL_TABLE.map(([id, team, w, d, l, gd, pts], i) => ({ id, team,
+  stats: [{ name:'rank', value:i + 1 }, { name:'gamesPlayed', value:w + d + l }, { name:'wins', value:w }, { name:'ties', value:d }, { name:'losses', value:l }, { name:'pointDifferential', value:gd }, { name:'points', value:pts }] })) } }] } });
 const STAND = {
   b10: ['2026 Big Ten Conference Standings', [['OSU','Ohio State',7,0,'5-0'],['IND','Indiana',7,0,'4-0'],['ORE','Oregon',7,0,'4-0'],['PSU','Penn State',6,1,'3-1'],['MICH','Michigan',5,2,'3-1'],['UW','Washington',5,2,'2-2'],['IOWA','Iowa',4,3,'2-2'],['NEB','Nebraska',4,3,'1-3'],['MINN','Minnesota',3,4,'1-3'],['RUTG','Rutgers',3,4,'0-4']]],
   sec: ['2026 SEC Standings', [['TEX','Texas',6,1,'4-0'],['UGA','Georgia',6,1,'3-1'],['ALA','Alabama',6,1,'3-1'],['LSU','LSU',5,2,'2-2'],['TENN','Tennessee',5,2,'2-2'],['OU','Oklahoma',4,3,'1-3']]],
@@ -410,10 +420,11 @@ Object.assign(SAMPLE_SUMMARY, {
   n1: withStand(null, 'nfce'), n2: withStand(null, 'afcw', 'afce'),
   m1: withStand(null, 'nlw', 'ale'), m2: withStand(null, 'nlw', 'ale'),
   b1: withStand(null, 'acc', 'b12'),
+  e1: eplStand(), e2: eplStand(), e3: eplStand(),
 });
 const CONF_SAMPLE = { OSU:'5', PSU:'5', ORE:'5', UW:'5', UGA:'8', TEX:'8', KU:'8', DUKE:'2' };
 const SAMPLE_ARTICLES = sp => [1, 2, 3, 4].map(i => ({ headline: `Sample ${sp.name} headline ${i}`, description: 'Live stories, photos and links load when this page runs on your own site.', published: new Date(Date.now() - i * 5400e3).toISOString(), links: { web: { href: '#' } } }));
-const SAMPLE_STANDINGS = sp => ({ cfb: ['b10','sec'], nfl: ['nfce','afcw','afce'], mlb: ['ale','nlw'], ncb: ['acc','b12'], nba: ['east','west'] }[sp.key] || []).map(k => ({ id: '', name: stTitle({ header: STAND[k][0] }),
+const SAMPLE_STANDINGS = sp => sp.key === 'epl' ? eplStand().standings.groups.map(g => ({ id: '', name: stTitle(g), entries: g.standings.entries })) : ({ cfb: ['b10','sec'], nfl: ['nfce','afcw','afce'], mlb: ['ale','nlw'], ncb: ['acc','b12'], nba: ['east','west'] }[sp.key] || []).map(k => ({ id: '', name: stTitle({ header: STAND[k][0] }),
   entries: sampleStand([STAND[k]]).standings.groups[0].standings.entries }));
 const SAMPLE_NEWS = SPORTS.map(s => ({ tag: s.tag, text: `Sample headline for ${s.name}. Live headlines appear when this page runs on your own site.` }));
 
@@ -431,7 +442,7 @@ pages.forEach((p, i) => {
   sec.className = 'page th-' + p.theme; sec.id = 'p-' + p.key; sec.setAttribute('aria-label', p.name);
   const isSport = true, isLead = p.key === 'top', conf = CONFS[p.key];
   const views = isLead ? [['scores','Scores'],['news','News']] : [['scores','Scores'],['news','News'],['standings','Standings']];
-  sec.innerHTML = `<div class="panel"><div class="panel-head${isSport ? ' has-tab' : ''}"><span class="hd-art" data-art="${({ cfb:'football', nfl:'football', mlb:'baseball', ncb:'hoops', nba:'hoops' })[p.key] || 'lead'}"></span><h1>${p.name}</h1><span class="hd-rule"></span>${isSport ? '<span class="hd-rr"></span>' : ''}${isSport ? `<button class="hd-tab open" data-k="${p.key}" aria-expanded="true" aria-label="Show ${p.name} menu"><svg viewBox="0 0 52 18"><path class="edge" d="M0 17.5L13 0.5H52"/><path class="tri" d="M31 7h10l-5 6z"/></svg></button>` : ''}</div>
+  sec.innerHTML = `<div class="panel"><div class="panel-head${isSport ? ' has-tab' : ''}"><span class="hd-art" data-art="${({ cfb:'football', nfl:'football', mlb:'baseball', epl:'soccer', ncb:'hoops', nba:'hoops' })[p.key] || 'lead'}"></span><h1>${p.name}</h1><span class="hd-rule"></span>${isSport ? '<span class="hd-rr"></span>' : ''}${isSport ? `<button class="hd-tab open" data-k="${p.key}" aria-expanded="true" aria-label="Show ${p.name} menu"><svg viewBox="0 0 52 18"><path class="edge" d="M0 17.5L13 0.5H52"/><path class="tri" d="M31 7h10l-5 6z"/></svg></button>` : ''}</div>
     ${isSport ? `<div class="tabbar" id="tb-${p.key}"><div class="seg" role="tablist">${views.map(([v, l]) => `<button role="tab" data-k="${p.key}" data-view="${v}" class="${v === 'scores' ? 'on' : ''}" aria-selected="${v === 'scores'}">${l}</button>`).join('')}</div><button class="bell" aria-label="Alerts"><svg viewBox="0 0 20 20"><path d="M10 2.2a1.2 1.2 0 0 1 1.2 1.2v.5a5.2 5.2 0 0 1 4 5.1v3.4l1.6 2.1v.9H3.2V15l1.6-2.1V9a5.2 5.2 0 0 1 4-5.1v-.5A1.2 1.2 0 0 1 10 2.2zM8 16.4h4a2 2 0 0 1-4 0z"/></svg></button></div>` : ''}
     ${conf ? `<div class="fbar"><button class="fsel" data-k="${p.key}" aria-haspopup="listbox" aria-expanded="false"><span id="fl-${p.key}">Top 25</span><i aria-hidden="true"><b></b><b></b><b></b></i></button>
       <div class="fmenu" id="fm-${p.key}" role="listbox" hidden>${[['top25','Top 25'], [conf.all[0], conf.all[1]], ...conf.list].map(([v, l]) => `<button role="option" data-k="${p.key}" data-f="${v}">${l}</button>`).join('')}</div></div>` : ''}
@@ -529,7 +540,7 @@ function normalize(sport, ev){
   const tv = st.state === 'post' ? '' : String(bc || (c.geoBroadcasts && c.geoBroadcasts[0] && c.geoBroadcasts[0].media && c.geoBroadcasts[0].media.shortName) || '').split('/')[0].trim();
   const odds = c.odds && c.odds[0];
   return { id: ev.id, sport, state: st.state, date, label, blurb, tv, teams, link: gameLink(sport, ev), psLabel, seriesTxt,
-    poss: st.state === 'in' && c.situation && c.situation.possession ? String(c.situation.possession) : '',
+    poss: st.state === 'in' && sport.key !== 'epl' && c.situation && c.situation.possession ? String(c.situation.possession) : '',
     lastPlay: st.state === 'in' && c.situation && c.situation.lastPlay ? String(c.situation.lastPlay.text || '') : '',
     detail: st.shortDetail || '', venue: c.venue && c.venue.fullName, venueAddr: c.venue && c.venue.address ? [c.venue.address.city, c.venue.address.state].filter(Boolean).join(', ') : '', odds: odds ? [odds.details, odds.overUnder] : null,
     margin: Math.abs(scores[0] - (scores[1] || 0)), post: ev.season && ev.season.type === 3 };
@@ -802,7 +813,7 @@ function renderStandings(sp){
     }
   }
   if (!groups.length) { el.innerHTML = `<div class="empty">No ${esc(sp.name)} standings yet.</div>`; return; }
-  el.innerHTML = (state.sample[sp.key] ? NOTICE : '') + `<div class="gm-stw st-page">${groups.map(gr => stTable(gr.name, gr.entries, sp.college, null, true, sp.key === 'nfl')).join('')}</div>`;
+  el.innerHTML = (state.sample[sp.key] ? NOTICE : '') + `<div class="gm-stw st-page">${groups.map(gr => stTable(gr.name, gr.entries, sp.college, null, true, sp.key === 'nfl', sp.key === 'epl')).join('')}</div>`;
 }
 
 document.addEventListener('click', e => {
@@ -823,7 +834,7 @@ document.addEventListener('click', e => {
 Object.keys(CONFS).forEach(k => { const el = document.getElementById('fl-' + k); if (el) el.textContent = filterLabel(k); });
 
 /* ===== Game pop-up ===== */
-const REG = { nba:4, ncb:2, nfl:4, cfb:4, mlb:9 };
+const REG = { nba:4, ncb:2, nfl:4, cfb:4, mlb:9, epl:2 };
 const gm = document.getElementById('gm');
 const summaries = {};
 let openGid = null, gmTheme = 'red', gmTimer;
@@ -836,6 +847,7 @@ function periodLabel(key, i){
   const reg = REG[key] || 4;
   if (key === 'mlb' || i < reg) return String(i + 1);
   const n = i - reg + 1;
+  if (key === 'epl') return n === 1 ? 'ET' : 'PK';
   return n === 1 ? 'OT' : n + 'OT';
 }
 function linescoreHTML(g){
@@ -930,8 +942,9 @@ const PRE_CATS = {
   basketball: [['PTS', /^(points|pointsPerGame|avgPoints|ppg)$/i], ['AST', /^(assists|assistsPerGame|avgAssists|apg)$/i], ['REB', /^(rebounds|reboundsPerGame|avgRebounds|rpg)$/i]],
   football: [['PASS', /^passingYards$/i], ['RUSH', /^rushingYards$/i], ['REC', /^receivingYards$/i]],
   baseball: [['AVG', /^(avg|battingAverage)$/i], ['HR', /^homeRuns$/i], ['RBI', /^(RBIs?|runsBattedIn)$/i]],
+  soccer: [['GOALS', /^(goals|goalsLeaders|totalGoals)$/i], ['ASSISTS', /^(assists|goalAssists|assistsLeaders)$/i]],
 };
-const sportFamily = k => (k === 'nba' || k === 'ncb') ? 'basketball' : k === 'mlb' ? 'baseball' : 'football';
+const sportFamily = k => (k === 'nba' || k === 'ncb') ? 'basketball' : k === 'mlb' ? 'baseball' : k === 'epl' ? 'soccer' : 'football';
 function leaderValue(label, l){
   if (typeof l.value === 'number') {
     if (label === 'AVG') return l.value.toFixed(3).replace(/^0/, '');
@@ -1014,7 +1027,21 @@ function stCalc(entries, college){
 }
 // Shorter group names: "American League West" -> "AL West", "Big Ten Conference" -> "Big Ten Conf."
 const stShort = (t, college) => { t = String(t || '').replace(/\bAmerican League\b/g, 'AL').replace(/\bNational League\b/g, 'NL'); return college ? t.replace(/\bConference\b/g, 'Conf.') : t; };
-function stTable(title, entries, college, isMe, sort, ties){
+function stTableSoccer(title, entries, isMe){
+  const num = (e, re) => { const x = (e.stats || []).find(y => re.test(y.name || '') || re.test(y.abbreviation || '')); if (!x) return null; const v = x.value ?? parseFloat(x.displayValue); return isNaN(v) ? null : +v; };
+  const rows = entries.map(e => {
+    const w = num(e, /^wins$/i), d = num(e, /^(ties|draws)$/i), l = num(e, /^losses$/i);
+    const gp = num(e, /^gamesPlayed$/i) ?? (w != null ? w + (d || 0) + (l || 0) : null);
+    const pts = num(e, /^points$/i) ?? (w != null ? 3 * w + (d || 0) : null);
+    const gd = num(e, /^(pointDifferential|goalDifference)$/i);
+    return { e, w, d, l, gp, pts, gd, rank: num(e, /^rank$/i) };
+  }).sort((a, b) => (a.rank ?? 99) - (b.rank ?? 99) || (b.pts ?? -1) - (a.pts ?? -1) || (b.gd ?? 0) - (a.gd ?? 0));
+  const c = v => v == null ? '' : v;
+  const body = rows.map(r => `<tr class="${isMe && isMe(r.e) ? 'me' : ''}"><td class="tm">${esc(stEntryName(r.e, false))}</td><td class="n">${c(r.gp)}</td><td class="n">${c(r.w)}</td><td class="n">${c(r.d)}</td><td class="n">${c(r.l)}</td><td class="n">${r.gd == null ? '' : r.gd > 0 ? '+' + r.gd : r.gd}</td><td class="n">${c(r.pts)}</td></tr>`).join('');
+  return `<div class="gm-st"><table><colgroup><col>${'<col style="width:26px">'.repeat(4)}<col style="width:32px"><col style="width:32px"></colgroup><thead><tr><th class="tm">${esc(title)}</th><th class="n">GP</th><th class="n">W</th><th class="n">D</th><th class="n">L</th><th class="n">GD</th><th class="n">PTS</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+function stTable(title, entries, college, isMe, sort, ties, soccer){
+  if (soccer) return stTableSoccer(stShort(title, false), entries, isMe);
   title = stShort(title, college);
   const pro = !college;
   let rows = stCalc(entries, college);
@@ -1035,7 +1062,7 @@ function standingsHTML(g, sum){
   const order = [];
   [ids[1], ids[0]].forEach(id => { const gr = groupOf(id); if (gr && !order.includes(gr)) order.push(gr); });
   if (!order.length) return '';
-  return `<div class="gm-strip">Standings</div><div class="gm-stw">${order.map(gr => stTable(stTitle(gr), (gr.standings && gr.standings.entries) || [], college, isMe, false, g.sport.key === 'nfl')).join('')}</div>`;
+  return `<div class="gm-strip">Standings</div><div class="gm-stw">${order.map(gr => stTable(stTitle(gr), (gr.standings && gr.standings.entries) || [], college, isMe, false, g.sport.key === 'nfl', g.sport.key === 'epl')).join('')}</div>`;
 }
 
 // Live games: the most recent play, freshest source first
@@ -1089,9 +1116,9 @@ function gameHTML(g){
     {
       const cols = g.teams.map((t, side) => {
         const pool = leaderPool(t, side, sum && sum.data);
-        const items = PRE_CATS[fam].map(([label, re]) => {
-          const c = findCat(pool, re);
-          if (!c) return '';
+        let cats = PRE_CATS[fam].map(([label, re]) => [label, findCat(pool, re)]).filter(x => x[1]);
+        if (!cats.length && fam === 'soccer') cats = pool.filter(c => c.leaders && c.leaders[0]).slice(0, 3).map(c => [c.shortDisplayName || c.displayName || c.name, c]);
+        const items = cats.map(([label, c]) => {
           const l = c.leaders[0];
           const stat = fam === 'football' ? fbStat(label, l) : fam === 'basketball' ? `${leaderValue(label, l)} ${({ PTS:'PPG', AST:'APG', REB:'RPG' })[label]}` : leaderValue(label, l);
           return card(label, l.athlete, stat);
@@ -1172,7 +1199,7 @@ pager.addEventListener('click', e => {
 
 /* ===== Data ===== */
 const ymd = d => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
-function dateRange(){ const d = new Date(); return ymd(new Date(d.getTime() - 864e5)) + '-' + ymd(new Date(d.getTime() + 864e5)); }
+function dateRange(sport){ const [a, b] = (sport && sport.span) || [-1, 1], d = Date.now(); return ymd(new Date(d + a * 864e5)) + '-' + ymd(new Date(d + b * 864e5)); }
 async function getJSON(url){
   const r = await fetch(url, { cache:'no-store' });
   if (!r.ok) throw new Error(r.status);
@@ -1185,9 +1212,10 @@ async function fetchEvents(sport){
   const qs = extra => { const q = [sport.params, extra].filter(Boolean).join('&'); return q ? '?' + q : ''; };
   if (sport.daily) {
     let events = null;
-    try { events = (await getJSON(base + qs('dates=' + dateRange()))).events || []; } catch (e) {}
+    try { events = (await getJSON(base + qs('dates=' + dateRange(sport)))).events || []; } catch (e) {}
     if (!events) {
-      const days = [-1, 0, 1].map(o => ymd(new Date(Date.now() + o * 864e5)));
+      const [sa, sb] = sport.span || [-1, 1];
+      const days = Array.from({ length: sb - sa + 1 }, (_, i) => ymd(new Date(Date.now() + (sa + i) * 864e5)));
       const res = await Promise.allSettled(days.map(d => getJSON(base + qs('dates=' + d))));
       const ok = res.filter(r => r.status === 'fulfilled');
       if (ok.length) { const m = new Map(); ok.forEach(r => (r.value.events || []).forEach(e => m.set(e.id, e))); events = [...m.values()]; }
@@ -1226,7 +1254,8 @@ async function offseason(sport, base, qs){
     if (pastCal.length) last = await grab(Math.round((pastCal[0] - today) / 864e5), Math.round((pastCal[0] - today) / 864e5));
   }
   for (let w = 0; !last.length && w < 17; w++) last = await grab(-7 * w - 8, -7 * w - 2);
-  if (last.length) { const d = Math.max(...last.map(dayOf)); last = last.filter(e => dayOf(e) === d); }
+  const md = sport.span ? 3 * 864e5 : 0;
+  if (last.length) { const d = Math.max(...last.map(dayOf)); last = last.filter(e => dayOf(e) >= d - md); }
 
   // Next game day: the calendar if it reaches ahead, else search forward in growing windows.
   let next = def.filter(e => dayOf(e) > today);
@@ -1237,7 +1266,7 @@ async function offseason(sport, base, qs){
   // Only look as far ahead as matters: past the age of the last game, the last game would stay up anyway.
   const reach = last.length ? Math.round((today - dayOf(last[0])) / 864e5) : 220;
   for (let f = 2; !next.length && f <= reach; f += 7) next = await grab(f, Math.min(f + 6, reach));
-  if (next.length) { const d = Math.min(...next.map(dayOf)); next = next.filter(e => dayOf(e) === d); }
+  if (next.length) { const d = Math.min(...next.map(dayOf)); next = next.filter(e => dayOf(e) <= d + md); }
 
   if (!last.length || !next.length) return last.length ? last : next;
   const since = today - dayOf(last[0]), until = dayOf(next[0]) - today;
