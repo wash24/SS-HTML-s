@@ -12,7 +12,7 @@
 <title>Team Stream</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&family=Kaushan+Script&family=Roboto+Slab:wght@800&family=Roboto+Condensed:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&family=Kaushan+Script&family=Roboto+Condensed:wght@400;700&display=swap">
 <style>
 /* Layout: 2015-era sports stream app — score ticker on top, full-bleed story cards, team-color tile rail, three-tab bar fixed at the bottom */
 :root{
@@ -708,26 +708,13 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--flame);outline-offs
 #drawerList.editing .trow{transition:transform .18s ease}
 #drawerList .trow.lifted{transition:none;z-index:3;box-shadow:0 6px 16px rgba(0,0,0,.55);filter:brightness(1.08)}
 
-/* ===== Team pages (2015 Team Stream): team-color name bar + tabs, darkest page, lighter cards ===== */
+/* ===== Team pages: team-color name bar + tabs, darkest page, lighter cards ===== */
 .tpage{background:var(--tp-bg,#1f1f21)}
 .tp-head,.tp-tabs{background:var(--tp-bar,#4a4a4d)}
-.tp-head{display:flex;align-items:center;height:58px;gap:6px;padding:0 max(10px,env(safe-area-inset-right,0px)) 0 max(6px,env(safe-area-inset-left,0px));border-bottom:0}
-.tp-head .back{flex:none}
-.tp-head .back svg{width:24px;height:24px}
-.tpage .tp-title{justify-self:auto;justify-content:flex-start;text-align:left;position:static;flex:1;min-width:0;max-width:none;gap:14px;font-size:28px;letter-spacing:.005em}
-.tpage .tp-title svg{position:static;transform:none;width:13px;height:13px;opacity:.95}
-.tp-head > span:last-child{display:none}
-.tp-tabs{gap:0;padding:0;border-bottom:0;box-shadow:0 2px 4px rgba(0,0,0,.35);position:relative;z-index:1}
-.tp-tab{flex:1;text-align:center;font-size:21px;padding:9px 4px 9px;color:rgba(255,255,255,.72);border-bottom:3px solid transparent}
-.tp-tab[aria-selected="true"]{color:#fff;border-bottom-color:#f4a536}
 /* stream: game boxes are cards on the dark page */
 .tpage .tp-body > .gb{margin:8px max(8px,env(safe-area-inset-right,0px)) 0 max(8px,env(safe-area-inset-left,0px));background:#3a3a3d;border-bottom:0;box-shadow:0 1px 3px rgba(0,0,0,.5)}
 .tpage .tp-body > .gb + .gb{margin-top:10px}
-.tpage .tp-body > .gb .gb-top{height:30px;padding:0 10px;font-size:15px;font-weight:500}
-.tpage .tp-body > .gb .gb-top a,.tpage .tp-body > .gb .gb-top .linkish,.tpage .tp-body > .gb .gb-more{font-size:15px;font-weight:500}
 .gb-tv{margin-left:9px;color:rgba(255,255,255,.55);font-weight:400}
-.tp-brmark{margin:18px 0 6px;text-align:center;font-family:"Roboto Slab",Rockwell,Georgia,serif;font-weight:800;font-size:46px;line-height:1;color:#444447;letter-spacing:-.02em;user-select:none}
-.tp-brmark i{font-style:normal;font-weight:300;margin:0 1px;color:#3c3c3f}
 .tp-scores{background:transparent}
 </style>
 <style>
@@ -1508,7 +1495,7 @@ function scoresPreLabel(g){
 function preLabel(g){
   const d = new Date(g.date), now = new Date(), tm = new Date(); tm.setDate(now.getDate()+1);
   const day = d.toDateString()===now.toDateString() ? 'Today' : d.toDateString()===tm.toDateString() ? 'Tomorrow' : dayLabel(d);
-  const time = g.tbd ? 'TBD' : d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})+' '+tzLabel(d);
+  const time = g.tbd ? 'TBD' : d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).replace(/\s/g,'')+' '+tzLabel(d);
   return `${esc(day+' '+time)}${g.tv ? `<span class="gb-tv">${esc(g.tv)}</span>` : ''}`;   /* returns HTML */
 }
 /* ---- Game box: short, wide rows ----
@@ -1679,7 +1666,7 @@ function renderStream(p){
     /* last game on top, next game below it; on gameday the game moves to the top */
     const boxes = gameday ? [[next,false],[last,true]] : [[last,true],[next,false]];
     boxes.forEach(([g]) => { if(g){ enrichGame(g); const fg = full(g); if(fg.live) loadPlays(fg); html += gameBox(fg); } });
-    if(boxes.some(([g])=>g)) html += '<div class="tp-brmark" aria-hidden="true">b<i>/</i>r</div>';
+    if(boxes.some(([g])=>g)) html += '<div class="gb-gap"></div>';
   } else {
     const order = g => g.live?0 : g.final?2 : 1;
     const lg = gs.slice().sort((x,y)=>order(x)-order(y) || new Date(x.date)-new Date(y.date)).slice(0,24);
@@ -1785,7 +1772,7 @@ function renderTeamPage(){
   page.style.setProperty('--tp-bar', p.type==='league' ? '#4a4a4d' : prim);
   page.classList.toggle('team', p.type==='team');
   $('#tpName').textContent = p.type==='league' ? LG[p.lg].name : p.full;
-  const tabs = p.type==='team' ? ['stream','standings','schedule','scores'] : ['stream','scores','standings'];
+  const tabs = p.type==='team' ? ['stream','standings','schedule'] : ['stream','scores','standings'];
   if(!tabs.includes(tpTab)) tpTab = 'stream';
   $('#tpTabs').innerHTML = tabs.map(t => `<button class="tp-tab" data-tptab="${t}" aria-selected="${t===tpTab}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('');
   $('#tpBody').innerHTML = tpTab==='standings' ? renderStandings(p) : tpTab==='schedule' ? renderSchedule(p) : tpTab==='scores' ? `<div class="tp-scores">${scoresView(p.lg, tpScDay, tpScMenu, true)}</div>` : renderStream(p);
