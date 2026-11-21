@@ -1431,14 +1431,24 @@ function cleanPlay(t){
   s = s.replace(new RegExp(String.raw`\s*,?\s*(?:tackled|stopped|pushed out of bounds)\s+by\s+${PNAME}(?:\s*(?:and|;|,)\s*${PNAME})*`, 'gi'), '');
   s = s.replace(/\s*\((?:#|tackled|[A-Z]\.\s?[A-Z]|[A-Z]\.[A-Z])[^)]*\)/g, '');            // (#3 X.Y; #9 Z.W) tacklers
   s = s.replace(/\s*\[[^\]]*\]/g, '');                                                      // [QB hurry …]
-  s = s.replace(new RegExp(String.raw`\s+thrown\s+(?:to|at|out of bounds at)\s+${SPOT}`, 'gi'), '');
-  s = s.replace(new RegExp(String.raw`\s+(?:to|at|from)\s+${SPOT}`, 'g'), '');               // to ISU03 / at UCF30 / from ISU25
-  s = s.replace(new RegExp(String.raw`\s+out of bounds at\s+${SPOT}`, 'gi'), ' out of bounds');
+  // field spots: keep only the last one (where the play ended), written "to the UCF 45"
+  const SPOT_RE = new RegExp(String.raw`\s+(thrown\s+(?:to|at|out of bounds at)|out of bounds at|ob at|to|at|from)\s+(${SPOT})`, 'gi');
+  const spots = [...s.matchAll(SPOT_RE)];
+  const endIdx = spots.map(m => !/^thrown/i.test(m[1])).lastIndexOf(true);
+  let k = -1;
+  s = s.replace(SPOT_RE, (all, prep, spot) => {
+    k++;
+    if (k !== endIdx) return /out of bounds/i.test(prep) && !/^thrown/i.test(prep) ? ' out of bounds' : '';
+    const sp = spot.replace(/^the\s+/i, '').replace(/^([A-Z]{2,6})\s?(\d{1,2})$/, (x, t, n) => `${t} ${+n}`);
+    if (/\s0$/.test(sp)) return '';                                      // end zone (TD / touchback): no spot
+    const p = /out of bounds/i.test(prep) ? 'out of bounds at' : /^(ob )?at$/i.test(prep) ? (/^ob/i.test(prep) ? 'ob at' : 'at') : 'to';
+    return ` ${p} the ${sp}`;
+  });
   if (/\bpass incomplete\b/i.test(s)) {                                                      // stop after the intended receiver
     const m = s.match(new RegExp(String.raw`^(.*?\bpass incomplete\b.*?\bto\s+${PNAME})`, 'i'));
     if (m) s = m[1];
   }
-  s = s.replace(new RegExp(String.raw`((?:intercepted|recovered) by (${PNAME}))\.\s+\2\s+for\b`, 'g'), '$1, returned for');
+  s = s.replace(new RegExp(String.raw`((?:intercepted|recovered) by (${PNAME}))\.\s+\2\s+((?:to the \S+(?: \d+)?\s+)?)for\b`, 'g'), '$1, returned $3for');
   s = s.replace(/\s+([.,;])/g, '$1').replace(/(?<!\b(?:Jr|Sr))[.,;]+\s*$/, '').replace(/\s{2,}/g, ' ').replace(/^[\s,.-]+/, '').trim();
   return s || String(t || '').trim();
 }
