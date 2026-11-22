@@ -276,6 +276,14 @@ body{overscroll-behavior:none}
 .sheet .box{width:100%;padding:14px max(14px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));
   background:linear-gradient(#5d6a7d,#2f3947);border-top:1px solid #8a97aa;box-shadow:0 -4px 16px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:10px}
 .sheet h2{margin:0;font-size:17px;text-align:center;text-shadow:0 -1px 0 #000}
+.ord-h{display:flex;align-items:baseline;justify-content:space-between;font-size:14px;font-weight:800;text-shadow:0 -1px 0 #000}
+.ord-h small{font-size:11.5px;font-weight:600;color:#c3ccd8}
+.ord{list-style:none;margin:0;padding:0;border:1px solid #0b0d11;max-height:min(42vh,320px);overflow-y:auto}
+.ord li{display:flex;align-items:center;gap:6px;padding:5px 6px 5px 12px;background:linear-gradient(#4a5463,#333b47);border-top:1px solid rgba(255,255,255,.14);border-bottom:1px solid rgba(0,0,0,.5)}
+.ord li span{flex:1;min-width:0;font-size:15px;font-weight:700;text-shadow:0 -1px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ord button{flex:none;width:38px;height:30px;padding:0;border:1px solid #0b0d11;color:#fff;font-size:12px;cursor:pointer;background:linear-gradient(#6a7586,#3d4652);box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+.ord button:disabled{opacity:.3;cursor:default}
+.ord button:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
 .sheet p{margin:0;font-size:13px;line-height:1.4;color:#dde3ec;text-shadow:0 -1px 0 rgba(0,0,0,.5)}
 .btn{display:block;width:100%;padding:11px;border-radius:0;font:700 16px var(--font);color:#fff;cursor:pointer;
   background:linear-gradient(#5a8be0,#2459b8 50%,#1a4aa3);border:1px solid #0d2a62;box-shadow:inset 0 1px 0 rgba(255,255,255,.45);text-shadow:0 -1px 0 rgba(0,0,0,.5)}
@@ -307,6 +315,8 @@ body{overscroll-behavior:none}
       <h2>Settings</h2>
       <p id="updated">Not updated yet.</p>
       <p>Scores refresh every 30 seconds while games are live and every 2 minutes otherwise. To install, open this page in Safari, tap Share, then Add to Home Screen.</p>
+      <div class="ord-h">Sport Order <small>The Lead always comes first</small></div>
+      <ol class="ord" id="ordList"></ol>
       <button class="btn" id="refreshBtn">Refresh Now</button>
       <button class="btn dark" id="closeBtn">Done</button>
     </div>
@@ -323,6 +333,15 @@ const SPORTS = [
   { key:'nba', daily:true, theme:'nba', name:'NBA',              tag:'NBA',   mark:'NBA',   path:'basketball/nba',                     params:'',                    college:false, page:'nba-scoreboard.html' },
   { key:'epl', daily:true, span:[-3, 4], theme:'mlb', name:'Premier League', tag:'EPL', mark:'EPL', path:'soccer/eng.1', params:'', college:false, page:'' },
 ];
+// Your sport order (Settings → Sport Order). Sports not in the saved list keep their default spot at the end.
+const DEFAULT_ORDER = SPORTS.map(sp => sp.key);
+(function applyOrder(){
+  let saved = [];
+  try { saved = JSON.parse(localStorage.getItem('scoreline.order') || '[]'); } catch (e) {}
+  if (!Array.isArray(saved) || !saved.length) return;
+  const pos = k => { const n = saved.indexOf(k); return n < 0 ? 100 + DEFAULT_ORDER.indexOf(k) : n; };
+  SPORTS.sort((a, b) => pos(a.key) - pos(b.key));
+})();
 // Where tapping a game goes. Default: the game's own page from the feed.
 const gameLink = (sport, ev) => (ev.links && ev.links[0] && ev.links[0].href) || '#';
 const API = 'https://site.api.espn.com/apis/site/v2/sports/';
@@ -1368,8 +1387,34 @@ requestAnimationFrame(crawlFrame);
 
 const sheet = document.getElementById('sheet');
 document.getElementById('gear').onclick = () => { sheet.hidden = false; document.getElementById('closeBtn').focus(); };
-document.getElementById('closeBtn').onclick = () => sheet.hidden = true;
-sheet.onclick = e => { if (e.target === sheet) sheet.hidden = true; };
+// Sport order editor: move sports up or down; on close, a changed order is saved and the app reloads in that order.
+let draftOrder = SPORTS.map(sp => sp.key);
+function drawOrder(){
+  const ol = document.getElementById('ordList');
+  ol.innerHTML = draftOrder.map((k, i) => { const sp = sportOf(k); return `<li><span>${esc(sp.name)}</span>
+    <button data-mv="-1" data-i="${i}" aria-label="Move ${esc(sp.name)} up"${i === 0 ? ' disabled' : ''}>▲</button>
+    <button data-mv="1" data-i="${i}" aria-label="Move ${esc(sp.name)} down"${i === draftOrder.length - 1 ? ' disabled' : ''}>▼</button></li>`; }).join('');
+}
+document.getElementById('ordList').onclick = e => {
+  const b = e.target.closest('button[data-mv]'); if (!b) return;
+  const i = +b.dataset.i, j = i + +b.dataset.mv;
+  if (j < 0 || j >= draftOrder.length) return;
+  [draftOrder[i], draftOrder[j]] = [draftOrder[j], draftOrder[i]];
+  drawOrder();
+  const again = document.querySelector(`#ordList button[data-mv="${b.dataset.mv}"][data-i="${j}"]`);
+  if (again && !again.disabled) again.focus();
+};
+function closeSheet(){
+  sheet.hidden = true;
+  if (draftOrder.join() !== SPORTS.map(sp => sp.key).join()) {
+    try { localStorage.setItem('scoreline.order', JSON.stringify(draftOrder)); localStorage.setItem('scoreline.page', '0'); } catch (e) {}
+    location.reload();
+  }
+}
+drawOrder();
+document.getElementById('gear').addEventListener('click', () => { draftOrder = SPORTS.map(sp => sp.key); drawOrder(); });
+document.getElementById('closeBtn').onclick = closeSheet;
+sheet.onclick = e => { if (e.target === sheet) closeSheet(); };
 document.getElementById('refreshBtn').onclick = () => { sheet.hidden = true; refresh(); loadNews(); };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
 
