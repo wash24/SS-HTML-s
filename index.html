@@ -789,13 +789,14 @@ const LEAGUE_TAGS = {
 function inLeague(sp, a){
   const t = LEAGUE_TAGS[sp.key]; if (!t) return true;
   const leagues = (a.categories || []).filter(c => c && (c.type === 'league' || c.leagueId != null || c.league));
+  if (!leagues.length) return true;
   return leagues.some(c => {
     const id = c.leagueId ?? (c.league && c.league.id);
     if (id != null && +id === t.id) return true;
     if (c.uid && new RegExp('~l:' + t.id + '(~|$)').test(c.uid)) return true;
     const words = [c.description, c.league && (c.league.description || c.league.abbreviation || c.league.name), c.league && c.league.slug].filter(Boolean).join(' ');
     return t.re.test(words) && !(sp.key === 'ncb' && /women/i.test(words));
-  });
+  }) || !leagues.some(c => /\w/.test(String(c.description || c.uid || c.leagueId || '')));
 }
 async function getNewsDeep(sp, want){
   const seen = new Set(), keep = [];
@@ -810,7 +811,7 @@ async function getNewsDeep(sp, want){
   const [sport, league] = sp.path.split('/');
   for (let page = 1; keep.length < want && page <= 6; page++) {
     try {
-      const j = await getJSON(`${NOW_API}?sport=${sport}&league=${league}&leagues=${league}&limit=50&page=${page}`);
+      const j = await getJSON(`${NOW_API}?leagues=${league}&limit=50&page=${page}`);
       const list = (j.headlines || j.articles || []).map(a => ({ ...a, links: a.links || (a.link ? { web: { href: a.link } } : undefined) }));
       if (!list.length) break;
       add(list.filter(a => inLeague(sp, a)));
