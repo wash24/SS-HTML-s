@@ -763,7 +763,10 @@ async function loadSportNews(sp){
 // checked against the headline, the description and the story's own categories.
 const FANTASY_BETTING = /\b(fantasy|dfs|draftkings|fanduel|underdog fantasy|prizepicks|waivers?|start\s*\/?\s*sit|sit\/start|lineup (advice|optimizer)|rankings for week|(sports ?)?betting|bet(s|tor|tors|ting)?|wager(s|ing)?|gambl(e|ing|er)|sportsbook|odds(?!-)|line(s)? (move|movement)|point spread|spread pick|against the spread|ats|over\/under|o\/u|moneyline|parlays?|teasers?|props?|best bets|picks? (for|against|to win)|lock of the week|futures|longshots?|value bet|caesars|betmgm|espn ?bet|bet365|fanatics sportsbook)\b/i;
 const gambleOrFantasy = a => FANTASY_BETTING.test([a.headline, a.description, ...((a.categories || []).map(c => c && (c.description || c.type || '')))].filter(Boolean).join(' '));
-const newsOk = a => !!(a && a.headline) && !/(game|full)\s+highlights/i.test(a.headline + ' ' + (a.description || '').slice(0, 80)) && !gambleOrFantasy(a);
+// Ongoing pages that are re-posted with updates (trackers, grade sheets, live blogs) are left out too.
+const RECURRING = /\b(tracker|trackers|live(\s*:|\s+(updates?|blog|coverage|analysis|reaction|scores?|thread))|top plays|grades?\s*:|(trade|signing|draft|deal|deadline|offseason|free[- ]agency|week \d+|midseason|report card) grades|offseason analysis|rumor(s)? (roundup|mill|central|tracker)|daily (roundup|notebook)|news and notes|what we're hearing|everything (we know|to know)|winners and losers)\b/i;
+const recurring = a => RECURRING.test(a.headline || '') || /^(livegameblog|liveblog)$/i.test(a.type || '');
+const newsOk = a => !!(a && a.headline) && !/(game|full)\s+highlights/i.test(a.headline + ' ' + (a.description || '').slice(0, 80)) && !gambleOrFantasy(a) && !recurring(a);
 
 // The Lead's News: top stories from every sport in one list, newest first, each tagged with its sport.
 function newsList(list, withTag){
