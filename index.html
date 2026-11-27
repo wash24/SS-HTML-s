@@ -766,14 +766,13 @@ const gambleOrFantasy = a => FANTASY_BETTING.test([a.headline, a.description, ..
 // Ongoing pages that are re-posted with updates (trackers, grade sheets, live blogs) are left out too.
 const RECURRING = /\b(tracker|trackers|live(\s*:|\s+(updates?|blog|coverage|analysis|reaction|scores?|thread))|top plays|grades?\s*:|(trade|signing|draft|deal|deadline|offseason|free[- ]agency|week \d+|midseason|report card) grades|offseason analysis|rumou?r(s)? (roundup|mill|central|tracker)|(transfer|trade|free[- ]agency|deadline) rumou?rs|rumou?rs,? (and )?news|daily (roundup|notebook)|news and notes|what we're hearing|everything (we know|to know)|winners and losers)\b/i;
 const recurring = a => RECURRING.test(a.headline || '') || /^(livegameblog|liveblog)$/i.test(a.type || '');
-// Mass-produced game previews (college basketball, NBA, college football) ("X square off against Y", "James leads N.C. A&T against
+// Mass-produced game previews (every sport) ("X square off against Y", "James leads N.C. A&T against
 // Delaware State after 22-point game"): spotted by their stock headline phrasing, or by a description that opens
 // with both teams' records ("Delaware State Hornets (2-4) at N.C. A&T Aggies (3-3)") or a "BOTTOM LINE:" lead.
-const AUTO_PREVIEW_HEAD = /\b(square off|face off|squares off|faces off)\b|\bafter \d+-point (game|performance|outing|showing|effort)\b|\b(host|hosts|visit|visits|take on|takes on|face|faces|play|plays|meet|battle|battles)\b.*\b(after|following|looks? to|seeks?|aims? to|on the line|streak|skid|slide|losing run)\b|\b(set|ready|looks?) (to|for) (host|visit|face|play|take on)\b|\bleads? .+ (against|into (matchup|game|contest) with|to matchup with) /i;
+const AUTO_PREVIEW_HEAD = /\b(conference|division(al)?|inter-?conference|non-?conference|league|east(ern)?|west(ern)?|central|pacific|atlantic) (foe|foes|opponent|rival|matchup|action|play|showdown|battle|contest|clash)\b|\b(into|for) (a )?(matchup|game|contest|meeting) (with|against)\b|\b(take|takes|bring|brings|put|puts|carry|carries) .{0,40}(streak|skid|slide|win|losing|winning) .{0,25}\b(into|against|vs\.?)\b|\band the [A-Z][\w.'-]*(?: [A-Z][\w.'-]*)* (host|visit|take on|face|play|meet|square off|battle)\b|\b(square off|face off|squares off|faces off)\b|\bafter \d+-point (game|performance|outing|showing|effort)\b|\b(host|hosts|visit|visits|take on|takes on|face|faces|play|plays|meet|battle|battles)\b.*\b(after|following|looks? to|seeks?|aims? to|on the line|streak|skid|slide|losing run)\b|\b(set|ready|looks?) (to|for) (host|visit|face|play|take on)\b|\bleads? .+ (against|into (matchup|game|contest) with|to matchup with) /i;
 const AUTO_PREVIEW_DESC = /^\s*[^.()]{3,60}\(\d+-\d+(?:,\s*\d+-\d+[^)]*)?\)\s+(at|vs\.?)\s+[^()]{3,60}\(\d+-\d+|\bBOTTOM LINE:|\bLEADING THE WAY:|\bTOP PERFORMERS:/i;
-const dataSkrive = a => /data\s*skrive/i.test([a.byline, a.source, ...((a.authors || []).map(x => x && (x.name || x.displayName)))].filter(Boolean).join(' '));
+const dataSkrive = a => /data\s*skrive/i.test([a.byline, a.source, a.description, a.story, ...((a.authors || []).map(x => x && (x.name || x.displayName)))].filter(Boolean).join(' '));
 const autoPreview = a => dataSkrive(a) || AUTO_PREVIEW_HEAD.test(a.headline || '') || AUTO_PREVIEW_DESC.test(a.description || '') || AUTO_PREVIEW_DESC.test(a.story || '');
-const AUTO_PREVIEW_SPORTS = ['ncb', 'nba', 'cfb'];
 // When a feed's newest stories are almost all generated previews (busy college days have 100+ of them),
 // college pages also read the news feeds of the current Top 25 teams, where real stories aren't crowded out.
 async function top25Ids(sp){
@@ -811,7 +810,7 @@ async function getNews(sp, n){
   try { return await getJSON(API + sp.path + '/news?limit=' + n); }
   catch (e) { return await getJSON(API + sp.path + '/news?limit=25'); }
 }
-const sportNewsOk = (sp, a) => newsOk(a) && !(AUTO_PREVIEW_SPORTS.includes(sp.key) && autoPreview(a));
+const sportNewsOk = (sp, a) => newsOk(a) && !autoPreview(a);
 const newsOk = a => !!(a && a.headline) && !/(game|full)\s+highlights/i.test(a.headline + ' ' + (a.description || '').slice(0, 80)) && !gambleOrFantasy(a) && !recurring(a) && !dataSkrive(a);
 
 // The Lead's News: top stories from every sport in one list, newest first, each tagged with its sport.
