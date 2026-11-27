@@ -759,7 +759,11 @@ async function loadSportNews(sp){
 }
 
 // Leave out "Game Highlights" / "Full Highlights" video posts everywhere news shows (News tabs and the bottom crawl).
-const newsOk = a => !!(a && a.headline) && !/(game|full)\s+highlights/i.test(a.headline + ' ' + (a.description || '').slice(0, 80));
+// Fantasy and gambling stories are left out everywhere news shows (News tabs, The Lead, the bottom crawl):
+// checked against the headline, the description and the story's own categories.
+const FANTASY_BETTING = /\b(fantasy|dfs|draftkings|fanduel|underdog fantasy|prizepicks|waivers?|start\s*\/?\s*sit|sit\/start|lineup (advice|optimizer)|rankings for week|(sports ?)?betting|bet(s|tor|tors|ting)?|wager(s|ing)?|gambl(e|ing|er)|sportsbook|odds(?!-)|line(s)? (move|movement)|point spread|spread pick|against the spread|ats|over\/under|o\/u|moneyline|parlays?|teasers?|props?|best bets|picks? (for|against|to win)|lock of the week|futures|longshots?|value bet|caesars|betmgm|espn ?bet|bet365|fanatics sportsbook)\b/i;
+const gambleOrFantasy = a => FANTASY_BETTING.test([a.headline, a.description, ...((a.categories || []).map(c => c && (c.description || c.type || '')))].filter(Boolean).join(' '));
+const newsOk = a => !!(a && a.headline) && !/(game|full)\s+highlights/i.test(a.headline + ' ' + (a.description || '').slice(0, 80)) && !gambleOrFantasy(a);
 
 // The Lead's News: top stories from every sport in one list, newest first, each tagged with its sport.
 function newsList(list, withTag){
