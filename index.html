@@ -747,14 +747,14 @@ async function loadSportNews(sp){
   const el = document.getElementById('n-' + sp.key);
   if (!state.sportNews[sp.key]) el.innerHTML = '<div class="skel"></div><div class="skel"></div>';
   try {
-    const j = await getNews(sp, 100);
-    state.sportNews[sp.key] = (j.articles || []).filter(a => sportNewsOk(sp, a));
+    const j = await getNewsDeep(sp, 12);
+    state.sportNews[sp.key] = j.articles;
   } catch (e) {
     if (!state.sportNews[sp.key]) state.sportNews[sp.key] = state.sample[sp.key] ? SAMPLE_ARTICLES(sp) : null;
   }
   const list = state.sportNews[sp.key];
   if (!list) { el.innerHTML = `<div class="empty">Couldn't reach ${esc(sp.name)} news. Check your connection and try again.</div>`; return; }
-  if (!list.length) { el.innerHTML = `<div class="empty">No ${esc(sp.name)} headlines right now.</div>`; return; }
+  if (!list.length) { el.innerHTML = `<div class="empty">No ${esc(sp.name)} stories right now beyond automated game previews.</div>`; return; }
   el.innerHTML = (state.sample[sp.key] ? NOTICE : '') + `<div class="section">Latest</div>` + newsList(list, false);
 }
 
@@ -773,6 +773,31 @@ const AUTO_PREVIEW_HEAD = /\b(square off|face off|squares off|faces off)\b|\baft
 const AUTO_PREVIEW_DESC = /^\s*[^.()]{3,60}\(\d+-\d+(?:,\s*\d+-\d+[^)]*)?\)\s+(at|vs\.?)\s+[^()]{3,60}\(\d+-\d+|\bBOTTOM LINE:|\bLEADING THE WAY:|\bTOP PERFORMERS:/i;
 const autoPreview = a => /data\s*skrive/i.test([a.byline, a.source, ...((a.authors || []).map(x => x && (x.name || x.displayName)))].filter(Boolean).join(' ')) || AUTO_PREVIEW_HEAD.test(a.headline || '') || AUTO_PREVIEW_DESC.test(a.description || '') || AUTO_PREVIEW_DESC.test(a.story || '');
 const AUTO_PREVIEW_SPORTS = ['ncb', 'nba', 'cfb'];
+// When a feed's newest stories are almost all generated previews (busy college basketball days have 100+),
+// keep reading further back, from ESPN's paged news feed for the same league, until there are enough real stories.
+const NOW_API = 'https://now.core.api.espn.com/v1/sports/news';
+async function getNewsDeep(sp, want){
+  const seen = new Set(), keep = [];
+  let raw = 0;
+  const add = list => (list || []).forEach(a => {
+    const k = String(a.id || a.headline || '').toLowerCase();
+    if (!a || !a.headline || seen.has(k)) return;
+    seen.add(k); raw++;
+    if (sportNewsOk(sp, a)) keep.push(a);
+  });
+  try { add((await getNews(sp, 100)).articles); } catch (e) {}
+  const [sport, league] = sp.path.split('/');
+  for (let page = 1; keep.length < want && page <= 6; page++) {
+    try {
+      const j = await getJSON(`${NOW_API}?sport=${sport}&leagues=${league}&limit=50&page=${page}`);
+      const list = (j.headlines || j.articles || []).map(a => ({ ...a, links: a.links || (a.link ? { web: { href: a.link } } : undefined) }));
+      if (!list.length) break;
+      add(list);
+    } catch (e) { break; }
+  }
+  if (!raw) throw new Error('no news');
+  return { articles: keep, raw };
+}
 async function getNews(sp, n){
   try { return await getJSON(API + sp.path + '/news?limit=' + n); }
   catch (e) { return await getJSON(API + sp.path + '/news?limit=25'); }
@@ -800,7 +825,7 @@ async function loadLeadNews(){
   if (!state.leadNews) el.innerHTML = '<div class="skel"></div><div class="skel"></div>';
   const res = await Promise.all(SPORTS.map(async sp => {
     try {
-      const j = await getNews(sp, 50);
+      const j = await getNewsDeep(sp, 6);
       const fresh = (j.articles || []).filter(a => leadWorthy(a) && sportNewsOk(sp, a)).filter(a => !a.published || Date.now() - new Date(a.published) < 48 * 36e5);
       return fresh.slice(0, inSeason(sp) ? 4 : 2).map((a, i) => ({ ...a, _tag: sp.tag, _rank: i }));
     } catch (e) { return null; }
