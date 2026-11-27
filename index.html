@@ -773,49 +773,35 @@ const AUTO_PREVIEW_HEAD = /\b(square off|face off|squares off|faces off)\b|\baft
 const AUTO_PREVIEW_DESC = /^\s*[^.()]{3,60}\(\d+-\d+(?:,\s*\d+-\d+[^)]*)?\)\s+(at|vs\.?)\s+[^()]{3,60}\(\d+-\d+|\bBOTTOM LINE:|\bLEADING THE WAY:|\bTOP PERFORMERS:/i;
 const autoPreview = a => /data\s*skrive/i.test([a.byline, a.source, ...((a.authors || []).map(x => x && (x.name || x.displayName)))].filter(Boolean).join(' ')) || AUTO_PREVIEW_HEAD.test(a.headline || '') || AUTO_PREVIEW_DESC.test(a.description || '') || AUTO_PREVIEW_DESC.test(a.story || '');
 const AUTO_PREVIEW_SPORTS = ['ncb', 'nba', 'cfb'];
-// When a feed's newest stories are almost all generated previews (busy college basketball days have 100+),
-// keep reading further back, from ESPN's paged news feed for the same league, until there are enough real stories.
-const NOW_API = 'https://now.core.api.espn.com/v1/sports/news';
-// That feed mixes leagues of the same sport (college basketball pages come back with NBA stories),
-// so each story's own league tag decides whether it belongs on this page.
-const LEAGUE_TAGS = {
-  ncb: { id: 41, abbr: 'mens-college-basketball', re: /men'?s college basketball|ncaa men'?s basketball|\bncaam\b|\bncb\b/i },
-  nba: { id: 46, abbr: 'nba', re: /\bnba\b/i },
-  cfb: { id: 23, abbr: 'college-football', re: /college football|\bncaaf\b|\bcfb\b/i },
-  nfl: { id: 28, abbr: 'nfl', re: /\bnfl\b/i },
-  mlb: { id: 10, abbr: 'mlb', re: /\bmlb\b/i },
-  epl: { id: 700, abbr: 'eng.1', re: /premier league|\beng\.1\b|\bepl\b/i },
-};
-function inLeague(sp, a){
-  const t = LEAGUE_TAGS[sp.key]; if (!t) return true;
-  const leagues = (a.categories || []).filter(c => c && (c.type === 'league' || c.leagueId != null || c.league));
-  if (!leagues.length) return true;
-  return leagues.some(c => {
-    const id = c.leagueId ?? (c.league && c.league.id);
-    if (id != null && +id === t.id) return true;
-    if (c.uid && new RegExp('~l:' + t.id + '(~|$)').test(c.uid)) return true;
-    const words = [c.description, c.league && (c.league.description || c.league.abbreviation || c.league.name), c.league && c.league.slug].filter(Boolean).join(' ');
-    return t.re.test(words) && !(sp.key === 'ncb' && /women/i.test(words));
-  }) || !leagues.some(c => /\w/.test(String(c.description || c.uid || c.leagueId || '')));
+// When a feed's newest stories are almost all generated previews (busy college days have 100+ of them),
+// college pages also read the news feeds of the current Top 25 teams, where real stories aren't crowded out.
+async function top25Ids(sp){
+  try {
+    const j = await getJSON(API + sp.path + '/rankings');
+    const poll = (j.rankings || []).find(r => /ap/i.test(r.shortName || r.name || '')) || (j.rankings || [])[0];
+    const ids = ((poll && poll.ranks) || []).map(r => r.team && r.team.id).filter(Boolean).slice(0, 25);
+    if (ids.length) return ids.map(String);
+  } catch (e) {}
+  const seen = new Set();
+  (state.data[sp.key] || []).forEach(g => g.teams.forEach(t => { if (t.rank && t.id) seen.add(String(t.id)); }));
+  return [...seen].slice(0, 25);
 }
 async function getNewsDeep(sp, want){
   const seen = new Set(), keep = [];
   let raw = 0;
   const add = list => (list || []).forEach(a => {
-    const k = String(a.id || a.headline || '').toLowerCase();
-    if (!a || !a.headline || seen.has(k)) return;
-    seen.add(k); raw++;
+    if (!a || !a.headline) return;
+    const k1 = a.id ? 'id:' + a.id : '', k2 = 'h:' + a.headline.trim().toLowerCase();
+    if ((k1 && seen.has(k1)) || seen.has(k2)) return;
+    if (k1) seen.add(k1); seen.add(k2); raw++;
     if (sportNewsOk(sp, a)) keep.push(a);
   });
   try { add((await getNews(sp, 100)).articles); } catch (e) {}
-  const [sport, league] = sp.path.split('/');
-  for (let page = 1; keep.length < want && page <= 6; page++) {
-    try {
-      const j = await getJSON(`${NOW_API}?leagues=${league}&limit=50&page=${page}`);
-      const list = (j.headlines || j.articles || []).map(a => ({ ...a, links: a.links || (a.link ? { web: { href: a.link } } : undefined) }));
-      if (!list.length) break;
-      add(list.filter(a => inLeague(sp, a)));
-    } catch (e) { break; }
+  if (keep.length < want && sp.college) {
+    const ids = await top25Ids(sp);
+    const lists = await Promise.all(ids.map(id => getJSON(API + sp.path + '/news?team=' + id + '&limit=10').then(j => j.articles || []).catch(() => [])));
+    lists.forEach(add);
+    keep.sort((x, y) => new Date(y.published || y.lastModified || 0) - new Date(x.published || x.lastModified || 0));
   }
   if (!raw) throw new Error('no news');
   return { articles: keep, raw };
